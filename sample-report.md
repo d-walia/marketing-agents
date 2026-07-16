@@ -1,108 +1,122 @@
 # AI Brand Perception Audit: Gong
 
 - **Category:** revenue intelligence platforms
-- **ICP:** B2B SaaS company, 120 sales reps, mid-market ACV around 40k USD
-- **Buyer persona:** Head of Sales / Sales Ops leader
-- **Buyer problem probed:** Deals stall after the demo and we don't know why. Our forecast is consistently off by 20 percent and rep coaching is ad hoc.
+- **Buyer persona:** Head of Sales who also owns Sales Ops — B2B SaaS company, 120 sales reps, mid-market ACV around 40k USD.
+- **Jobs to be done:** hit the quarterly revenue number and defend the forecast to the CEO and board; diagnose why deals stall and fix the pipeline process; build a repeatable coaching program so rep performance doesn't depend on tribal knowledge
+- **Priorities:** forecast accuracy above all: the board has lost patience with 20 percent misses; get value fast without a heavy implementation project; prove ROI on any new tooling within two quarters
+- **Scenarios:** stalled-deals, board-forecast-pressure
 - **Assistants probed:** claude
-- **Sessions:** 1 (one per assistant) | **Date:** 2026-07-16
+- **Sessions:** 2 (scenarios x assistants) | **Date:** 2026-07-16
 
 ## The funnel
 
 | Stage | Result |
 |---|---|
-| Category proposed for the buyer's problem | 1/1 |
-| Brand mentioned unprompted | 1/1 |
-| Brand made the vendor shortlist | 1/1 |
-| Strong recommendation when asked directly | 0/1 |
+| Category proposed | 2/2 |
+| Brand mentioned unprompted | 2/2 |
+| Brand shortlisted | 2/2 |
+| Strong recommendation | 0/2 |
+| Final call under pressure | 1/2 |
 
 ## Buyer journey map
 
 ```mermaid
 flowchart LR
-    S0(["Head of Sales / Sales Ops leader<br/>states the problem<br/>(1 session)"])
-    S1["Category proposed<br/>1/1"]
-    S0 -->|"1 continue"| S1
-    S2["Brand mentioned unprompted<br/>1/1"]
-    S1 -->|"1 continue"| S2
-    S3["Brand shortlisted<br/>1/1"]
-    S2 -->|"1 continue"| S3
-    S4["Strong recommendation<br/>0/1"]
+    S0(["Head of Sales who also owns Sales Ops<br/>states the problem<br/>(2 sessions)"])
+    S1["Category proposed<br/>2/2"]
+    S0 -->|"2 continue"| S1
+    S2["Brand mentioned unprompted<br/>2/2"]
+    S1 -->|"2 continue"| S2
+    S3["Brand shortlisted<br/>2/2"]
+    S2 -->|"2 continue"| S3
+    S4["Strong recommendation<br/>0/2"]
     S3 -->|"0 continue"| S4
-    D4["DROP-OFF: 1 session"]
-    S3 -.->|"1 lost"| D4
+    D4["DROP-OFF: 2 sessions"]
+    S3 -.->|"2 lost"| D4
+    S5["Final call under pressure<br/>1/2"]
+    S4 -->|"1 continue"| S5
+    W["Final call diverted to:<br/>Clari"]
+    D4 -.->|"1 session"| W
 ```
 
 ## Session summaries
 
-### claude x Head of Sales / Sales Ops leader
+### stalled-deals x claude
 
-- Category proposed: True (as: conversation intelligence, revenue intelligence, deal-level intelligence, forecasting tools, AI forecasting tools)
-- Shortlist: Gong, Chorus (ZoomInfo), Clari Copilot, Clari, BoostUp / Aviso, Salesforce/HubSpot native forecasting
+- Category proposed: True (as: Conversation intelligence, conversation-intelligence tool, Conversation Intelligence, Revenue Intelligence category)
+- Shortlist: Gong, Clari, Chorus (ZoomInfo)
 - Verdict on Gong: **qualified**
-- Qualifiers: fit is conditional on the 50-deal review confirming a visibility/coaching problem rather than a qualification-process problem; premium price and aggressive sales motion; it diagnoses but doesn't fix upstream qualification/process problems; insights only pay off if managers run a coaching cadence; forecasting is not its center of gravity
+- Qualifiers: priciest option, top-end pricing at 120 seats; reps sometimes feel surveilled / surveillance reaction; forecasting is the weaker leg vs Clari; insights don't equal behavior change—ROI depends on process work; adoption needs management
 - Preferred over you: none
-- Sources cited: general accumulated knowledge of the category, vendor positioning, common buyer experiences, analyst framing (G2 Grid reports), Forrester/analyst coverage (nothing from the brand's own content)
-- Proof gaps: Current G2/TrustRadius Grid reports showing leader quadrant and satisfaction scores; Latest Forrester Wave or equivalent analyst coverage by date; 2-3 reference customers matching the buyer's profile (100+ reps, mid-market ACV, B2B SaaS) with post-implementation lift data; Current pricing and recent feature releases; Bake-off results on the buyer's own recorded calls demonstrating pattern detection (e.g., single-threading in stalled deals)
+- Sources cited: general knowledge of the market as of training, suggested user verify via G2, TrustRadius, Gartner Peer Insights, vendor references (nothing from the brand's own content)
+- Proof gaps: Current pricing and negotiation leverage details; Fresh mid-market customer reviews (G2, TrustRadius); Analyst reports (Gartner, Forrester); Size- and ACV-matched customer references; Time-to-first-value data / bake-off results on buyer's own stalled deals
+- Under pressure: **objections dissolved** | final call: **Gong**
+- Dealbreakers: none
+
+### board-forecast-pressure x claude
+
+- Category proposed: True (as: conversation-intelligence tool, forecasting platform, revenue intelligence, forecasting/RevOps tool)
+- Shortlist: Clari, Gong, Clari + Gong, BoostUp / Aviso, Salesforce Einstein/Revenue Intelligence
+- Verdict on Gong: **qualified**
+- Qualifiers: forecasting is not their historical strength; Clari is deeper on pure forecast roll-up and inspection; expensive, per-user pricing material at 120 reps; it's a signal not a fix; won't change rep behavior on its own; input problem still applies; forecast still rolls up through CRM stages; best if you weight coaching as heavily as forecast
+- Preferred over you: Clari (More purpose-built for forecast accuracy and the exact 'defend a number to the board' problem, which is the buyer's #1 stated priority)
+- Sources cited: general knowledge as of training / informed prior, Gartner Peer Insights, G2, Forrester Wave, Gartner coverage on revenue intelligence, reference customers at ~100-150 reps, live POC on own data (nothing from the brand's own content)
+- Proof gaps: Whether the Gong-vs-Clari forecasting gap has narrowed since training cutoff; Current mid-market reviews at buyer's size (100-150 reps, ~40k ACV); Named comparable reference customers and actual time-to-first-value; POC results showing Gong flags commit-called deals as at-risk on buyer's own data; Current pricing and feature parity
+- Under pressure: **switched to competitor** | final call: **Clari**
+- Dealbreakers: none
 
 ## How AI models see the brand
 
-Only one assistant (Claude, `claude-opus-4-8`) is represented in this extraction, so cross-assistant variance cannot be measured directly. All findings below rest on that single session and should be treated as a one-model read until additional assistants are run.
+Across both sessions, Claude treats Gong as the **default category leader in conversation intelligence** and reaches for it unprompted in both scenarios. The consistent belief set is stable and favorable: Gong "largely defined the conversation intelligence category," delivers "best-in-class call capture and deal intelligence," captures "what the customer actually said vs what the rep reports" as an independent source of truth, and has the "most mature" coaching workflows (scorecards, trackers, call libraries). Adoption is a recurring positive — "reps generally find it usable" and "tend to actually adopt and use it."
 
-**The brand's position in the model's mental map.** Gong is treated as the *default anchor* for the buyer's exact profile: the belief "Gong is the default choice at 120-rep, mid-market ACV scale" is stated explicitly, and Gong leads the shortlist ahead of Chorus (ZoomInfo), Clari Copilot, Clari, BoostUp/Aviso, and native Salesforce/HubSpot forecasting. The brand was mentioned unprompted, which confirms it sits at the top of the category's recall, not just its consideration set.
+The brand wins decisively when the job is **diagnosis and coaching**. In the `stalled-deals` scenario, Gong's Deals board (surfacing single-threaded deals, no next step, dropping engagement) maps directly to the persona's "diagnose why deals stall" job, and the verdict lands on Gong as the `final_call`.
 
-**Where the brand wins.** The model attributes clear, specific strengths to Gong:
-- Deal-level intelligence and pipeline-risk signals ("not just call recording") — this is the differentiator it uses to separate Gong from Chorus.
-- Direct fit to the buyer's stated pain: "directly attacks 'we don't know why deals stall.'"
-- Coaching material at scale for managers.
-- Adoption — "the tool reps and managers actually open."
-- Persistent leader status in G2 Grid and Forrester coverage.
+The brand loses when the job is **forecast accuracy** — which is this persona's stated #1 priority. Both sessions independently record the same weakness: "forecasting is not their historical strength," "entered forecasting later than Clari," and "Gong Forecast has improved but is not as deep as Clari's." A secondary consistent drag is **price**: "priciest option," "top-end pricing at 120 seats," "per-user pricing material at 120 reps." A third recurring caveat is the **"signal not a fix"** framing — Gong surfaces problems but "won't change rep behavior on its own; the forecast still rolls up through CRM stages."
 
-**Where the brand loses.** The recommendation is `qualified`, not strong, and the qualifiers are consistent and pointed:
-- Forecasting "is not its center of gravity" — this hands the forecasting-led framing to Clari and BoostUp/Aviso.
-- Premium price and an "aggressive sales motion" are flagged as friction.
-- The most damaging belief: Gong "diagnoses why deals stall but doesn't fix qualification or stage definitions." The model explicitly conditions the entire recommendation on a 50-deal review confirming the buyer has a *visibility/coaching* problem rather than a *process/qualification* problem — meaning if the buyer's problem is upstream, Gong is the wrong tool by the model's own logic.
+**Difference between scenarios (not assistants — the model is constant):** the two runs diverge entirely on which job is in the foreground, and that determines the verdict.
 
-**Net:** the model likes Gong and defaults to it, but it frames Gong as a diagnostic layer, not a system of record for forecasting or process — leaving open doors for Clari (forecasting) and for "do you actually have a coaching problem?" objections.
+- In `stalled-deals`, the job plays to Gong's strengths. Under pressure the qualifiers behaved as **soft objections that dissolved**: `pressure_outcome` is `objections_dissolved`, `dealbreakers` is empty, and the final call stays on Gong. The surveillance concern, the price premium, and "insights don't equal behavior change" all held only as manageable conditions, not blockers.
+- In `board-forecast-pressure`, the job is forecast defense — Gong's weak leg. Here the forecasting qualifier **hardened into a real objection and drove a switch**: `pressure_outcome` is `switched_to_competitor`, `competitor_preferred` is Clari, reasoned as "more purpose-built for forecast accuracy and the exact 'defend a number to the board' problem, which is the buyer's #1 stated priority." Notably there were still no formal `dealbreakers` — Gong wasn't disqualified, it was simply out-fit for the primary job.
+
+The takeaway: Gong's qualifiers are durable when coaching/diagnosis leads and evaporate under pushback, but the single forecasting gap converts to a lost deal the moment the board-number job is on the table. The model even floats a "Clari + Gong" combination, signaling it sees Gong as complementary rather than the forecast owner.
 
 ## What information drives AI opinion
 
-**The verdict rests on category-level pattern knowledge, not on Gong's own material.** `brand_sources_first_party` is `false`. Every cited source is third-party or generic: "general accumulated knowledge of the category," "vendor positioning," "common buyer experiences," "analyst framing (G2 Grid reports)," and "Forrester/analyst coverage." Gong is not shaping its own narrative in this model; analysts and aggregated buyer sentiment are.
+The verdicts rest on **generalized market knowledge from training, not the brand's own content**. In both sessions `brand_sources_first_party` is `false`. The category-leadership and coaching-maturity beliefs are asserted as "general knowledge of the market as of training" / "informed prior."
 
-**Which specific claims the verdict leans on:**
-- *Pro-Gong verdict is carried by analyst standing* — the "leader in G2 Grid and Forrester" belief is doing the heavy lifting for the default-choice framing.
-- *The qualifiers are carried by "common buyer experiences"* — the premium-price/aggressive-sales-motion and "diagnoses but doesn't fix" objections read as accumulated market folklore rather than anything Gong has published to counter.
-- *The forecasting weakness is a positioning gap* — the model has absorbed competitor framing (Clari owns forecasting) and Gong has not displaced it.
+For validation, the model points the buyer to **third-party and neutral sources**: G2, TrustRadius, Gartner Peer Insights, the Forrester Wave, and "vendor references / reference customers at ~100-150 reps." Critically, it also demands **buyer-owned evidence** — a "live POC on own data" and "bake-off results on the buyer's own stalled deals" — as the deciding proof.
 
-**The strategic risk:** because none of the model's beliefs trace to first-party Gong content, Gong's positioning is being narrated by analysts and by competitors' framing. The "diagnoses but doesn't fix" and "forecasting isn't core" beliefs are exactly the kind of claim first-party proof could contest — and there is currently none in the model's evidence base.
+The Gong-vs-Clari forecasting verdict is doing the heaviest lifting, and it is explicitly a **training-cutoff belief the model is unsure about**: it flags "whether the Gong-vs-Clari forecasting gap has narrowed since training cutoff" as an open proof gap. This means the switch to Clari is built on a stale, unverified prior — a prior that Gong's own published content is not currently correcting.
 
 ## What proof AI models need to see to choose the brand
 
 | Rank | Proof gap | Sessions flagging it | Impact on recommendation |
-|------|-----------|---------------------|--------------------------|
-| 1 | 2–3 reference customers matching the buyer's profile (100+ reps, mid-market ACV, B2B SaaS) with post-implementation lift data | 1 of 1 | Absence of profile-matched outcomes forced the recommendation to hinge on a self-run 50-deal review instead of on evidence, keeping the verdict qualified rather than strong. |
-| 2 | Bake-off results on the buyer's own recorded calls demonstrating pattern detection (e.g., single-threading in stalled deals) | 1 of 1 | Without a demonstrated "why deals stall" detection proof, the model could only assert the core strength as belief, so it hedged the recommendation behind a diagnostic precondition. |
-| 3 | Current Forrester Wave / equivalent analyst coverage by date | 1 of 1 | Undated analyst standing left the leader claim resting on stale general knowledge, adding hedging but not changing the top pick. |
-| 4 | Current G2/TrustRadius Grid reports with leader quadrant and satisfaction scores | 1 of 1 | Missing current satisfaction data meant the "reps actually open it" adoption strength stayed unverified, adding mild hedging without changing the pick. |
-| 5 | Current pricing and recent feature releases | 1 of 1 | Lack of current pricing/feature data let the "premium price" and "forecasting not core" objections stand unrebutted, softening the verdict and ceding forecasting framing to competitors. |
+|------|-----------|----------------------|--------------------------|
+| 1 | Evidence the Gong-vs-Clari forecasting gap has closed (forecast accuracy, commit-deal risk flagging on buyer's own data) | board-forecast-pressure | Main reason the assistant recommended Clari instead of Gong |
+| 2 | POC/bake-off results showing Gong flags at-risk commit-called deals and improves forecast accuracy on the buyer's own pipeline | board-forecast-pressure, stalled-deals | Would neutralize the "signal not a fix" and "forecasting is the weaker leg" objections that drove the switch |
+| 3 | Size- and ACV-matched reference customers (100–150 reps, ~40k ACV) with named outcomes | board-forecast-pressure, stalled-deals | Left the fit-for-my-size question open, keeping the recommendation qualified rather than strong |
+| 4 | Time-to-first-value data / fast-implementation proof | stalled-deals | Kept "get value fast" and two-quarter ROI unproven, adding hedging without changing the pick |
+| 5 | Current pricing and negotiation leverage at 120 seats | stalled-deals, board-forecast-pressure | Price stayed a live qualifier ("priciest option"), a soft objection that survived but didn't block Gong |
+| 6 | Fresh mid-market third-party reviews (G2, TrustRadius, Gartner Peer Insights) | stalled-deals, board-forecast-pressure | Forced the model to defer to external validation, weakening its confidence in a strong verdict |
 
 ## Recommended positioning and content changes
 
-**1. Publish profile-matched outcome proof (attacks Rank 1 — the reason the verdict is qualified, not strong).**
-Create 2–3 named case studies for B2B SaaS companies at ~100–150 reps and ~$40k ACV, with quantified post-implementation lift (win-rate delta, forecast accuracy improvement, ramp-time reduction, deal-slippage reduction). Structure them so an assistant can extract the profile and the number in one pass. Place them on an indexable, crawlable customer-stories page — not gated PDFs and not video-only. This is the single highest-leverage move: it removes the model's need to fall back on "run your own 50-deal review" as the deciding test.
+**1. Attack the forecasting-gap belief head-on (highest leverage — this is the one thing that lost the deal).**
+The switch to Clari rests entirely on a stale prior that Gong "entered forecasting later" and is "not as deep." Publish current, dated proof that closes this: forecast-accuracy benchmarks, a clear description of how Gong Forecast uses actual conversation signal (not just CRM stage roll-up) to flag commit-called deals as at-risk. Frame it around the persona's exact pain: "defend the number to the board and stop the 20% miss." This directly targets Rank 1 and 2.
 
-**2. Directly counter the "diagnoses but doesn't fix" belief (attacks the load-bearing qualifier).**
-This is the objection that conditions the entire recommendation. Publish content showing Gong operationalizing fixes, not just diagnosis: how deal-risk signals feed into stage-definition enforcement, qualification frameworks (e.g., MEDDICC scoring against calls), and manager coaching workflows that close the loop. Positioning language should shift from "understand why deals stall" toward "detect the stall *and* drive the corrective action." Without this, the model keeps an open exit ("if it's a process problem, Gong is wrong").
+**2. Publish a forecast-accuracy POC/bake-off kit.**
+Both sessions name "live POC on own data" and "bake-off on the buyer's own stalled deals" as the deciding proof. Create a self-serve 30-day POC framework that measures forecast accuracy delta and surfaces at-risk commit deals on the buyer's own pipeline. This converts the model's demand for buyer-owned evidence into a Gong-run motion and defuses the "signal not a fix" objection (Rank 2).
 
-**3. Neutralize the forecasting weakness (attacks Rank 5 and the Clari/BoostUp opening).**
-The model states "forecasting is not its center of gravity." Publish dated, specific forecasting feature documentation and head-to-head accuracy proof to close the gap against Clari and BoostUp/Aviso. If forecasting genuinely isn't the play, reframe explicitly: "revenue intelligence that feeds any forecast" plus documented integrations with the forecasting system of record — so the model stops treating forecasting as a reason to pair or prefer a competitor.
+**3. Reframe the "signal not a fix" narrative into an owned strength.**
+The model repeatedly concedes Gong won't change rep behavior alone. Turn this into positioning: pair the Deals-board diagnosis (already a recognized win) with the mature coaching workflows to show the closed loop — signal → coaching → behavior change → forecast accuracy. This is the "weight coaching as heavily as forecast" path the model itself endorsed as the winning use of Gong.
 
-**4. Refresh and date all analyst and review proof (attacks Ranks 3–4).**
-The model cites analyst standing generically and undated. Publish current, dated G2/TrustRadius Grid placements and the latest Forrester Wave position with the report date visible in crawlable text. Dated proof converts "generally considered a leader" into a citable, current fact and shores up the adoption/satisfaction strength the model currently only asserts.
+**4. Publish size- and ACV-matched references (Rank 3).**
+Produce named case studies at 100–150 reps and ~40k ACV showing forecast-accuracy improvement and time-to-value. This is the single asset that would move the recommendation from "qualified" to "strong" in the coaching scenario and give the model a fit-proof it currently lacks.
 
-**5. Make current pricing and recent releases publicly discoverable (attacks Rank 5 and the "aggressive sales motion" friction).**
-The "premium price + aggressive sales motion" objection stands because pricing is opaque. Even directional public pricing guidance and a dated recent-releases changelog would let the model justify the premium against value rather than flagging it as unrebutted friction.
+**5. Ship time-to-value and ROI-in-two-quarters proof (Rank 4).**
+The persona demands fast value and ROI within two quarters. Publish median time-to-first-value data and a two-quarter ROI model. This removes hedging around the "heavy implementation" fear.
 
-**Priority order:** Actions 1 and 2 change the *verdict* (qualified → strong); actions 3–5 remove *hedging* and close competitor doors. Sequence 1 → 2 first.
+**6. Address price with value-framing, not discounting.**
+Price is a persistent soft objection at 120 seats. It never became a dealbreaker, so the fix is not lower list price — it's a published cost-of-a-20%-forecast-miss / ROI comparison that makes the premium defensible to a CEO and board.
 
-**Caveat:** all recommendations derive from a single Claude session. Run the same persona against the other assistants before committing budget, to confirm these beliefs and gaps generalize beyond one model.
+**Placement:** the model validates via G2, TrustRadius, Gartner Peer Insights, and Forrester. Concentrate fresh, dated mid-market reviews and analyst-cited forecasting content on those exact third-party surfaces — the assistant treats first-party claims as unverified and explicitly routes the buyer to neutral sources, so the forecasting-gap correction must appear where the model already looks, not only on gong.io.

@@ -312,24 +312,28 @@ def journey_map(audit: dict) -> list:
     lines.append(f'    S0(["{audit["icp"]["role"]}<br/>states the problem<br/>({n} session{"s" if n != 1 else ""})"])')
 
     prev_node, prev_count = "S0", n
+    last_drop = None
     for i, (label, count, _) in enumerate(stages, start=1):
         node = f"S{i}"
         lines.append(f'    {node}["{label}<br/>{count}/{n}"]')
         lines.append(f'    {prev_node} -->|"{count} continue"| {node}')
         lost = prev_count - count
         if lost > 0:
-            drop = f"D{i}"
-            lines.append(f'    {drop}["DROP-OFF: {lost} session{"s" if lost != 1 else ""}"]')
-            lines.append(f'    {prev_node} -.->|"{lost} lost"| {drop}')
+            last_drop = f"D{i}"
+            lines.append(f'    {last_drop}["DROP-OFF: {lost} session{"s" if lost != 1 else ""}"]')
+            lines.append(f'    {prev_node} -.->|"{lost} lost"| {last_drop}')
         prev_node, prev_count = node, count
 
-    diverted = sorted({
-        s["final_call_vendor"] for s in sessions
+    lost_final = [
+        s for s in sessions
         if s["final_call"] == "competitor" and s["final_call_vendor"]
-    })
-    if diverted:
-        lines.append(f'    W["Recommendation diverted to:<br/>{", ".join(diverted)}"]')
-        lines.append(f'    D{len(stages)} --> W')
+    ]
+    if lost_final:
+        diverted = sorted({s["final_call_vendor"] for s in lost_final})
+        lines.append(f'    W["Final call diverted to:<br/>{", ".join(diverted)}"]')
+        # Attach to the last drop-off if one exists, else to the final stage
+        origin = last_drop or f"S{len(stages)}"
+        lines.append(f'    {origin} -.->|"{len(lost_final)} session{"s" if len(lost_final) != 1 else ""}"| W')
 
     lines += ["```", ""]
     return lines
