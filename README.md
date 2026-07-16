@@ -1,51 +1,55 @@
-# AI Brand Perception Audit
+# AI Brand Perception Audit (B2B)
 
-A small CLI that measures **how AI assistants perceive your brand** when real buyers ask for advice.
+A CLI that measures **how AI assistants perceive and recommend your brand** when your actual buyers work through a real evaluation, and tells you **what to change so they recommend you**.
 
-Buying decisions increasingly happen inside AI conversations, not on search results pages. When someone asks an assistant "what should I buy for X," the answer is a snapshot of what the model believes about your category: who exists, who is credible, who wins. This tool captures that snapshot so you can act on it. If SEO asks "do we rank," an AI brand perception audit asks "do we get recommended."
+B2B buying decisions increasingly start inside AI conversations. When your ICP describes their problem to ChatGPT, Claude, Gemini, or Perplexity, the assistant decides whether your *category* is even the answer, who makes the shortlist, and who wins, based on what it believes about you. This tool captures those beliefs and turns them into positioning and content recommendations.
 
-## How it works
+## The method: buyer-journey chat sessions
 
-1. **Probe.** The tool asks Claude a set of realistic buyer questions about your category: a first-time buyer, a price-sensitive SMB, a security-focused enterprise, a switcher, and a head-to-head ask. Your brand is never named in the question, so nothing primes the answer.
-2. **Extract.** A second, structured pass parses each answer: every brand mentioned, the top recommendation, sentiment toward your brand, and the stated reason the winner won.
-3. **Report.** You get a markdown report with a mention rate, a recommendation rate, a table of who wins each scenario, and probe-by-probe detail, plus the raw JSON.
+The tool poses as your ICP and runs multi-turn chat sessions against every assistant you have API keys for. Each session follows how B2B buying conversations actually unfold:
 
-The interesting output is usually not the score. It's the **reasons column**: the specific claims and gaps that drive the model's picks. Those are the facts your content and proof points need to address.
+1. **Problem turn.** The buyer describes their business pain in their own words. No category, no vendor names. Measures: *does the assistant propose your category as a solution at all?*
+2. **Vendor turn.** The buyer asks who to shortlist. Measures: *do you surface unprompted, and where do you rank?*
+3. **Brand turn.** The buyer raises your brand directly and asks for a candid take. Measures: *recommendation strength, the qualifiers attached ("good, but...")*, *whether a competitor gets recommended over you, and which sources the view rests on — your content or third parties'.*
+
+Each session runs as three buying-committee personas: the hands-on practitioner, the economic buyer, and the skeptical executive.
+
+## What you get
+
+- **A funnel:** category proposed → brand mentioned unprompted → shortlisted → strongly recommended, across every assistant and persona.
+- **The belief inventory:** the concrete claims each assistant made about you, the qualifiers it hedged with, who it prefers over you and why, and whether any of its information came from your own content.
+- **The prescription:** an analysis of what information drives AI opinion of your brand, what proof the assistants needed but didn't have, and prioritized positioning and content changes to close those gaps.
+- Full raw transcripts in JSON, for receipts.
 
 ## Quick start
 
 ```bash
-git clone https://github.com/d-walia/ai-brand-perception-audit.git
-cd ai-brand-perception-audit
 pip install anthropic
-export ANTHROPIC_API_KEY=sk-ant-...   # get one at platform.claude.com
+export ANTHROPIC_API_KEY=sk-ant-...     # required: probes Claude + runs the analysis
+export OPENAI_API_KEY=...               # optional: probe ChatGPT
+export GEMINI_API_KEY=...               # optional: probe Gemini
+export PERPLEXITY_API_KEY=...           # optional: probe Perplexity
 
 python audit.py \
-  --brand "YourBrand" \
-  --category "team knowledge base tools" \
-  --competitors "Rival1,Rival2" \
-  --runs 2
+  --brand "Acme Analytics" \
+  --category "product analytics platforms" \
+  --icp "Series B B2B SaaS companies, 50-200 employees, product-led growth motion" \
+  --problem "We can't tell which product features drive retention, and churn is creeping up" \
+  --competitors "Amplitude,Mixpanel,Heap"
 ```
 
-Output: `report-yourbrand-<date>.md` and a raw `.json` alongside it.
+Any assistant without a key is skipped with a notice. Analysis and extraction always run on Claude.
 
-## What to do with the results
+## Reading the results
 
-- **Low mention rate** means the model doesn't route your category's problems to you at all. That is a positioning and evidence problem, not an ad problem.
-- **Mentioned but never recommended** means the model knows you exist but believes something that keeps you out of the top spot. Read the "why" column to find out what.
-- **Run it monthly.** Model updates shift these answers. Track your numbers over time the way you'd track rankings.
+- **Category never proposed** is the most serious finding: AI doesn't route your ICP's problem to your category. No amount of brand content fixes that until the category-to-problem link exists in public writing.
+- **Shortlisted but never recommended:** read the qualifiers and the competitor-preferred reasons. Those are the exact objections your proof points need to answer.
+- **No first-party sources cited:** third parties are defining you. The prescription section will tell you what to publish.
 
-## Notes and limits
+## Scope and honesty notes
 
-- Currently probes Claude (`claude-opus-4-8`). The same method applies to any assistant; multi-model support is the obvious next step.
-- A handful of scenarios is a probe, not a census. More scenarios and more `--runs` give more stable numbers.
-- Answers reflect model training and vary run to run. That variance is itself signal: brands with strong evidence get recommended consistently.
-- Edit `scenarios.py` to match how your buyers actually phrase things. That file is where most of the value lives.
-
-## Roadmap
-
-- Multi-model probes (compare how different assistants see the same brand)
-- Multi-turn scenarios (real buying conversations have follow-ups)
-- Trend tracking across monthly runs
+- Built for **B2B** evaluations. The personas and journey model a buying committee, not a consumer impulse purchase.
+- API models are proxies for the consumer apps (the apps add retrieval and memory). Treat results as a strong signal of the model's beliefs, not a pixel-perfect replay of chatgpt.com.
+- A few sessions is a probe, not a census. Re-run monthly; model updates move these answers.
 
 MIT licensed. Built by [Dhruv Walia](https://github.com/d-walia).
