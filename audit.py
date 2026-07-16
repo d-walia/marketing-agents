@@ -112,12 +112,32 @@ SESSION_SCHEMA = {
             "items": {"type": "string"},
             "description": "Evidence that, had the assistant known it, would plausibly have strengthened the recommendation",
         },
+        "final_call": {
+            "type": "string",
+            "enum": ["target_brand", "competitor", "neither_or_defer"],
+            "description": "In turn 4, when forced to commit today, who did the assistant pick?",
+        },
+        "final_call_vendor": {
+            "type": ["string", "null"],
+            "description": "The vendor named in the final call, or null if it deferred",
+        },
+        "pressure_outcome": {
+            "type": "string",
+            "enum": ["objections_dissolved", "caveats_stand", "hardened_to_dealbreaker", "switched_to_competitor", "no_objections_raised"],
+            "description": "What happened to the turn-3 qualifiers under turn-4 pressure: the assistant talked the buyer back in (dissolved), kept them as conditions (stand), turned them into blockers (dealbreaker), or moved to a rival (switched)",
+        },
+        "dealbreakers": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Concerns that the assistant said would actually stop the purchase, if any",
+        },
     },
     "required": [
         "category_proposed", "category_terms_used", "unprompted_brand_mention",
         "shortlist", "brand_recommendation", "qualifiers", "competitor_preferred",
         "competitor_preferred_reason", "sources_cited", "brand_sources_first_party",
-        "beliefs_about_brand", "proof_gaps",
+        "beliefs_about_brand", "proof_gaps", "final_call", "final_call_vendor",
+        "pressure_outcome", "dealbreakers",
     ],
     "additionalProperties": False,
 }
@@ -173,8 +193,9 @@ def extract_session(client: anthropic.Anthropic, transcript: str, brand: str, ca
             "role": "user",
             "content": (
                 f"Target brand: {brand}\nTarget category: {category}\n\n"
-                "Below is a buyer-journey chat with an AI assistant (3 buyer turns: "
-                "situation, vendor shortlist, direct question about the target brand). "
+                "Below is a buyer-journey chat with an AI assistant (4 buyer turns: "
+                "situation, vendor shortlist, direct question about the target brand, "
+                "then pressure on the concerns and a demand for a final call). "
                 "Extract the data per the schema, judging only from what the assistant "
                 f"actually said.\n\n<transcript>\n{transcript}\n</transcript>"
             ),
@@ -205,7 +226,10 @@ def synthesize(client: anthropic.Anthropic, audit: dict) -> str:
         "Write the analysis sections of the audit report in markdown (start at "
         "'## How AI models see the brand'). Cover:\n"
         "1. How AI models see the brand versus competitors (consistent beliefs, "
-        "where the brand wins and loses, differences between assistants and scenarios).\n"
+        "where the brand wins and loses, differences between assistants and scenarios). "
+        "Include what happened under pressure: which qualifiers dissolved when the "
+        "buyer pushed back (soft objections), which stood as conditions, and which "
+        "hardened into dealbreakers or a switch to a competitor (real objections).\n"
         "2. What information drives AI opinion (which claims and sources the verdicts "
         "rest on, whether the brand's own content is shaping them or third parties are).\n"
         "3. What proof AI models need to see to choose the brand. Present this as a "
@@ -275,6 +299,7 @@ def funnel_counts(brand: str, sessions: list) -> list:
             if any(brand.lower() in v.lower() for v in s["shortlist"])
         ), n),
         ("Strong recommendation", sum(1 for s in sessions if s["brand_recommendation"] == "strong"), n),
+        ("Final call under pressure", sum(1 for s in sessions if s["final_call"] == "target_brand"), n),
     ]
 
 
@@ -299,8 +324,8 @@ def journey_map(audit: dict) -> list:
         prev_node, prev_count = node, count
 
     diverted = sorted({
-        s["competitor_preferred"] for s in sessions
-        if s["competitor_preferred"] and s["brand_recommendation"] != "strong"
+        s["final_call_vendor"] for s in sessions
+        if s["final_call"] == "competitor" and s["final_call_vendor"]
     })
     if diverted:
         lines.append(f'    W["Recommendation diverted to:<br/>{", ".join(diverted)}"]')
@@ -351,6 +376,9 @@ def write_report(audit: dict, out_path: str) -> None:
             f"- Sources cited: {', '.join(s['sources_cited']) or 'none stated'}"
             + ("" if s["brand_sources_first_party"] else " (nothing from the brand's own content)"),
             f"- Proof gaps: {'; '.join(s['proof_gaps']) or 'none identified'}",
+            f"- Under pressure: **{s['pressure_outcome'].replace('_', ' ')}** | final call: "
+            + (f"**{s['final_call_vendor'] or audit['brand']}**" if s["final_call"] != "neither_or_defer" else "**deferred**"),
+            f"- Dealbreakers: {'; '.join(s['dealbreakers']) or 'none'}",
             "",
         ]
 

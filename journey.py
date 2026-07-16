@@ -19,6 +19,12 @@ conversations actually do:
                        Measures recommendation strength, qualifiers, cited
                        sources, and whether a competitor gets pulled in
                        over you.
+  Turn 4 (pressure)  - challenge the verdict the way a real buyer would:
+                       do the concerns actually block the purchase? Always
+                       the same scripted challenge, so sessions stay
+                       comparable. Measures whether qualifiers harden into
+                       dealbreakers, stand as caveats, or dissolve when the
+                       model is forced to commit.
 """
 
 
@@ -54,5 +60,12 @@ def build_journey(icp: dict, scenario: dict, brand: str) -> list:
             "our situation? What are they actually good at, what would you flag, "
             "and is there anyone you'd pick over them? Mention any sources your "
             "view is based on."
+        ),
+        # Turn 4: pressure the verdict. Always the same scripted challenge.
+        (
+            "You raised some concerns there. Be honest with me: would any of "
+            f"those actually stop you from recommending {brand} for us? If you "
+            "were in my seat and had to commit today, what would you do: go with "
+            "them, or someone else? Give me your final call and why."
         ),
     ]

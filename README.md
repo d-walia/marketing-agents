@@ -32,6 +32,7 @@ For each scenario, the tool poses as your ICP and runs the same multi-turn chat 
 1. **Problem turn.** The buyer describes the scenario in their own words. No category, no vendor names. Measures: *does the assistant propose your category as a solution at all?*
 2. **Vendor turn.** The buyer asks who to shortlist. Measures: *do you surface unprompted, and where do you rank?*
 3. **Brand turn.** The buyer raises your brand directly and asks for a candid take. Measures: *recommendation strength, the qualifiers attached ("good, but...")*, *whether a competitor gets recommended over you, and which sources the view rests on — your content or third parties'.*
+4. **Pressure turn.** The buyer pushes back the way a real buyer would: "would any of those concerns actually stop you? If you had to commit today, who do you go with?" Always the same scripted challenge, so sessions stay comparable. Measures: *which qualifiers dissolve when challenged (soft objections), which harden into dealbreakers (real objections), and who wins the final call.*
 
 ## What you get
 
