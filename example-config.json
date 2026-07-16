@@ -1,0 +1,30 @@
+{
+  "_note": "Worked example only. The tool applies to any B2B product; replace every value with your own brand, ICP, and scenarios. See README > Inputs.",
+  "brand": "Gong",
+  "category": "revenue intelligence platforms",
+  "competitors": ["Clari", "Chorus", "Salesloft"],
+  "icp": {
+    "role": "Head of Sales who also owns Sales Ops",
+    "description": "B2B SaaS company, 120 sales reps, mid-market ACV around 40k USD.",
+    "jobs_to_be_done": [
+      "hit the quarterly revenue number and defend the forecast to the CEO and board",
+      "diagnose why deals stall and fix the pipeline process",
+      "build a repeatable coaching program so rep performance doesn't depend on tribal knowledge"
+    ],
+    "priorities": [
+      "forecast accuracy above all: the board has lost patience with 20 percent misses",
+      "get value fast without a heavy implementation project",
+      "prove ROI on any new tooling within two quarters"
+    ]
+  },
+  "scenarios": [
+    {
+      "id": "stalled-deals",
+      "situation": "Deals keep stalling after the demo and nobody can tell me why. Reps say the calls went great, then the account goes dark. Our forecast was off by 20 percent again last quarter and my coaching is ad hoc, whoever I happen to sit in with that week."
+    },
+    {
+      "id": "board-forecast-pressure",
+      "situation": "The board just told me a third consecutive forecast miss is unacceptable. My pipeline reviews are opinion-driven: every rep swears their deals will close and I have no independent signal to challenge them with. I need to walk into the next board meeting with a forecast I can actually defend."
+    }
+  ]
+}

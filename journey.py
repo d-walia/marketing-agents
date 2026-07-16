@@ -1,18 +1,16 @@
 """B2B buyer journey.
 
-Each audit runs ONE ICP persona through a multi-turn chat session, repeated
-across every AI assistant you have keys for. One ICP per audit keeps the
-comparison clean: differences between sessions are differences between
-models, not differences between personas. To audit a different ICP, run the
-tool again with --persona.
+The buyer persona is constructed entirely from YOUR ICP definition in the
+config file: their role, their jobs to be done, and their priorities. Nothing
+about the persona is hardcoded to any product category, so the tool applies
+to any B2B product.
 
-The default persona is a Head of Sales / Sales Ops leader: hands-on with
-process and tooling, but accountable for the number, and the one who will
-defend the purchase to the CEO.
+Each scenario in the config is one journey: a situation where the ICP's jobs
+run into a challenge. The journey runs as a multi-turn chat session, repeated
+across every AI assistant you have keys for, and unfolds the way B2B buying
+conversations actually do:
 
-The turns mirror how B2B buying conversations with an AI assistant unfold:
-
-  Turn 1 (problem)   - describe the business pain in the buyer's own words.
+  Turn 1 (problem)   - the ICP describes the scenario in their own words.
                        Never names the category or any vendor. Measures
                        whether the assistant proposes the category at all.
   Turn 2 (vendors)   - ask who to shortlist. Measures whether the brand
@@ -23,29 +21,25 @@ The turns mirror how B2B buying conversations with an AI assistant unfold:
                        over you.
 """
 
-DEFAULT_PERSONA = {
-    "id": "sales-leader",
-    "label": "Head of Sales / Sales Ops leader",
-    "voice": (
-        "I'm the Head of Sales and I also own sales ops. I'm hands-on with our "
-        "process, tooling, and pipeline reviews, but I'm accountable for the "
-        "number, and I'll be the one defending this purchase to the CEO."
-    ),
-}
+
+def persona_intro(icp: dict) -> str:
+    """Build the buyer's self-introduction from the ICP definition."""
+    jobs = "; ".join(icp["jobs_to_be_done"])
+    priorities = "; ".join(icp["priorities"])
+    return (
+        f"I'm the {icp['role']}. About us: {icp['description']}\n\n"
+        f"My job is to: {jobs}.\n"
+        f"My top priorities right now: {priorities}."
+    )
 
 
-def make_persona(description: str) -> dict:
-    """Build a custom ICP persona from a free-text description."""
-    return {"id": "custom", "label": description, "voice": description}
-
-
-def build_journey(persona: dict, icp: str, problem: str, brand: str) -> list:
-    """Return the ordered user turns for the persona's chat session."""
+def build_journey(icp: dict, scenario: dict, brand: str) -> list:
+    """Return the ordered user turns for one scenario's chat session."""
     return [
-        # Turn 1: pure problem statement. No category, no vendors.
+        # Turn 1: persona + situation. No category, no vendors.
         (
-            f"{persona['voice']} Some context on us: {icp}\n\n"
-            f"Here's what we're struggling with: {problem}\n\n"
+            f"{persona_intro(icp)}\n\n"
+            f"Here's the situation I'm dealing with: {scenario['situation']}\n\n"
             "How would you approach solving this?"
         ),
         # Turn 2: move to vendors, still without naming anyone.

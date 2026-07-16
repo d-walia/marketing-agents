@@ -8,13 +8,11 @@ recommended, with what qualifiers and sources, and who beats you. Then
 synthesizes positioning and content recommendations: what AI models believe
 about you, what drives that opinion, and what proof would change it.
 
-Usage:
-    python audit.py \
-        --brand "Acme Analytics" \
-        --category "product analytics platforms" \
-        --icp "Series B B2B SaaS companies, 50-200 employees, PLG motion" \
-        --problem "We can't tell which product features drive retention, and churn is creeping up" \
-        --competitors "Amplitude,Mixpanel,Heap"
+Works for any B2B product. All audit inputs live in a JSON config file:
+
+    python audit.py --init            # writes audit-config.json template
+    # edit the template with your brand, ICP, and scenarios, then:
+    python audit.py audit-config.json
 
 Requires ANTHROPIC_API_KEY (probing + analysis). Optional: OPENAI_API_KEY,
 GEMINI_API_KEY, PERPLEXITY_API_KEY to probe those assistants too.
@@ -28,17 +26,43 @@ from datetime import date
 
 import anthropic
 
-from journey import DEFAULT_PERSONA, build_journey, make_persona
+from journey import build_journey
 from providers import active_providers
 
 ANALYSIS_MODEL = "claude-opus-4-8"
+
+CONFIG_TEMPLATE = {
+    "brand": "YourBrand",
+    "category": "the product category in your buyer's language, e.g. 'contract lifecycle management platforms'",
+    "competitors": ["Rival A", "Rival B"],
+    "icp": {
+        "role": "the buyer's job title, e.g. 'VP of Legal Operations'",
+        "description": "firmographics in one or two sentences: industry, size, motion, e.g. 'mid-market fintech, 800 employees, high contract volume with banks'",
+        "jobs_to_be_done": [
+            "the outcomes this person is on the hook for, e.g. 'turn contracts around in under 5 days'",
+            "e.g. 'keep the company out of compliance trouble'",
+        ],
+        "priorities": [
+            "what they care about most right now, e.g. 'reduce outside counsel spend'",
+            "e.g. 'look rigorous in front of the audit committee'",
+        ],
+    },
+    "scenarios": [
+        {
+            "id": "short-slug-for-this-scenario",
+            "situation": "a concrete moment where the jobs above hit a challenge, in the buyer's own words. No category or vendor names. e.g. 'Our sales team is furious because contract review is the slowest step in every deal, and last quarter two deals slipped because redlines sat with us for two weeks.'",
+        }
+    ],
+}
+
+REQUIRED_ICP_FIELDS = ["role", "description", "jobs_to_be_done", "priorities"]
 
 SESSION_SCHEMA = {
     "type": "object",
     "properties": {
         "category_proposed": {
             "type": "boolean",
-            "description": "In turn 1, did the assistant propose the target product category as a solution to the problem?",
+            "description": "In turn 1, did the assistant propose the target product category as a solution to the situation?",
         },
         "category_terms_used": {
             "type": "array",
@@ -99,9 +123,36 @@ SESSION_SCHEMA = {
 }
 
 
-def conduct_session(provider, turns: list[str]) -> list[dict]:
+def load_config(path: str) -> dict:
+    try:
+        with open(path) as f:
+            config = json.load(f)
+    except FileNotFoundError:
+        sys.exit(f"Config file not found: {path}\nRun 'python audit.py --init' to create a template.")
+    except json.JSONDecodeError as e:
+        sys.exit(f"Config file is not valid JSON: {e}")
+
+    problems = []
+    for field in ["brand", "category", "icp", "scenarios"]:
+        if not config.get(field):
+            problems.append(f"missing '{field}'")
+    if isinstance(config.get("icp"), dict):
+        for field in REQUIRED_ICP_FIELDS:
+            if not config["icp"].get(field):
+                problems.append(f"missing 'icp.{field}'")
+    for i, scenario in enumerate(config.get("scenarios") or []):
+        if not scenario.get("id") or not scenario.get("situation"):
+            problems.append(f"scenario {i} needs both 'id' and 'situation'")
+    if problems:
+        sys.exit("Config problems:\n  - " + "\n  - ".join(problems)
+                 + "\nSee 'python audit.py --init' for the expected shape.")
+    config.setdefault("competitors", [])
+    return config
+
+
+def conduct_session(provider, turns: list) -> list:
     """Run one multi-turn chat with an assistant; return the full transcript."""
-    messages: list[dict] = []
+    messages = []
     for turn in turns:
         messages.append({"role": "user", "content": turn})
         answer = provider.ask(messages)
@@ -109,7 +160,7 @@ def conduct_session(provider, turns: list[str]) -> list[dict]:
     return messages
 
 
-def transcript_text(messages: list[dict]) -> str:
+def transcript_text(messages: list) -> str:
     return "\n\n".join(f"[{m['role'].upper()}]\n{m['content']}" for m in messages)
 
 
@@ -123,7 +174,7 @@ def extract_session(client: anthropic.Anthropic, transcript: str, brand: str, ca
             "content": (
                 f"Target brand: {brand}\nTarget category: {category}\n\n"
                 "Below is a buyer-journey chat with an AI assistant (3 buyer turns: "
-                "problem, vendor shortlist, direct question about the target brand). "
+                "situation, vendor shortlist, direct question about the target brand). "
                 "Extract the data per the schema, judging only from what the assistant "
                 f"actually said.\n\n<transcript>\n{transcript}\n</transcript>"
             ),
@@ -139,18 +190,22 @@ def synthesize(client: anthropic.Anthropic, audit: dict) -> str:
         {k: v for k, v in s.items() if k != "transcript"}
         for s in audit["sessions"]
     ]
+    icp = audit["icp"]
     prompt = (
         f"You are analyzing an AI brand perception audit for {audit['brand']} "
-        f"(category: {audit['category']}; ICP: {audit['icp']}; "
-        f"buyer persona: {audit['persona']}; "
+        f"(category: {audit['category']}; "
         f"known competitors: {', '.join(audit['competitors']) or 'not specified'}).\n\n"
-        "Below are structured extractions from buyer-journey chat sessions, the "
-        "same buyer persona run against each AI assistant.\n\n"
+        f"The buyer persona: {icp['role']} at {icp['description']} "
+        f"Jobs to be done: {'; '.join(icp['jobs_to_be_done'])}. "
+        f"Priorities: {'; '.join(icp['priorities'])}.\n\n"
+        "Below are structured extractions from buyer-journey chat sessions: each "
+        "scenario is a situation where this persona's jobs hit a challenge, run "
+        "against each AI assistant.\n\n"
         f"{json.dumps(condensed, indent=2)}\n\n"
         "Write the analysis sections of the audit report in markdown (start at "
         "'## How AI models see the brand'). Cover:\n"
         "1. How AI models see the brand versus competitors (consistent beliefs, "
-        "where the brand wins and loses, differences between assistants).\n"
+        "where the brand wins and loses, differences between assistants and scenarios).\n"
         "2. What information drives AI opinion (which claims and sources the verdicts "
         "rest on, whether the brand's own content is shaping them or third parties are).\n"
         "3. What proof AI models need to see to choose the brand. Present this as a "
@@ -176,39 +231,32 @@ def synthesize(client: anthropic.Anthropic, audit: dict) -> str:
     return "".join(b.text for b in response.content if b.type == "text")
 
 
-def run_audit(args) -> dict:
+def run_audit(config: dict, requested_models) -> dict:
     client = anthropic.Anthropic()
-    requested = [p.strip() for p in args.models.split(",")] if args.models else None
-    providers, skipped = active_providers(requested)
+    providers, skipped = active_providers(requested_models)
     if not providers:
         sys.exit("No probe models available. Set ANTHROPIC_API_KEY at minimum.")
     if skipped:
         print(f"  skipping (no API key): {', '.join(skipped)}", file=sys.stderr)
 
-    competitors = [c.strip() for c in args.competitors.split(",") if c.strip()]
-    persona = make_persona(args.persona) if args.persona else DEFAULT_PERSONA
     sessions = []
-    for provider in providers:
-        print(f"  session: {provider.name} x {persona['id']} ...", file=sys.stderr)
-        turns = build_journey(persona, args.icp, args.problem, args.brand)
-        messages = conduct_session(provider, turns)
-        transcript = transcript_text(messages)
-        data = extract_session(client, transcript, args.brand, args.category)
-        sessions.append({
-            "assistant": provider.name,
-            "assistant_model": provider.model,
-            "persona": persona["label"],
-            "transcript": transcript,
-            **data,
-        })
+    for scenario in config["scenarios"]:
+        for provider in providers:
+            print(f"  session: {scenario['id']} x {provider.name} ...", file=sys.stderr)
+            turns = build_journey(config["icp"], scenario, config["brand"])
+            messages = conduct_session(provider, turns)
+            transcript = transcript_text(messages)
+            data = extract_session(client, transcript, config["brand"], config["category"])
+            sessions.append({
+                "scenario": scenario["id"],
+                "assistant": provider.name,
+                "assistant_model": provider.model,
+                "transcript": transcript,
+                **data,
+            })
 
     audit = {
-        "brand": args.brand,
-        "category": args.category,
-        "icp": args.icp,
-        "problem": args.problem,
-        "persona": persona["label"],
-        "competitors": competitors,
+        **{k: config[k] for k in ["brand", "category", "icp", "competitors", "scenarios"]},
         "date": date.today().isoformat(),
         "sessions": sessions,
     }
@@ -217,19 +265,29 @@ def run_audit(args) -> dict:
     return audit
 
 
-def journey_map(audit: dict, stages: list) -> list:
-    """Render the buyer journey as a mermaid flowchart with drop-off branches.
+def funnel_counts(brand: str, sessions: list) -> list:
+    n = len(sessions)
+    return [
+        ("Category proposed", sum(1 for s in sessions if s["category_proposed"]), n),
+        ("Brand mentioned unprompted", sum(1 for s in sessions if s["unprompted_brand_mention"]), n),
+        ("Brand shortlisted", sum(
+            1 for s in sessions
+            if any(brand.lower() in v.lower() for v in s["shortlist"])
+        ), n),
+        ("Strong recommendation", sum(1 for s in sessions if s["brand_recommendation"] == "strong"), n),
+    ]
 
-    stages: list of (label, count) in funnel order. A drop-off branch is drawn
-    at every stage where sessions were lost, annotated with where they went.
-    """
+
+def journey_map(audit: dict) -> list:
+    """Render the buyer journey as a mermaid flowchart with drop-off branches."""
     sessions = audit["sessions"]
     n = len(sessions)
+    stages = funnel_counts(audit["brand"], sessions)
     lines = ["## Buyer journey map", "", "```mermaid", "flowchart LR"]
-    lines.append(f'    S0(["{audit["persona"]}<br/>states the problem<br/>({n} session{"s" if n != 1 else ""})"])')
+    lines.append(f'    S0(["{audit["icp"]["role"]}<br/>states the problem<br/>({n} session{"s" if n != 1 else ""})"])')
 
     prev_node, prev_count = "S0", n
-    for i, (label, count) in enumerate(stages, start=1):
+    for i, (label, count, _) in enumerate(stages, start=1):
         node = f"S{i}"
         lines.append(f'    {node}["{label}<br/>{count}/{n}"]')
         lines.append(f'    {prev_node} -->|"{count} continue"| {node}')
@@ -240,7 +298,6 @@ def journey_map(audit: dict, stages: list) -> list:
             lines.append(f'    {prev_node} -.->|"{lost} lost"| {drop}')
         prev_node, prev_count = node, count
 
-    # Where the lost recommendations went, if anywhere
     diverted = sorted({
         s["competitor_preferred"] for s in sessions
         if s["competitor_preferred"] and s["brand_recommendation"] != "strong"
@@ -256,50 +313,35 @@ def journey_map(audit: dict, stages: list) -> list:
 def write_report(audit: dict, out_path: str) -> None:
     sessions = audit["sessions"]
     n = len(sessions)
-    cat = sum(1 for s in sessions if s["category_proposed"])
-    unprompted = sum(1 for s in sessions if s["unprompted_brand_mention"])
-    shortlisted = sum(
-        1 for s in sessions
-        if any(audit["brand"].lower() in v.lower() for v in s["shortlist"])
-    )
-    strong = sum(1 for s in sessions if s["brand_recommendation"] == "strong")
-    stages = [
-        ("Category proposed", cat),
-        ("Brand mentioned unprompted", unprompted),
-        ("Brand shortlisted", shortlisted),
-        ("Strong recommendation", strong),
-    ]
+    icp = audit["icp"]
+    stages = funnel_counts(audit["brand"], sessions)
 
     lines = [
         f"# AI Brand Perception Audit: {audit['brand']}",
         "",
         f"- **Category:** {audit['category']}",
-        f"- **ICP:** {audit['icp']}",
-        f"- **Buyer persona:** {audit['persona']}",
-        f"- **Buyer problem probed:** {audit['problem']}",
+        f"- **Buyer persona:** {icp['role']} — {icp['description']}",
+        f"- **Jobs to be done:** {'; '.join(icp['jobs_to_be_done'])}",
+        f"- **Priorities:** {'; '.join(icp['priorities'])}",
+        f"- **Scenarios:** {', '.join(s['id'] for s in audit['scenarios'])}",
         f"- **Assistants probed:** {', '.join(sorted({s['assistant'] for s in sessions}))}",
-        f"- **Sessions:** {n} (one per assistant) | **Date:** {audit['date']}",
+        f"- **Sessions:** {n} (scenarios x assistants) | **Date:** {audit['date']}",
         "",
         "## The funnel",
         "",
         "| Stage | Result |",
         "|---|---|",
-        f"| Category proposed for the buyer's problem | {cat}/{n} |",
-        f"| Brand mentioned unprompted | {unprompted}/{n} |",
-        f"| Brand made the vendor shortlist | {shortlisted}/{n} |",
-        f"| Strong recommendation when asked directly | {strong}/{n} |",
-        "",
-        *journey_map(audit, stages),
-        "## Session summaries",
-        "",
     ]
+    lines += [f"| {label} | {count}/{total} |" for label, count, total in stages]
+    lines += ["", *journey_map(audit), "## Session summaries", ""]
+
     for s in sessions:
         comp = (
             f"{s['competitor_preferred']} ({s['competitor_preferred_reason']})"
             if s["competitor_preferred"] else "none"
         )
         lines += [
-            f"### {s['assistant']} x {s['persona']}",
+            f"### {s['scenario']} x {s['assistant']}",
             "",
             f"- Category proposed: {s['category_proposed']} (as: {', '.join(s['category_terms_used']) or 'n/a'})",
             f"- Shortlist: {', '.join(s['shortlist']) or 'none given'}",
@@ -313,28 +355,37 @@ def write_report(audit: dict, out_path: str) -> None:
         ]
 
     lines += [audit["analysis"], ""]
-
     with open(out_path, "w") as f:
         f.write("\n".join(lines))
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run a B2B AI brand perception audit.")
-    parser.add_argument("--brand", required=True)
-    parser.add_argument("--category", required=True, help='Buyer-language category, e.g. "product analytics platforms"')
-    parser.add_argument("--icp", required=True, help="Who the buyer is, in one or two sentences")
-    parser.add_argument("--problem", required=True, help="The business pain in the buyer's own words (no category or vendor names)")
-    parser.add_argument("--competitors", default="", help="Comma-separated rivals (context for the analysis)")
-    parser.add_argument("--persona", default=None, help="Override the buyer persona (default: Head of Sales / Sales Ops leader). One audit = one ICP; run again to audit another persona.")
+    parser.add_argument("config", nargs="?", help="Path to the audit config JSON (see --init)")
+    parser.add_argument("--init", action="store_true", help="Write audit-config.json template and exit")
     parser.add_argument("--models", default=None, help="Comma-separated subset of: claude,chatgpt,gemini,perplexity (default: all with keys)")
     parser.add_argument("--out", default=None)
     args = parser.parse_args()
 
+    if args.init:
+        path = "audit-config.json"
+        if os.path.exists(path):
+            sys.exit(f"{path} already exists; not overwriting.")
+        with open(path, "w") as f:
+            json.dump(CONFIG_TEMPLATE, f, indent=2)
+        print(f"Template written to {path}. Fill it in, then run: python audit.py {path}")
+        return
+
+    if not args.config:
+        parser.error("provide a config file, or --init to create one")
     if not os.environ.get("ANTHROPIC_API_KEY"):
         sys.exit("ANTHROPIC_API_KEY is required (analysis engine). https://platform.claude.com/")
 
-    audit = run_audit(args)
-    out_path = args.out or f"report-{args.brand.lower().replace(' ', '-')}-{audit['date']}.md"
+    config = load_config(args.config)
+    requested = [m.strip() for m in args.models.split(",")] if args.models else None
+    audit = run_audit(config, requested)
+
+    out_path = args.out or f"report-{config['brand'].lower().replace(' ', '-')}-{audit['date']}.md"
     write_report(audit, out_path)
 
     raw_path = out_path.replace(".md", ".json")
