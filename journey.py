@@ -1,8 +1,16 @@
-"""B2B buyer journeys.
+"""B2B buyer journey.
 
-Each journey is a multi-turn chat session where we play a member of the
-brand's ICP working through a real evaluation. The turns mirror how B2B
-buying conversations with an AI assistant actually unfold:
+Each audit runs ONE ICP persona through a multi-turn chat session, repeated
+across every AI assistant you have keys for. One ICP per audit keeps the
+comparison clean: differences between sessions are differences between
+models, not differences between personas. To audit a different ICP, run the
+tool again with --persona.
+
+The default persona is a Head of Sales / Sales Ops leader: hands-on with
+process and tooling, but accountable for the number, and the one who will
+defend the purchase to the CEO.
+
+The turns mirror how B2B buying conversations with an AI assistant unfold:
 
   Turn 1 (problem)   - describe the business pain in the buyer's own words.
                        Never names the category or any vendor. Measures
@@ -13,32 +21,26 @@ buying conversations with an AI assistant actually unfold:
                        Measures recommendation strength, qualifiers, cited
                        sources, and whether a competitor gets pulled in
                        over you.
-
-Personas are variations on the ICP so the audit sees the brand through
-the eyes of the different people in a B2B buying committee.
 """
 
-PERSONAS = [
-    {
-        "id": "practitioner",
-        "label": "Hands-on practitioner (will use the product daily)",
-        "voice": "I'm the person who would actually use this day to day.",
-    },
-    {
-        "id": "economic-buyer",
-        "label": "Economic buyer (owns the budget, cares about ROI)",
-        "voice": "I own the budget for this and need to justify the spend to leadership.",
-    },
-    {
-        "id": "skeptical-exec",
-        "label": "Skeptical executive (risk-averse, needs proof)",
-        "voice": "I'm a senior leader who has been burned by tool purchases before. I need evidence, not marketing.",
-    },
-]
+DEFAULT_PERSONA = {
+    "id": "sales-leader",
+    "label": "Head of Sales / Sales Ops leader",
+    "voice": (
+        "I'm the Head of Sales and I also own sales ops. I'm hands-on with our "
+        "process, tooling, and pipeline reviews, but I'm accountable for the "
+        "number, and I'll be the one defending this purchase to the CEO."
+    ),
+}
 
 
-def build_journey(persona: dict, icp: str, problem: str, brand: str) -> list[str]:
-    """Return the ordered user turns for one persona's chat session."""
+def make_persona(description: str) -> dict:
+    """Build a custom ICP persona from a free-text description."""
+    return {"id": "custom", "label": description, "voice": description}
+
+
+def build_journey(persona: dict, icp: str, problem: str, brand: str) -> list:
+    """Return the ordered user turns for the persona's chat session."""
     return [
         # Turn 1: pure problem statement. No category, no vendors.
         (

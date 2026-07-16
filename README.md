@@ -6,17 +6,17 @@ B2B buying decisions increasingly start inside AI conversations. When your ICP d
 
 ## The method: buyer-journey chat sessions
 
-The tool poses as your ICP and runs multi-turn chat sessions against every assistant you have API keys for. Each session follows how B2B buying conversations actually unfold:
+The tool poses as **one ICP persona per audit** (default: a Head of Sales / Sales Ops leader — hands-on with process and tooling, but accountable for the number) and runs the same multi-turn chat session against every assistant you have API keys for. One ICP per audit keeps the comparison clean: differences between sessions are differences between models, not personas. Auditing another ICP is another run with `--persona`.
+
+Each session follows how B2B buying conversations actually unfold:
 
 1. **Problem turn.** The buyer describes their business pain in their own words. No category, no vendor names. Measures: *does the assistant propose your category as a solution at all?*
 2. **Vendor turn.** The buyer asks who to shortlist. Measures: *do you surface unprompted, and where do you rank?*
 3. **Brand turn.** The buyer raises your brand directly and asks for a candid take. Measures: *recommendation strength, the qualifiers attached ("good, but...")*, *whether a competitor gets recommended over you, and which sources the view rests on — your content or third parties'.*
 
-Each session runs as three buying-committee personas: the hands-on practitioner, the economic buyer, and the skeptical executive.
-
 ## What you get
 
-- **A funnel:** category proposed → brand mentioned unprompted → shortlisted → strongly recommended, across every assistant and persona.
+- **A funnel and a buyer journey map:** category proposed → brand mentioned unprompted → shortlisted → strongly recommended, across every assistant, with a visual (mermaid) map of exactly where sessions drop off and which competitor the recommendation diverted to.
 - **The belief inventory:** the concrete claims each assistant made about you, the qualifiers it hedged with, who it prefers over you and why, and whether any of its information came from your own content.
 - **The prescription:** an analysis of what information drives AI opinion of your brand, what proof the assistants needed but didn't have, and prioritized positioning and content changes to close those gaps.
 - Full raw transcripts in JSON, for receipts.

@@ -28,7 +28,7 @@ from datetime import date
 
 import anthropic
 
-from journey import PERSONAS, build_journey
+from journey import DEFAULT_PERSONA, build_journey, make_persona
 from providers import active_providers
 
 ANALYSIS_MODEL = "claude-opus-4-8"
@@ -142,18 +142,25 @@ def synthesize(client: anthropic.Anthropic, audit: dict) -> str:
     prompt = (
         f"You are analyzing an AI brand perception audit for {audit['brand']} "
         f"(category: {audit['category']}; ICP: {audit['icp']}; "
+        f"buyer persona: {audit['persona']}; "
         f"known competitors: {', '.join(audit['competitors']) or 'not specified'}).\n\n"
-        "Below are structured extractions from buyer-journey chat sessions across "
-        "AI assistants, each run as a different buying-committee persona.\n\n"
+        "Below are structured extractions from buyer-journey chat sessions, the "
+        "same buyer persona run against each AI assistant.\n\n"
         f"{json.dumps(condensed, indent=2)}\n\n"
         "Write the analysis sections of the audit report in markdown (start at "
         "'## How AI models see the brand'). Cover:\n"
         "1. How AI models see the brand versus competitors (consistent beliefs, "
-        "where the brand wins and loses, differences between assistants and personas).\n"
+        "where the brand wins and loses, differences between assistants).\n"
         "2. What information drives AI opinion (which claims and sources the verdicts "
         "rest on, whether the brand's own content is shaping them or third parties are).\n"
-        "3. What proof AI models need to see to choose the brand (rank the proof gaps "
-        "by how often they blocked a recommendation).\n"
+        "3. What proof AI models need to see to choose the brand. Present this as a "
+        "markdown table with exactly these columns: "
+        "'Rank | Proof gap | Sessions flagging it | Impact on recommendation'. "
+        "In the 'Impact on recommendation' column, write one plain-English sentence "
+        "describing what the missing proof actually did to the verdict, for example "
+        "'Main reason the assistant recommended a competitor instead' or 'Softened "
+        "the verdict from strong to qualified' or 'Added hedging but did not change "
+        "the pick'. Never use yes/no or 'partially' as the value.\n"
         "4. Recommended positioning and content changes: concrete, prioritized actions "
         "(positioning language, proof points to publish, content to create, where to "
         "place it) that would move these assistants toward recommending the brand.\n"
@@ -179,27 +186,28 @@ def run_audit(args) -> dict:
         print(f"  skipping (no API key): {', '.join(skipped)}", file=sys.stderr)
 
     competitors = [c.strip() for c in args.competitors.split(",") if c.strip()]
+    persona = make_persona(args.persona) if args.persona else DEFAULT_PERSONA
     sessions = []
     for provider in providers:
-        for persona in PERSONAS:
-            print(f"  session: {provider.name} x {persona['id']} ...", file=sys.stderr)
-            turns = build_journey(persona, args.icp, args.problem, args.brand)
-            messages = conduct_session(provider, turns)
-            transcript = transcript_text(messages)
-            data = extract_session(client, transcript, args.brand, args.category)
-            sessions.append({
-                "assistant": provider.name,
-                "assistant_model": provider.model,
-                "persona": persona["label"],
-                "transcript": transcript,
-                **data,
-            })
+        print(f"  session: {provider.name} x {persona['id']} ...", file=sys.stderr)
+        turns = build_journey(persona, args.icp, args.problem, args.brand)
+        messages = conduct_session(provider, turns)
+        transcript = transcript_text(messages)
+        data = extract_session(client, transcript, args.brand, args.category)
+        sessions.append({
+            "assistant": provider.name,
+            "assistant_model": provider.model,
+            "persona": persona["label"],
+            "transcript": transcript,
+            **data,
+        })
 
     audit = {
         "brand": args.brand,
         "category": args.category,
         "icp": args.icp,
         "problem": args.problem,
+        "persona": persona["label"],
         "competitors": competitors,
         "date": date.today().isoformat(),
         "sessions": sessions,
@@ -207,6 +215,42 @@ def run_audit(args) -> dict:
     print("  synthesizing recommendations ...", file=sys.stderr)
     audit["analysis"] = synthesize(client, audit)
     return audit
+
+
+def journey_map(audit: dict, stages: list) -> list:
+    """Render the buyer journey as a mermaid flowchart with drop-off branches.
+
+    stages: list of (label, count) in funnel order. A drop-off branch is drawn
+    at every stage where sessions were lost, annotated with where they went.
+    """
+    sessions = audit["sessions"]
+    n = len(sessions)
+    lines = ["## Buyer journey map", "", "```mermaid", "flowchart LR"]
+    lines.append(f'    S0(["{audit["persona"]}<br/>states the problem<br/>({n} session{"s" if n != 1 else ""})"])')
+
+    prev_node, prev_count = "S0", n
+    for i, (label, count) in enumerate(stages, start=1):
+        node = f"S{i}"
+        lines.append(f'    {node}["{label}<br/>{count}/{n}"]')
+        lines.append(f'    {prev_node} -->|"{count} continue"| {node}')
+        lost = prev_count - count
+        if lost > 0:
+            drop = f"D{i}"
+            lines.append(f'    {drop}["DROP-OFF: {lost} session{"s" if lost != 1 else ""}"]')
+            lines.append(f'    {prev_node} -.->|"{lost} lost"| {drop}')
+        prev_node, prev_count = node, count
+
+    # Where the lost recommendations went, if anywhere
+    diverted = sorted({
+        s["competitor_preferred"] for s in sessions
+        if s["competitor_preferred"] and s["brand_recommendation"] != "strong"
+    })
+    if diverted:
+        lines.append(f'    W["Recommendation diverted to:<br/>{", ".join(diverted)}"]')
+        lines.append(f'    D{len(stages)} --> W')
+
+    lines += ["```", ""]
+    return lines
 
 
 def write_report(audit: dict, out_path: str) -> None:
@@ -219,15 +263,22 @@ def write_report(audit: dict, out_path: str) -> None:
         if any(audit["brand"].lower() in v.lower() for v in s["shortlist"])
     )
     strong = sum(1 for s in sessions if s["brand_recommendation"] == "strong")
+    stages = [
+        ("Category proposed", cat),
+        ("Brand mentioned unprompted", unprompted),
+        ("Brand shortlisted", shortlisted),
+        ("Strong recommendation", strong),
+    ]
 
     lines = [
         f"# AI Brand Perception Audit: {audit['brand']}",
         "",
         f"- **Category:** {audit['category']}",
         f"- **ICP:** {audit['icp']}",
+        f"- **Buyer persona:** {audit['persona']}",
         f"- **Buyer problem probed:** {audit['problem']}",
         f"- **Assistants probed:** {', '.join(sorted({s['assistant'] for s in sessions}))}",
-        f"- **Sessions:** {n} (personas x assistants) | **Date:** {audit['date']}",
+        f"- **Sessions:** {n} (one per assistant) | **Date:** {audit['date']}",
         "",
         "## The funnel",
         "",
@@ -238,6 +289,7 @@ def write_report(audit: dict, out_path: str) -> None:
         f"| Brand made the vendor shortlist | {shortlisted}/{n} |",
         f"| Strong recommendation when asked directly | {strong}/{n} |",
         "",
+        *journey_map(audit, stages),
         "## Session summaries",
         "",
     ]
@@ -273,6 +325,7 @@ def main() -> None:
     parser.add_argument("--icp", required=True, help="Who the buyer is, in one or two sentences")
     parser.add_argument("--problem", required=True, help="The business pain in the buyer's own words (no category or vendor names)")
     parser.add_argument("--competitors", default="", help="Comma-separated rivals (context for the analysis)")
+    parser.add_argument("--persona", default=None, help="Override the buyer persona (default: Head of Sales / Sales Ops leader). One audit = one ICP; run again to audit another persona.")
     parser.add_argument("--models", default=None, help="Comma-separated subset of: claude,chatgpt,gemini,perplexity (default: all with keys)")
     parser.add_argument("--out", default=None)
     args = parser.parse_args()
