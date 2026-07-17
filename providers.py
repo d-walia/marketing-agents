@@ -24,22 +24,39 @@ of which assistants were probed.
 
 import json
 import os
+import sys
+import time
 import urllib.error
 import urllib.request
 
 PROBE_MAX_TOKENS = 4096
+RETRYABLE = {429, 500, 502, 503, 529}
 
 
-def _post_json(url: str, headers: dict, payload: dict):
-    """POST JSON, return (data, response_headers)."""
+def _post_json(url: str, headers: dict, payload: dict, retries: int = 4):
+    """POST JSON with retry on transient errors; return (data, response_headers)."""
     req = urllib.request.Request(
         url,
         data=json.dumps(payload).encode(),
         headers={"Content-Type": "application/json", **headers},
         method="POST",
     )
-    with urllib.request.urlopen(req, timeout=300) as resp:
-        return json.loads(resp.read()), dict(resp.headers)
+    for attempt in range(retries + 1):
+        try:
+            with urllib.request.urlopen(req, timeout=300) as resp:
+                return json.loads(resp.read()), dict(resp.headers)
+        except urllib.error.HTTPError as e:
+            if e.code not in RETRYABLE or attempt == retries:
+                raise
+            wait = 2 ** (attempt + 1)
+            print(f"    transient HTTP {e.code}, retrying in {wait}s ...", file=sys.stderr)
+            time.sleep(wait)
+        except urllib.error.URLError:
+            if attempt == retries:
+                raise
+            wait = 2 ** (attempt + 1)
+            print(f"    connection error, retrying in {wait}s ...", file=sys.stderr)
+            time.sleep(wait)
 
 
 class ClaudeProvider:
