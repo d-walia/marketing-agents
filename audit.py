@@ -262,7 +262,11 @@ def synthesize(client: anthropic.Anthropic, audit: dict) -> str:
         "(positioning language, proof points to publish, content to create, where to "
         "place it) that would move these assistants toward recommending the brand.\n"
         "Be specific and evidence-bound: every claim should trace to the session data. "
-        "No filler."
+        "No filler.\n"
+        "Style: write like a senior consultant, in plain professional prose. Never use "
+        "em dashes; use commas, colons, or separate sentences. Use bold sparingly, only "
+        "for verdict-level takeaways. No exclamation marks, no rhetorical questions, no "
+        "'delve', 'landscape', 'leverage' or similar filler vocabulary."
     )
     with client.messages.stream(
         model=ANALYSIS_MODEL,

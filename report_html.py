@@ -25,28 +25,20 @@ PRESSURE_LABELS = {
 
 CSS = """
 :root {
-  --paper: #F7F8FA; --ink: #181C24; --muted: #5B6372; --line: #DDE1E8;
-  --card: #FFFFFF; --accent: #0F766E; --accent-soft: #E4F0EE;
-  --ok: #2F7D45; --ok-soft: #E3F0E6; --warn: #B0791B; --warn-soft: #F7EEDC;
-  --bad: #BE3D2E; --bad-soft: #F8E6E2; --mut-soft: #EBEDF1;
+  --paper: #FAFAF9; --ink: #1C1E22; --muted: #62666D; --line: #DEDFE2;
+  --card: #FFFFFF; --bad: #A33C30; --mut-soft: #EDEEEF;
 }
 @media (prefers-color-scheme: dark) { :root {
-  --paper: #12151B; --ink: #E8EAEE; --muted: #9AA2B0; --line: #2A2F3A;
-  --card: #191D26; --accent: #3ECFBE; --accent-soft: #15302D;
-  --ok: #5CBF77; --ok-soft: #1A2C1F; --warn: #D9A44A; --warn-soft: #2E2617;
-  --bad: #E06A5A; --bad-soft: #331D19; --mut-soft: #232834;
+  --paper: #17181B; --ink: #E6E7E9; --muted: #9B9EA4; --line: #2E3034;
+  --card: #1D1F23; --bad: #D07162; --mut-soft: #26282C;
 } }
 :root[data-theme="light"] {
-  --paper: #F7F8FA; --ink: #181C24; --muted: #5B6372; --line: #DDE1E8;
-  --card: #FFFFFF; --accent: #0F766E; --accent-soft: #E4F0EE;
-  --ok: #2F7D45; --ok-soft: #E3F0E6; --warn: #B0791B; --warn-soft: #F7EEDC;
-  --bad: #BE3D2E; --bad-soft: #F8E6E2; --mut-soft: #EBEDF1;
+  --paper: #FAFAF9; --ink: #1C1E22; --muted: #62666D; --line: #DEDFE2;
+  --card: #FFFFFF; --bad: #A33C30; --mut-soft: #EDEEEF;
 }
 :root[data-theme="dark"] {
-  --paper: #12151B; --ink: #E8EAEE; --muted: #9AA2B0; --line: #2A2F3A;
-  --card: #191D26; --accent: #3ECFBE; --accent-soft: #15302D;
-  --ok: #5CBF77; --ok-soft: #1A2C1F; --warn: #D9A44A; --warn-soft: #2E2617;
-  --bad: #E06A5A; --bad-soft: #331D19; --mut-soft: #232834;
+  --paper: #17181B; --ink: #E6E7E9; --muted: #9B9EA4; --line: #2E3034;
+  --card: #1D1F23; --bad: #D07162; --mut-soft: #26282C;
 }
 * { box-sizing: border-box; }
 body { background: var(--paper); }
@@ -64,13 +56,13 @@ body { background: var(--paper); }
 .rpt h4 { font-size: 15px; margin: 24px 0 8px; font-weight: 650; }
 .eyebrow {
   font: 600 12px/1 ui-monospace, "SF Mono", Menlo, monospace;
-  letter-spacing: .14em; text-transform: uppercase; color: var(--accent);
+  letter-spacing: .14em; text-transform: uppercase; color: var(--muted);
 }
 .sub { color: var(--muted); margin: 4px 0 0; }
 .meta {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 1px; background: var(--line); border: 1px solid var(--line);
-  border-radius: 6px; overflow: hidden; margin-top: 28px;
+  border-radius: 3px; overflow: hidden; margin-top: 28px;
 }
 .meta > div { background: var(--card); padding: 12px 16px; }
 .meta .k {
@@ -82,8 +74,8 @@ body { background: var(--paper); }
 .funnel { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
 .stage { display: grid; grid-template-columns: 220px 1fr 90px; gap: 14px; align-items: center; }
 .stage .lbl { font-size: 14px; text-align: right; color: var(--ink); }
-.stage .bar-track { background: var(--mut-soft); border-radius: 4px; height: 26px; position: relative; }
-.stage .bar { height: 100%; border-radius: 4px; background: var(--accent); min-width: 2px; }
+.stage .bar-track { background: var(--mut-soft); border-radius: 2px; height: 22px; position: relative; }
+.stage .bar { height: 100%; border-radius: 2px; background: var(--muted); min-width: 2px; }
 .stage.lost .bar { background: var(--bad); }
 .stage .n {
   font: 600 14px/1 ui-monospace, "SF Mono", Menlo, monospace;
@@ -92,7 +84,7 @@ body { background: var(--paper); }
 .divert { margin: 14px 0 0 234px; font-size: 14px; color: var(--bad); }
 /* Session cards */
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; margin-top: 20px; }
-.card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 18px 20px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 3px; padding: 18px 20px; }
 .card .who { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
 .card .sid { font: 650 15px/1.3 -apple-system, sans-serif; }
 .card .asst {
@@ -101,14 +93,13 @@ body { background: var(--paper); }
 }
 .pills { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
 .pill {
-  font: 600 11.5px/1 ui-monospace, "SF Mono", Menlo, monospace;
-  padding: 5px 9px; border-radius: 99px; letter-spacing: .03em;
+  font: 500 11.5px/1 ui-monospace, "SF Mono", Menlo, monospace;
+  padding: 5px 8px; border-radius: 3px; border: 1px solid var(--line); color: var(--ink);
 }
-.pill.ok { background: var(--ok-soft); color: var(--ok); }
-.pill.warn { background: var(--warn-soft); color: var(--warn); }
-.pill.bad { background: var(--bad-soft); color: var(--bad); }
-.pill.muted { background: var(--mut-soft); color: var(--muted); }
-.pill.accent { background: var(--accent-soft); color: var(--accent); }
+.pill.ok { border-color: var(--ink); font-weight: 650; }
+.pill.warn { color: var(--ink); }
+.pill.bad { color: var(--bad); border-color: var(--bad); }
+.pill.muted { color: var(--muted); }
 .card dl { margin: 0; font-size: 13.5px; }
 .card dt {
   font: 600 10.5px/1 ui-monospace, "SF Mono", Menlo, monospace;
@@ -140,7 +131,11 @@ body { background: var(--paper); }
 
 
 def esc(s):
-    return html.escape(str(s if s is not None else ""))
+    """Escape for HTML, scrubbing em/en dashes into plain punctuation."""
+    s = str(s if s is not None else "")
+    s = re.sub(r"\s*—\s*", ", ", s)
+    s = s.replace("–", "-")
+    return html.escape(s)
 
 
 def md_inline(text: str) -> str:
@@ -244,7 +239,7 @@ def render_card(audit: dict, s: dict) -> str:
     rows = [
         ("Shortlist", ", ".join(s["shortlist"]) or "none given"),
         ("Preferred over the brand", (
-            f"{s['competitor_preferred']} — {s['competitor_preferred_reason']}"
+            f"{s['competitor_preferred']}: {s['competitor_preferred_reason']}"
             if s["competitor_preferred"] else "none"
         )),
         ("Dealbreakers", "; ".join(s["dealbreakers"]) or "none"),
@@ -266,7 +261,7 @@ def build_fragment(audit: dict) -> str:
     assistants = ", ".join(sorted({s["assistant"] for s in audit["sessions"]}))
     meta = [
         ("Category", audit["category"]),
-        ("Buyer persona", f"{icp['role']} — {icp['description']}"),
+        ("Buyer persona", f"{icp['role']}. {icp['description']}"),
         ("Jobs to be done", "; ".join(icp["jobs_to_be_done"])),
         ("Priorities", "; ".join(icp["priorities"])),
         ("Scenarios", ", ".join(s["id"] for s in audit["scenarios"])),
@@ -280,7 +275,7 @@ def build_fragment(audit: dict) -> str:
 <main class="rpt">
   <div class="eyebrow">AI Brand Perception Audit</div>
   <h1>{esc(audit["brand"])}</h1>
-  <p class="sub">How AI assistants judge {esc(audit["brand"])} when its buyers ask for help — and what would change their answer.</p>
+  <p class="sub">What AI assistants tell buyers about {esc(audit["brand"])}, and what would change their answer.</p>
   <div class="meta">{meta_html}</div>
 
   <h2>The buyer journey funnel</h2>
@@ -295,7 +290,7 @@ def build_fragment(audit: dict) -> str:
     Method: multi-turn buyer-journey chat sessions (4 stages, question + follow-up each) run as the ICP persona
     against each assistant's default-tier model at medium effort. Probes never name the brand or category before
     the assistant does. Extraction and synthesis by Claude. Beliefs reported are the assistants' own, verbatim
-    from session transcripts — treat as perception data, not market fact.
+    from session transcripts. Treat them as perception data, not market fact.
   </div>
 </main>"""
 
@@ -312,7 +307,7 @@ def main():
     doc = (
         "<!doctype html><html><head><meta charset='utf-8'>"
         "<meta name='viewport' content='width=device-width, initial-scale=1'>"
-        f"<title>AI Brand Perception Audit — {esc(audit['brand'])}</title></head>"
+        f"<title>AI Brand Perception Audit: {esc(audit['brand'])}</title></head>"
         f"<body style='margin:0'>{fragment}</body></html>"
     )
     out = args.out or args.json_path.replace(".json", ".html")
