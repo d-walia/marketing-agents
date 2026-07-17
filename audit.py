@@ -26,7 +26,7 @@ from datetime import date
 
 import anthropic
 
-from journey import build_journey
+from journey import BUYER_MODEL, buyer_prompt, opening_turn, stages
 from providers import active_providers
 
 ANALYSIS_MODEL = "claude-opus-4-8"
@@ -45,6 +45,15 @@ CONFIG_TEMPLATE = {
         "priorities": [
             "what they care about most right now, e.g. 'reduce outside counsel spend'",
             "e.g. 'look rigorous in front of the audit committee'",
+        ],
+        "buying_moment": "optional but strongly recommended: the trigger event that put them in market and the pressure they're under, e.g. 'two deals slipped last quarter because of contract turnaround; the CRO escalated to the CEO and I have one quarter to show improvement'",
+        "installed_stack": [
+            "optional but strongly recommended: tools they already run that a purchase must coexist with, e.g. 'Salesforce'",
+            "e.g. 'Ironclad (legacy contracts only)'",
+        ],
+        "decision_criteria": [
+            "optional but strongly recommended: what would actually make them buy, e.g. 'provable ROI within two quarters'",
+            "e.g. 'works with our existing Salesforce workflow, no rip-and-replace'",
         ],
     },
     "scenarios": [
@@ -183,13 +192,52 @@ def load_config(path: str) -> dict:
     return config
 
 
-def conduct_session(provider, turns: list) -> list:
-    """Run one multi-turn chat with an assistant; return the full transcript."""
+def generate_buyer_turn(client, config, scenario, goal, conversation, before_brand_stage) -> str:
+    """Have the simulated buyer write its next message, reacting to the chat so far."""
+    convo = "\n\n".join(
+        f"[{'YOU (the buyer)' if m['role'] == 'user' else 'ASSISTANT'}]\n{m['content']}"
+        for m in conversation
+    )
+    response = client.messages.create(
+        model=BUYER_MODEL,
+        max_tokens=400,
+        output_config={"effort": "low"},
+        system=buyer_prompt(config["icp"], scenario, goal, before_brand_stage),
+        messages=[{
+            "role": "user",
+            "content": f"The conversation so far:\n\n{convo}\n\nWrite the buyer's next message.",
+        }],
+    )
+    return "".join(b.text for b in response.content if b.type == "text").strip()
+
+
+def leaks_names(text: str, config: dict) -> bool:
+    """True if a pre-brand-stage buyer turn names the brand or a competitor."""
+    lowered = text.lower()
+    return any(name.lower() in lowered for name in [config["brand"], *config["competitors"]])
+
+
+def conduct_session(provider, client, config, scenario) -> list:
+    """Run one stage-driven chat with an adaptive buyer; return the transcript."""
     messages = []
-    for turn in turns:
-        messages.append({"role": "user", "content": turn})
-        answer = provider.ask(messages)
-        messages.append({"role": "assistant", "content": answer})
+    for stage in stages(config["brand"]):
+        before_brand = stage["id"] in ("problem", "vendors")
+        for slot in stage["turns"]:
+            if slot["goal"] == "OPENING":
+                turn = opening_turn(config["icp"], scenario)
+            else:
+                try:
+                    turn = generate_buyer_turn(client, config, scenario, slot["goal"], messages, before_brand)
+                    if before_brand and leaks_names(turn, config):
+                        turn = generate_buyer_turn(client, config, scenario, slot["goal"], messages, before_brand)
+                    if not turn or (before_brand and leaks_names(turn, config)):
+                        turn = slot["fallback"]
+                except Exception as e:
+                    print(f"    buyer generation failed ({e}); using scripted fallback", file=sys.stderr)
+                    turn = slot["fallback"]
+            messages.append({"role": "user", "content": turn})
+            answer = provider.ask(messages)
+            messages.append({"role": "assistant", "content": answer})
     return messages
 
 
@@ -207,11 +255,12 @@ def extract_session(client: anthropic.Anthropic, transcript: str, brand: str, ca
             "content": (
                 f"Target brand: {brand}\nTarget category: {category}\n\n"
                 "Below is a buyer-journey chat with an AI assistant (8 buyer turns "
-                "across 4 stages, each stage a question plus follow-up: situation "
-                "and prioritization; vendor shortlist and top-pick defense; direct "
-                "question about the target brand and the basis/currency of that "
-                "view; then pressure on the concerns, a final call, a CEO pitch, "
-                "and the evidence that would change its mind). "
+                "across 4 stages: situation and prioritization; vendor shortlist "
+                "and top-pick defense; direct question about the target brand and "
+                "the basis/currency of that view; then pressure on the concerns, a "
+                "final call, a CEO pitch, and the evidence that would change its "
+                "mind). The buyer's follow-ups are adaptive, written in character "
+                "from the ICP definition, so wording varies between sessions. "
                 "Extract the data per the schema, judging only from what the assistant "
                 f"actually said.\n\n<transcript>\n{transcript}\n</transcript>"
             ),
@@ -234,7 +283,11 @@ def synthesize(client: anthropic.Anthropic, audit: dict) -> str:
         f"known competitors: {', '.join(audit['competitors']) or 'not specified'}).\n\n"
         f"The buyer persona: {icp['role']} at {icp['description']} "
         f"Jobs to be done: {'; '.join(icp['jobs_to_be_done'])}. "
-        f"Priorities: {'; '.join(icp['priorities'])}.\n\n"
+        f"Priorities: {'; '.join(icp['priorities'])}."
+        + (f" Buying moment: {icp['buying_moment']}" if icp.get("buying_moment") else "")
+        + (f" Installed stack: {', '.join(icp['installed_stack'])}." if icp.get("installed_stack") else "")
+        + (f" Decision criteria: {'; '.join(icp['decision_criteria'])}." if icp.get("decision_criteria") else "")
+        + "\n\n"
         "Below are structured extractions from buyer-journey chat sessions: each "
         "scenario is a situation where this persona's jobs hit a challenge, run "
         "against each AI assistant.\n\n"
@@ -321,8 +374,7 @@ def run_audit(config: dict, providers: list) -> dict:
         for provider in providers:
             print(f"  session: {scenario['id']} x {provider.name} ...", file=sys.stderr)
             try:
-                turns = build_journey(config["icp"], scenario, config["brand"])
-                messages = conduct_session(provider, turns)
+                messages = conduct_session(provider, client, config, scenario)
                 transcript = transcript_text(messages)
                 data = extract_session(client, transcript, config["brand"], config["category"])
             except Exception as e:

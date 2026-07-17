@@ -15,6 +15,14 @@
       "forecast accuracy above all: the board has lost patience with 20 percent misses",
       "get value fast without a heavy implementation project",
       "prove ROI on any new tooling within two quarters"
+    ],
+    "buying_moment": "Third consecutive forecast miss just landed and the board told the CEO it is unacceptable; I have roughly one quarter to show the number can be trusted before this becomes a question about me.",
+    "installed_stack": ["Salesforce", "Outreach", "Zoom", "Slack"],
+    "decision_criteria": [
+      "provable forecast-accuracy improvement within two quarters",
+      "works on top of Salesforce as-is, no CRM cleanup project first",
+      "light enough to run without a dedicated admin",
+      "defensible to the board: reference customers at our size I can call"
     ]
   },
   "scenarios": [
