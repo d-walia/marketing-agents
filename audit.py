@@ -273,14 +273,45 @@ def synthesize(client: anthropic.Anthropic, audit: dict) -> str:
     return "".join(b.text for b in response.content if b.type == "text")
 
 
-def run_audit(config: dict, requested_models) -> dict:
-    client = anthropic.Anthropic()
-    providers, skipped = active_providers(requested_models)
-    if not providers:
-        sys.exit("No probe models available. Set ANTHROPIC_API_KEY at minimum.")
-    if skipped:
-        print(f"  skipping (no API key): {', '.join(skipped)}", file=sys.stderr)
+def preflight(providers, skipped, config) -> None:
+    """Check every key, report what usage info each API exposes."""
+    print("\nPre-flight check", file=sys.stderr)
+    print("----------------", file=sys.stderr)
+    for p in providers:
+        result = p.preflight()
+        status = "OK " if result["ok"] else "FAIL"
+        print(f"  [{status}] {p.name} ({p.model}): {result['detail']}", file=sys.stderr)
+    for name in skipped:
+        print(f"  [SKIP] {name}: no API key set", file=sys.stderr)
+    n_sessions = len(config["scenarios"]) * len(providers)
+    print(
+        f"\nPlanned run: {len(config['scenarios'])} scenario(s) x {len(providers)} assistant(s) "
+        f"= {n_sessions} sessions of 8 turns each, plus {n_sessions} extraction call(s) "
+        "and 1 synthesis call on Claude.",
+        file=sys.stderr,
+    )
 
+
+def confirm_selection(providers):
+    """Ask which assistants to include; return the filtered provider list."""
+    names = [p.name for p in providers]
+    answer = input(
+        f"\nRun across which assistants? [{', '.join(names)}] "
+        "(Enter for all, or a comma-separated subset, or 'q' to abort): "
+    ).strip().lower()
+    if answer == "q":
+        sys.exit("Aborted.")
+    if not answer:
+        return providers
+    chosen = {a.strip() for a in answer.split(",")}
+    unknown = chosen - set(names)
+    if unknown:
+        sys.exit(f"Unknown assistant(s): {', '.join(sorted(unknown))}. Available: {', '.join(names)}")
+    return [p for p in providers if p.name in chosen]
+
+
+def run_audit(config: dict, providers: list) -> dict:
+    client = anthropic.Anthropic()
     sessions = []
     for scenario in config["scenarios"]:
         for provider in providers:
@@ -416,8 +447,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Run a B2B AI brand perception audit.")
     parser.add_argument("config", nargs="?", help="Path to the audit config JSON (see --init)")
     parser.add_argument("--init", action="store_true", help="Write audit-config.json template and exit")
-    parser.add_argument("--models", default=None, help="Comma-separated subset of: claude,chatgpt,gemini,perplexity (default: all with keys)")
+    parser.add_argument("--models", default=None, help="Comma-separated subset of: claude,chatgpt,gemini (default: all with keys)")
     parser.add_argument("--out", default=None)
+    parser.add_argument("--preflight", action="store_true", help="Check keys and available usage info, then exit without running")
+    parser.add_argument("--yes", action="store_true", help="Skip the interactive confirmation and run across all available assistants")
     args = parser.parse_args()
 
     if args.init:
@@ -436,7 +469,17 @@ def main() -> None:
 
     config = load_config(args.config)
     requested = [m.strip() for m in args.models.split(",")] if args.models else None
-    audit = run_audit(config, requested)
+    providers, skipped = active_providers(requested)
+    if not providers:
+        sys.exit("No probe models available. Set ANTHROPIC_API_KEY at minimum.")
+
+    preflight(providers, skipped, config)
+    if args.preflight:
+        return
+    if not args.yes and sys.stdin.isatty():
+        providers = confirm_selection(providers)
+
+    audit = run_audit(config, providers)
 
     out_path = args.out or f"report-{config['brand'].lower().replace(' ', '-')}-{audit['date']}.md"
     write_report(audit, out_path)

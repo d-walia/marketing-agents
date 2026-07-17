@@ -50,14 +50,35 @@ pip install anthropic
 export ANTHROPIC_API_KEY=sk-ant-...     # required: probes Claude + runs the analysis
 export OPENAI_API_KEY=...               # optional: probe ChatGPT
 export GEMINI_API_KEY=...               # optional: probe Gemini
-export PERPLEXITY_API_KEY=...           # optional: probe Perplexity
 
 python audit.py --init                  # create the config template
 # fill in audit-config.json, then:
 python audit.py audit-config.json
 ```
 
-Any assistant without a key is skipped with a notice. Analysis and extraction always run on Claude.
+Any assistant without a key is skipped with a notice. Analysis and extraction always run on Claude. Perplexity is not currently probed.
+
+## Model policy: probe the defaults, at medium effort
+
+Probe sessions always use each vendor's **default-tier model at medium effort** — that's what real buyers are talking to, and it keeps runs fast and cheap. Do not point probes at heavyweight frontier models (Claude Fable/Opus, OpenAI's pro-tier models, Gemini Pro/Ultra).
+
+| Assistant | Probe model | Effort setting |
+|---|---|---|
+| Claude | `claude-sonnet-5` | `effort: medium` |
+| ChatGPT | `gpt-5.5` | `reasoning_effort: medium` |
+| Gemini | `gemini-3.5-flash` | default |
+
+Override with `ANTHROPIC_MODEL` / `OPENAI_MODEL` / `GEMINI_MODEL` env vars only when a vendor changes its default model. The analysis/extraction engine (Claude Opus) is separate and intentionally stronger than the probes.
+
+## Pre-flight: usage check and confirmation
+
+Before any session runs, the tool checks every key and reports what each API exposes about remaining usage (rate-limit headroom for Claude and OpenAI; key validity for Gemini — none of the three expose credit balances via API, so it points you at the right dashboard). It then shows the planned session count and asks which assistants to include: all, or a subset for this audit.
+
+```bash
+python audit.py audit-config.json --preflight   # check only, don't run
+python audit.py audit-config.json               # check, confirm, run
+python audit.py audit-config.json --yes         # skip confirmation (CI)
+```
 
 ## Reading the results
 
