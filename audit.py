@@ -26,7 +26,10 @@ from datetime import date
 
 import anthropic
 
-from journey import BUYER_MODEL, buyer_prompt, opening_turn, stages
+from journey import (
+    BUYER_MODEL, buyer_prompt, comparison_continuation, opening_turn,
+    problem_stage, standard_continuation,
+)
 from providers import active_providers
 
 ANALYSIS_MODEL = "claude-opus-4-8"
@@ -211,26 +214,46 @@ def generate_buyer_turn(client, config, scenario, goal, conversation, before_bra
     return "".join(b.text for b in response.content if b.type == "text").strip()
 
 
-def leaks_names(text: str, config: dict) -> bool:
-    """True if a pre-brand-stage buyer turn names the brand or a competitor."""
+def assistant_named(messages: list, config: dict) -> list:
+    """Config-known vendor names the assistant has said so far, in config order."""
+    said = " ".join(m["content"].lower() for m in messages if m["role"] == "assistant")
+    return [n for n in [config["brand"], *config["competitors"]] if n.lower() in said]
+
+
+def leaks_names(text: str, config: dict, allowed: list) -> bool:
+    """True if a buyer turn introduces a config-known vendor the assistant hasn't named."""
     lowered = text.lower()
-    return any(name.lower() in lowered for name in [config["brand"], *config["competitors"]])
+    allowed_lower = {a.lower() for a in allowed}
+    return any(
+        name.lower() in lowered and name.lower() not in allowed_lower
+        for name in [config["brand"], *config["competitors"]]
+    )
 
 
-def conduct_session(provider, client, config, scenario) -> list:
-    """Run one stage-driven chat with an adaptive buyer; return the transcript."""
+def conduct_session(provider, client, config, scenario):
+    """Run one stage-driven chat with an adaptive buyer.
+
+    After stage 1, the journey branches: if the assistant named vendors on its
+    own (category mapping works), the buyer follows that thread into a
+    head-to-head comparison; otherwise the buyer opens the vendor conversation
+    (standard pathway). Both pathways are 4 stages / 8 turns.
+    Returns (messages, pathway, unprompted_vendor_names).
+    """
     messages = []
-    for stage in stages(config["brand"]):
-        before_brand = stage["id"] in ("problem", "vendors")
+
+    def run_stage(stage, guard_new_names):
         for slot in stage["turns"]:
             if slot["goal"] == "OPENING":
                 turn = opening_turn(config["icp"], scenario)
             else:
+                allowed = assistant_named(messages, config) if guard_new_names else (
+                    [config["brand"], *config["competitors"]]
+                )
                 try:
-                    turn = generate_buyer_turn(client, config, scenario, slot["goal"], messages, before_brand)
-                    if before_brand and leaks_names(turn, config):
-                        turn = generate_buyer_turn(client, config, scenario, slot["goal"], messages, before_brand)
-                    if not turn or (before_brand and leaks_names(turn, config)):
+                    turn = generate_buyer_turn(client, config, scenario, slot["goal"], messages, guard_new_names)
+                    if guard_new_names and leaks_names(turn, config, allowed):
+                        turn = generate_buyer_turn(client, config, scenario, slot["goal"], messages, guard_new_names)
+                    if not turn or (guard_new_names and leaks_names(turn, config, allowed)):
                         turn = slot["fallback"]
                 except Exception as e:
                     print(f"    buyer generation failed ({e}); using scripted fallback", file=sys.stderr)
@@ -238,7 +261,24 @@ def conduct_session(provider, client, config, scenario) -> list:
             messages.append({"role": "user", "content": turn})
             answer = provider.ask(messages)
             messages.append({"role": "assistant", "content": answer})
-    return messages
+
+    run_stage(problem_stage(), guard_new_names=True)
+
+    unprompted = assistant_named(messages, config)
+    if unprompted:
+        pathway = "vendor_comparison"
+        continuation = comparison_continuation(
+            config["brand"], unprompted, brand_named=config["brand"] in unprompted
+        )
+    else:
+        pathway = "standard"
+        continuation = standard_continuation(config["brand"])
+
+    for stage in continuation:
+        # Buyer may discuss vendors the assistant has named; may not introduce
+        # new config-known names until the brand stage.
+        run_stage(stage, guard_new_names=(stage["id"] in ("vendors", "head-to-head")))
+    return messages, pathway, unprompted
 
 
 def transcript_text(messages: list) -> str:
@@ -290,7 +330,13 @@ def synthesize(client: anthropic.Anthropic, audit: dict) -> str:
         + "\n\n"
         "Below are structured extractions from buyer-journey chat sessions: each "
         "scenario is a situation where this persona's jobs hit a challenge, run "
-        "against each AI assistant.\n\n"
+        "against each AI assistant. Each session's 'pathway' field matters: "
+        "'vendor_comparison' means the assistant named vendors unprompted in "
+        "stage 1 (the category-to-vendor mapping already works for that problem "
+        "framing) and the session became a head-to-head; 'standard' means the "
+        "buyer had to open the vendor conversation themselves (a category "
+        "mapping gap for that framing). Read pathway distribution as a finding "
+        "in itself.\n\n"
         f"{json.dumps(condensed, indent=2)}\n\n"
         "Write the analysis sections of the audit report in markdown (start at "
         "'## How AI models see the brand'). Cover:\n"
@@ -374,7 +420,7 @@ def run_audit(config: dict, providers: list) -> dict:
         for provider in providers:
             print(f"  session: {scenario['id']} x {provider.name} ...", file=sys.stderr)
             try:
-                messages = conduct_session(provider, client, config, scenario)
+                messages, pathway, unprompted = conduct_session(provider, client, config, scenario)
                 transcript = transcript_text(messages)
                 data = extract_session(client, transcript, config["brand"], config["category"])
             except Exception as e:
@@ -385,6 +431,8 @@ def run_audit(config: dict, providers: list) -> dict:
                 "scenario": scenario["id"],
                 "assistant": provider.name,
                 "assistant_model": provider.model,
+                "pathway": pathway,
+                "unprompted_vendors_stage1": unprompted,
                 "transcript": transcript,
                 **data,
             })
@@ -487,9 +535,14 @@ def write_report(audit: dict, out_path: str) -> None:
             f"{s['competitor_preferred']} ({s['competitor_preferred_reason']})"
             if s["competitor_preferred"] else "none"
         )
+        pathway_note = (
+            f"vendor comparison (assistant named {', '.join(s['unprompted_vendors_stage1'])} unprompted in stage 1)"
+            if s.get("pathway") == "vendor_comparison" else "standard (buyer had to open the vendor conversation)"
+        )
         lines += [
             f"### {s['scenario']} x {s['assistant']}",
             "",
+            f"- Pathway: {pathway_note}",
             f"- Category proposed: {s['category_proposed']} (as: {', '.join(s['category_terms_used']) or 'n/a'})",
             f"- Shortlist: {', '.join(s['shortlist']) or 'none given'}",
             f"- Verdict on {audit['brand']}: **{s['brand_recommendation']}**",

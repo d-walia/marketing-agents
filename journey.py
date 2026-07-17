@@ -49,29 +49,33 @@ def opening_turn(icp: dict, scenario: dict) -> str:
     )
 
 
-def stages(brand: str) -> list:
-    """Stage arc: each turn slot has a goal (for the buyer generator) and a
-    scripted fallback. Slot 0 of stage 1 is always the constructed opening."""
+def problem_stage() -> dict:
+    """Stage 1 is identical on every pathway. Slot 0 is the constructed opening."""
+    return {
+        "id": "problem",
+        "turns": [
+            {"goal": "OPENING", "fallback": None},
+            {
+                "goal": (
+                    "React to something specific the assistant just said, then push it to "
+                    "commit: which one or two of those approaches would give you the most "
+                    "impact fastest, and what would that look like in practice for a team "
+                    "like yours?"
+                ),
+                "fallback": (
+                    "There's a lot there. If I can only focus on one or two of those, "
+                    "which would give us the most impact fastest, and what would that "
+                    "actually look like in practice for a team like ours?"
+                ),
+            },
+        ],
+    }
+
+
+def standard_continuation(brand: str) -> list:
+    """Stages 2-4 when the assistant did NOT name vendors on its own in stage 1:
+    the buyer has to open the vendor conversation themselves."""
     return [
-        {
-            "id": "problem",
-            "turns": [
-                {"goal": "OPENING", "fallback": None},
-                {
-                    "goal": (
-                        "React to something specific the assistant just said, then push it to "
-                        "commit: which one or two of those approaches would give you the most "
-                        "impact fastest, and what would that look like in practice for a team "
-                        "like yours?"
-                    ),
-                    "fallback": (
-                        "There's a lot there. If I can only focus on one or two of those, "
-                        "which would give us the most impact fastest, and what would that "
-                        "actually look like in practice for a team like ours?"
-                    ),
-                },
-            ],
-        },
         {
             "id": "vendors",
             "turns": [
@@ -104,40 +108,113 @@ def stages(brand: str) -> list:
                 },
             ],
         },
+        brand_stage(brand),
+        pressure_stage(brand),
+    ]
+
+
+def comparison_continuation(brand: str, named_vendors: list, brand_named: bool) -> list:
+    """Stages 2-4 when the assistant named vendors unprompted in stage 1.
+
+    That unprompted naming means the category-to-vendor mapping already works
+    for this problem, so forcing the scripted 'who should we shortlist' turn
+    would be unnatural. Instead the buyer follows the conversation that
+    actually opened: a head-to-head comparison of the vendors the assistant
+    itself put on the table."""
+    named = ", ".join(named_vendors)
+    return [
         {
-            "id": "brand",
+            "id": "head-to-head",
             "turns": [
                 {
                     "goal": (
-                        f"Raise {brand} by name for the first time. Say you've come across "
-                        f"them and ask for a candid assessment for your situation: what "
-                        f"they're actually good at, what to flag, and whether the assistant "
-                        f"would pick anyone over them."
+                        f"The assistant already brought up specific vendors on its own "
+                        f"({named}). Follow that thread: ask it to compare the options it "
+                        f"mentioned head-to-head for your situation, and who else belongs "
+                        f"in that comparison. Only reference vendors the assistant itself "
+                        f"has named."
                     ),
                     "fallback": (
-                        f"We've come across {brand}. Be candid: would you recommend them for "
-                        "our situation? What are they actually good at, what would you flag, "
-                        "and is there anyone you'd pick over them?"
+                        "You brought up some specific tools there. Compare them head to head "
+                        "for a company like ours: where does each one win, where does each "
+                        "fall short, and who else should be in that comparison?"
                     ),
                 },
                 {
                     "goal": (
-                        "Interrogate the basis of that assessment: what is it actually based "
-                        "on, how current and reliable is the information, and what should "
-                        "you verify yourself before trusting it? If anything it said sounded "
-                        "like vendor marketing, call that out and ask for the source."
+                        "Press on the comparison: which criteria actually separate these "
+                        "options for a company like yours? Bring in whichever of your real "
+                        "constraints is most relevant (installed stack, team capacity, "
+                        "timeline, budget), and ask which one it would lean toward and what "
+                        "would flip that."
                     ),
                     "fallback": (
-                        "What is that assessment actually based on? How current and reliable "
-                        "is your information about them, and what should I go verify myself "
-                        "before trusting it?"
+                        "Which criteria actually separate them for a company like ours? "
+                        "Given our situation, which one would you lean toward, and what "
+                        "would have to be true to flip that?"
                     ),
                 },
             ],
         },
-        {
-            "id": "pressure",
-            "turns": [
+        brand_stage(brand, already_named=brand_named),
+        pressure_stage(brand),
+    ]
+
+
+def brand_stage(brand: str, already_named: bool = False) -> dict:
+    if already_named:
+        first = {
+            "goal": (
+                f"The assistant already mentioned {brand}. Zero in on them now: ask "
+                f"for a candid, direct assessment for your situation. Where do they "
+                f"genuinely win in that comparison, what would the assistant flag, "
+                f"and would it pick anyone over them?"
+            ),
+            "fallback": (
+                f"Let's zero in on {brand}. Be candid: would you recommend them for "
+                "our situation? What are they actually good at, what would you flag, "
+                "and is there anyone you'd pick over them?"
+            ),
+        }
+    else:
+        first = {
+            "goal": (
+                f"Raise {brand} by name for the first time. Say you've come across "
+                f"them and ask for a candid assessment for your situation: what "
+                f"they're actually good at, what to flag, and whether the assistant "
+                f"would pick anyone over them."
+            ),
+            "fallback": (
+                f"We've come across {brand}. Be candid: would you recommend them for "
+                "our situation? What are they actually good at, what would you flag, "
+                "and is there anyone you'd pick over them?"
+            ),
+        }
+    return {
+        "id": "brand",
+        "turns": [
+            first,
+            {
+                "goal": (
+                    "Interrogate the basis of that assessment: what is it actually based "
+                    "on, how current and reliable is the information, and what should "
+                    "you verify yourself before trusting it? If anything it said sounded "
+                    "like vendor marketing, call that out and ask for the source."
+                ),
+                "fallback": (
+                    "What is that assessment actually based on? How current and reliable "
+                    "is your information about them, and what should I go verify myself "
+                    "before trusting it?"
+                ),
+            },
+        ],
+    }
+
+
+def pressure_stage(brand: str) -> dict:
+    return {
+        "id": "pressure",
+        "turns": [
                 {
                     "goal": (
                         f"Push back on the concerns raised so far: would any of them actually "
@@ -164,9 +241,8 @@ def stages(brand: str) -> list:
                         "it, would change your mind?"
                     ),
                 },
-            ],
-        },
-    ]
+        ],
+    }
 
 
 BUYER_RULES = """You are playing a real B2B buyer in a live chat with an AI assistant. Stay
