@@ -131,13 +131,26 @@ SESSION_SCHEMA = {
             "items": {"type": "string"},
             "description": "Concerns that the assistant said would actually stop the purchase, if any",
         },
+        "ceo_pitch": {
+            "type": ["string", "null"],
+            "description": "The assistant's three-sentence case to the CEO for its final choice, verbatim or near-verbatim",
+        },
+        "flip_condition": {
+            "type": ["string", "null"],
+            "description": "The single piece of evidence the assistant said would change its mind about the final call",
+        },
+        "information_confidence": {
+            "type": ["string", "null"],
+            "description": "What the assistant admitted about how current/reliable its information on the target brand is, and what it told the buyer to verify",
+        },
     },
     "required": [
         "category_proposed", "category_terms_used", "unprompted_brand_mention",
         "shortlist", "brand_recommendation", "qualifiers", "competitor_preferred",
         "competitor_preferred_reason", "sources_cited", "brand_sources_first_party",
         "beliefs_about_brand", "proof_gaps", "final_call", "final_call_vendor",
-        "pressure_outcome", "dealbreakers",
+        "pressure_outcome", "dealbreakers", "ceo_pitch", "flip_condition",
+        "information_confidence",
     ],
     "additionalProperties": False,
 }
@@ -193,9 +206,12 @@ def extract_session(client: anthropic.Anthropic, transcript: str, brand: str, ca
             "role": "user",
             "content": (
                 f"Target brand: {brand}\nTarget category: {category}\n\n"
-                "Below is a buyer-journey chat with an AI assistant (4 buyer turns: "
-                "situation, vendor shortlist, direct question about the target brand, "
-                "then pressure on the concerns and a demand for a final call). "
+                "Below is a buyer-journey chat with an AI assistant (8 buyer turns "
+                "across 4 stages, each stage a question plus follow-up: situation "
+                "and prioritization; vendor shortlist and top-pick defense; direct "
+                "question about the target brand and the basis/currency of that "
+                "view; then pressure on the concerns, a final call, a CEO pitch, "
+                "and the evidence that would change its mind). "
                 "Extract the data per the schema, judging only from what the assistant "
                 f"actually said.\n\n<transcript>\n{transcript}\n</transcript>"
             ),
@@ -239,7 +255,9 @@ def synthesize(client: anthropic.Anthropic, audit: dict) -> str:
         "describing what the missing proof actually did to the verdict, for example "
         "'Main reason the assistant recommended a competitor instead' or 'Softened "
         "the verdict from strong to qualified' or 'Added hedging but did not change "
-        "the pick'. Never use yes/no or 'partially' as the value.\n"
+        "the pick'. Never use yes/no or 'partially' as the value. Give special "
+        "weight to each session's flip_condition: that is the evidence the "
+        "assistant itself named as what would change its final call.\n"
         "4. Recommended positioning and content changes: concrete, prioritized actions "
         "(positioning language, proof points to publish, content to create, where to "
         "place it) that would move these assistants toward recommending the brand.\n"
@@ -383,6 +401,9 @@ def write_report(audit: dict, out_path: str) -> None:
             f"- Under pressure: **{s['pressure_outcome'].replace('_', ' ')}** | final call: "
             + (f"**{s['final_call_vendor'] or audit['brand']}**" if s["final_call"] != "neither_or_defer" else "**deferred**"),
             f"- Dealbreakers: {'; '.join(s['dealbreakers']) or 'none'}",
+            f"- Own-information confidence: {s['information_confidence'] or 'not stated'}",
+            f"- CEO pitch for the final call: {s['ceo_pitch'] or 'none given'}",
+            f"- Would change its mind if: {s['flip_condition'] or 'nothing named'}",
             "",
         ]
 

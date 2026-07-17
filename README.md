@@ -29,10 +29,12 @@ See [example-config.json](example-config.json) for a fully worked example (Gong 
 
 For each scenario, the tool poses as your ICP and runs the same multi-turn chat session against every assistant you have API keys for. The persona is built entirely from your ICP definition: role, jobs to be done, priorities. Each session unfolds the way B2B buying conversations actually do:
 
-1. **Problem turn.** The buyer describes the scenario in their own words. No category, no vendor names. Measures: *does the assistant propose your category as a solution at all?*
-2. **Vendor turn.** The buyer asks who to shortlist. Measures: *do you surface unprompted, and where do you rank?*
-3. **Brand turn.** The buyer raises your brand directly and asks for a candid take. Measures: *recommendation strength, the qualifiers attached ("good, but...")*, *whether a competitor gets recommended over you, and which sources the view rests on — your content or third parties'.*
-4. **Pressure turn.** The buyer pushes back the way a real buyer would: "would any of those concerns actually stop you? If you had to commit today, who do you go with?" Always the same scripted challenge, so sessions stay comparable. Measures: *which qualifiers dissolve when challenged (soft objections), which harden into dealbreakers (real objections), and who wins the final call.*
+Every stage goes two prompts deep — the main question, then a scripted follow-up that pushes past the first-pass answer — so each session is 8 buyer turns. All prompts are fixed scripts, keeping sessions comparable across models and scenarios.
+
+1. **Problem stage.** The buyer describes the scenario in their own words (no category, no vendor names), then asks which approach gives the most impact fastest. Measures: *does the assistant propose your category — and does the category survive prioritization, not just brainstorming?*
+2. **Vendor stage.** The buyer asks who to shortlist, then makes the assistant defend its top pick and name what would change the ranking. Measures: *do you surface unprompted, where do you rank, and what are the real decision criteria?*
+3. **Brand stage.** The buyer raises your brand directly for a candid take, then asks what that view is based on and how current it is. Measures: *recommendation strength, the qualifiers attached, whether a competitor gets recommended over you, and the provenance of the assistant's information — your content, third parties, or stale training data it admits it can't vouch for.*
+4. **Pressure stage.** The buyer pushes back — "would any of those concerns actually stop you? Commit today: them or someone else?" — then demands a three-sentence case to the CEO and the single piece of evidence that would change the assistant's mind. Measures: *which qualifiers dissolve (soft objections) vs harden into dealbreakers (real objections), who wins the final call, the pitch your brand gets made with, and the exact flip condition your content strategy should target.*
 
 ## What you get
 
