@@ -48,7 +48,8 @@ def _post_json(url: str, headers: dict, payload: dict, retries: int = 4):
         except urllib.error.HTTPError as e:
             if e.code not in RETRYABLE or attempt == retries:
                 raise
-            wait = 2 ** (attempt + 1)
+            # Rate limits need real cool-down; server blips need only seconds
+            wait = 30 * (attempt + 1) if e.code == 429 else 2 ** (attempt + 1)
             print(f"    transient HTTP {e.code}, retrying in {wait}s ...", file=sys.stderr)
             time.sleep(wait)
         except urllib.error.URLError:

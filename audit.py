@@ -316,14 +316,19 @@ def confirm_selection(providers):
 
 def run_audit(config: dict, providers: list) -> dict:
     client = anthropic.Anthropic()
-    sessions = []
+    sessions, failed = [], []
     for scenario in config["scenarios"]:
         for provider in providers:
             print(f"  session: {scenario['id']} x {provider.name} ...", file=sys.stderr)
-            turns = build_journey(config["icp"], scenario, config["brand"])
-            messages = conduct_session(provider, turns)
-            transcript = transcript_text(messages)
-            data = extract_session(client, transcript, config["brand"], config["category"])
+            try:
+                turns = build_journey(config["icp"], scenario, config["brand"])
+                messages = conduct_session(provider, turns)
+                transcript = transcript_text(messages)
+                data = extract_session(client, transcript, config["brand"], config["category"])
+            except Exception as e:
+                print(f"    FAILED ({e}); continuing with remaining sessions", file=sys.stderr)
+                failed.append({"scenario": scenario["id"], "assistant": provider.name, "error": str(e)})
+                continue
             sessions.append({
                 "scenario": scenario["id"],
                 "assistant": provider.name,
@@ -332,10 +337,13 @@ def run_audit(config: dict, providers: list) -> dict:
                 **data,
             })
 
+    if not sessions:
+        sys.exit("Every session failed; nothing to analyze.")
     audit = {
         **{k: config[k] for k in ["brand", "category", "icp", "competitors", "scenarios"]},
         "date": date.today().isoformat(),
         "sessions": sessions,
+        "failed_sessions": failed,
     }
     print("  synthesizing recommendations ...", file=sys.stderr)
     audit["analysis"] = synthesize(client, audit)
@@ -408,6 +416,11 @@ def write_report(audit: dict, out_path: str) -> None:
         f"- **Scenarios:** {', '.join(s['id'] for s in audit['scenarios'])}",
         f"- **Assistants probed:** {', '.join(sorted({s['assistant'] for s in sessions}))}",
         f"- **Sessions:** {n} (scenarios x assistants) | **Date:** {audit['date']}",
+        *(
+            [f"- **Failed sessions (excluded):** " + ", ".join(
+                f"{f['scenario']} x {f['assistant']}" for f in audit.get("failed_sessions", [])
+            )] if audit.get("failed_sessions") else []
+        ),
         "",
         "## The funnel",
         "",
