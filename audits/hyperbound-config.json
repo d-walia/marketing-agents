@@ -1,7 +1,7 @@
 {
   "brand": "Hyperbound",
   "category": "AI sales roleplay and practice platforms",
-  "competitors": ["Second Nature", "Quantified", "Luster", "Yoodli"],
+  "competitors": ["Second Nature", "Quantified", "Luster", "Yoodli", "Mindtickle"],
   "icp": {
     "role": "Head of Sales Enablement",
     "description": "B2B SaaS company, 150 sellers across SDRs and AEs, hiring 15-20 new reps per quarter.",
@@ -14,6 +14,14 @@
       "cut ramp time: it has slipped and the CRO is watching",
       "prove enablement's impact on revenue with hard numbers",
       "roll out fast without a heavy program build"
+    ],
+    "buying_moment": "The newest rep class is missing its early milestones and the CRO called it out in the leadership meeting; I need to show measurable ramp improvement within a quarter or two, with a lean team that cannot absorb a heavy rollout.",
+    "installed_stack": ["Salesforce", "Mindtickle", "Gong", "Zoom"],
+    "decision_criteria": [
+      "evidence that practice actually transfers to live-call performance and faster ramp",
+      "works alongside our existing Mindtickle rollout, not a rip-and-replace",
+      "light enough for a lean enablement team to run",
+      "proof I can put in front of a CFO: references at our size, not vendor blog posts"
     ]
   },
   "scenarios": [
