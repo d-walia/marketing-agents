@@ -65,19 +65,34 @@ class ClaudeProvider:
     env_key = "ANTHROPIC_API_KEY"
     model = os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-5")
 
-    def __init__(self):
+    def __init__(self, retrieval=False):
         import anthropic
 
         self.client = anthropic.Anthropic()
+        self.retrieval = retrieval
 
-    def ask(self, messages: list) -> str:
+    def ask(self, messages: list):
+        kwargs = {}
+        if self.retrieval:
+            kwargs["tools"] = [{"type": "web_search_20260209", "name": "web_search"}]
         response = self.client.messages.create(
             model=self.model,
             max_tokens=PROBE_MAX_TOKENS,
             output_config={"effort": "medium"},
             messages=messages,
+            **kwargs,
         )
-        return "".join(b.text for b in response.content if b.type == "text")
+        text = "".join(b.text for b in response.content if b.type == "text")
+        urls = []
+        for b in response.content:
+            if getattr(b, "type", "") == "web_search_tool_result":
+                content = getattr(b, "content", None)
+                if isinstance(content, list):
+                    for r in content:
+                        url = getattr(r, "url", None)
+                        if url:
+                            urls.append(url)
+        return text, urls
 
     def preflight(self) -> dict:
         try:
@@ -105,6 +120,11 @@ class ChatGPTProvider:
     model = os.environ.get("OPENAI_MODEL", "gpt-5.5")
     url = "https://api.openai.com/v1/chat/completions"
 
+    def __init__(self, retrieval=False):
+        # Retrieval not yet wired for the chat-completions endpoint; probes
+        # run parametric-only and the report notes it.
+        self.retrieval = False
+
     def _request(self, messages: list, max_tokens: int):
         return _post_json(
             self.url,
@@ -117,9 +137,9 @@ class ChatGPTProvider:
             },
         )
 
-    def ask(self, messages: list) -> str:
+    def ask(self, messages: list):
         data, _ = self._request(messages, PROBE_MAX_TOKENS)
-        return data["choices"][0]["message"]["content"]
+        return data["choices"][0]["message"]["content"], []
 
     def preflight(self) -> dict:
         try:
@@ -143,14 +163,20 @@ class GeminiProvider:
     env_key = "GEMINI_API_KEY"
     model = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash")
 
+    def __init__(self, retrieval=False):
+        self.retrieval = retrieval
+
     def _request(self, contents: list, max_tokens: int):
+        payload = {"contents": contents, "generationConfig": {"maxOutputTokens": max_tokens}}
+        if self.retrieval:
+            payload["tools"] = [{"google_search": {}}]
         return _post_json(
             f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent",
             {"x-goog-api-key": os.environ[self.env_key]},
-            {"contents": contents, "generationConfig": {"maxOutputTokens": max_tokens}},
+            payload,
         )
 
-    def ask(self, messages: list) -> str:
+    def ask(self, messages: list):
         contents = [
             {
                 "role": "user" if m["role"] == "user" else "model",
@@ -159,7 +185,14 @@ class GeminiProvider:
             for m in messages
         ]
         data, _ = self._request(contents, PROBE_MAX_TOKENS)
-        return data["candidates"][0]["content"]["parts"][0]["text"]
+        candidate = data["candidates"][0]
+        text = candidate["content"]["parts"][0]["text"]
+        urls = []
+        for chunk in (candidate.get("groundingMetadata") or {}).get("groundingChunks", []):
+            uri = (chunk.get("web") or {}).get("uri")
+            if uri:
+                urls.append(uri)
+        return text, urls
 
     def preflight(self) -> dict:
         try:
@@ -181,14 +214,14 @@ class GeminiProvider:
 ALL_PROVIDERS = [ClaudeProvider, ChatGPTProvider, GeminiProvider]
 
 
-def active_providers(requested=None):
+def active_providers(requested=None, retrieval=False):
     """Instantiate every provider whose API key is set (optionally filtered)."""
     active, skipped = [], []
     for cls in ALL_PROVIDERS:
         if requested and cls.name not in requested:
             continue
         if os.environ.get(cls.env_key):
-            active.append(cls())
+            active.append(cls(retrieval=retrieval))
         else:
             skipped.append(cls.name)
     return active, skipped

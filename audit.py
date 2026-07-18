@@ -27,7 +27,7 @@ from datetime import date
 import anthropic
 
 from journey import (
-    BUYER_MODEL, buyer_prompt, comparison_continuation, opening_turn,
+    BUYER_MODEL, FRAMINGS, buyer_prompt, comparison_continuation, opening_turn,
     problem_stage, standard_continuation,
 )
 from providers import active_providers
@@ -188,6 +188,11 @@ def load_config(path: str) -> dict:
     for i, scenario in enumerate(config.get("scenarios") or []):
         if not scenario.get("id") or not scenario.get("situation"):
             problems.append(f"scenario {i} needs both 'id' and 'situation'")
+        for framing in scenario.get("framings", []):
+            if framing not in FRAMINGS:
+                problems.append(
+                    f"scenario {i}: unknown framing '{framing}' (valid: {', '.join(FRAMINGS)})"
+                )
     if problems:
         sys.exit("Config problems:\n  - " + "\n  - ".join(problems)
                  + "\nSee 'python audit.py --init' for the expected shape.")
@@ -230,7 +235,7 @@ def leaks_names(text: str, config: dict, allowed: list) -> bool:
     )
 
 
-def conduct_session(provider, client, config, scenario):
+def conduct_session(provider, client, config, scenario, framing="operational"):
     """Run one stage-driven chat with an adaptive buyer.
 
     After stage 1, the journey branches: if the assistant named vendors on its
@@ -240,11 +245,12 @@ def conduct_session(provider, client, config, scenario):
     Returns (messages, pathway, unprompted_vendor_names).
     """
     messages = []
+    retrieved = []
 
     def run_stage(stage, guard_new_names):
         for slot in stage["turns"]:
             if slot["goal"] == "OPENING":
-                turn = opening_turn(config["icp"], scenario)
+                turn = opening_turn(config["icp"], scenario, framing)
             else:
                 allowed = assistant_named(messages, config) if guard_new_names else (
                     [config["brand"], *config["competitors"]]
@@ -259,7 +265,10 @@ def conduct_session(provider, client, config, scenario):
                     print(f"    buyer generation failed ({e}); using scripted fallback", file=sys.stderr)
                     turn = slot["fallback"]
             messages.append({"role": "user", "content": turn})
-            answer = provider.ask(messages)
+            answer, urls = provider.ask(messages)
+            for url in urls:
+                if url not in retrieved:
+                    retrieved.append(url)
             messages.append({"role": "assistant", "content": answer})
 
     run_stage(problem_stage(), guard_new_names=True)
@@ -278,7 +287,7 @@ def conduct_session(provider, client, config, scenario):
         # Buyer may discuss vendors the assistant has named; may not introduce
         # new config-known names until the brand stage.
         run_stage(stage, guard_new_names=(stage["id"] in ("vendors", "head-to-head")))
-    return messages, pathway, unprompted
+    return messages, pathway, unprompted, retrieved
 
 
 def transcript_text(messages: list) -> str:
@@ -336,7 +345,14 @@ def synthesize(client: anthropic.Anthropic, audit: dict) -> str:
         "framing) and the session became a head-to-head; 'standard' means the "
         "buyer had to open the vendor conversation themselves (a category "
         "mapping gap for that framing). Read pathway distribution as a finding "
-        "in itself.\n\n"
+        "in itself. Each session's 'framing' field is the question shape the "
+        "buyer opened with (operational, platform, methodology, validation): "
+        "compare framings explicitly, since which framings unlock the category "
+        "and the brand is a core finding. If sessions include "
+        "'retrieved_sources' (URLs the assistant actually consulted live), "
+        "analyze them: which domains carried the verdict, first-party vs "
+        "third-party, and make every content recommendation name the specific "
+        "venue it should live in, based on what was actually retrieved.\n\n"
         f"{json.dumps(condensed, indent=2)}\n\n"
         "Write the analysis sections of the audit report in markdown (start at "
         "'## How AI models see the brand'). Cover:\n"
@@ -386,9 +402,10 @@ def preflight(providers, skipped, config) -> None:
         print(f"  [{status}] {p.name} ({p.model}): {result['detail']}", file=sys.stderr)
     for name in skipped:
         print(f"  [SKIP] {name}: no API key set", file=sys.stderr)
-    n_sessions = len(config["scenarios"]) * len(providers)
+    n_cells = sum(len(s.get("framings") or ["operational"]) for s in config["scenarios"])
+    n_sessions = n_cells * len(providers)
     print(
-        f"\nPlanned run: {len(config['scenarios'])} scenario(s) x {len(providers)} assistant(s) "
+        f"\nPlanned run: {n_cells} scenario-framing cell(s) x {len(providers)} assistant(s) "
         f"= {n_sessions} sessions of 8 turns each, plus {n_sessions} extraction call(s) "
         "and 1 synthesis call on Claude.",
         file=sys.stderr,
@@ -417,25 +434,35 @@ def run_audit(config: dict, providers: list) -> dict:
     client = anthropic.Anthropic()
     sessions, failed = [], []
     for scenario in config["scenarios"]:
-        for provider in providers:
-            print(f"  session: {scenario['id']} x {provider.name} ...", file=sys.stderr)
-            try:
-                messages, pathway, unprompted = conduct_session(provider, client, config, scenario)
-                transcript = transcript_text(messages)
-                data = extract_session(client, transcript, config["brand"], config["category"])
-            except Exception as e:
-                print(f"    FAILED ({e}); continuing with remaining sessions", file=sys.stderr)
-                failed.append({"scenario": scenario["id"], "assistant": provider.name, "error": str(e)})
-                continue
-            sessions.append({
-                "scenario": scenario["id"],
-                "assistant": provider.name,
-                "assistant_model": provider.model,
-                "pathway": pathway,
-                "unprompted_vendors_stage1": unprompted,
-                "transcript": transcript,
-                **data,
-            })
+        for framing in scenario.get("framings") or ["operational"]:
+            for provider in providers:
+                label = f"{scenario['id']} [{framing}] x {provider.name}"
+                print(f"  session: {label} ...", file=sys.stderr)
+                try:
+                    messages, pathway, unprompted, retrieved = conduct_session(
+                        provider, client, config, scenario, framing
+                    )
+                    transcript = transcript_text(messages)
+                    data = extract_session(client, transcript, config["brand"], config["category"])
+                except Exception as e:
+                    print(f"    FAILED ({e}); continuing with remaining sessions", file=sys.stderr)
+                    failed.append({
+                        "scenario": scenario["id"], "framing": framing,
+                        "assistant": provider.name, "error": str(e),
+                    })
+                    continue
+                sessions.append({
+                    "scenario": scenario["id"],
+                    "framing": framing,
+                    "assistant": provider.name,
+                    "assistant_model": provider.model,
+                    "retrieval_enabled": getattr(provider, "retrieval", False),
+                    "retrieved_sources": retrieved,
+                    "pathway": pathway,
+                    "unprompted_vendors_stage1": unprompted,
+                    "transcript": transcript,
+                    **data,
+                })
 
     if not sessions:
         sys.exit("Every session failed; nothing to analyze.")
@@ -518,7 +545,7 @@ def write_report(audit: dict, out_path: str) -> None:
         f"- **Sessions:** {n} (scenarios x assistants) | **Date:** {audit['date']}",
         *(
             [f"- **Failed sessions (excluded):** " + ", ".join(
-                f"{f['scenario']} x {f['assistant']}" for f in audit.get("failed_sessions", [])
+                f"{f['scenario']} [{f.get('framing', 'operational')}] x {f['assistant']}" for f in audit.get("failed_sessions", [])
             )] if audit.get("failed_sessions") else []
         ),
         "",
@@ -540,9 +567,10 @@ def write_report(audit: dict, out_path: str) -> None:
             if s.get("pathway") == "vendor_comparison" else "standard (buyer had to open the vendor conversation)"
         )
         lines += [
-            f"### {s['scenario']} x {s['assistant']}",
+            f"### {s['scenario']} [{s.get('framing', 'operational')}] x {s['assistant']}",
             "",
             f"- Pathway: {pathway_note}",
+            f"- Sources retrieved live: {', '.join(s['retrieved_sources']) if s.get('retrieved_sources') else ('none (retrieval on, answered from memory)' if s.get('retrieval_enabled') else 'n/a (parametric probe, no retrieval)')}",
             f"- Category proposed: {s['category_proposed']} (as: {', '.join(s['category_terms_used']) or 'n/a'})",
             f"- Shortlist: {', '.join(s['shortlist']) or 'none given'}",
             f"- Verdict on {audit['brand']}: **{s['brand_recommendation']}**",
@@ -571,6 +599,7 @@ def main() -> None:
     parser.add_argument("--init", action="store_true", help="Write audit-config.json template and exit")
     parser.add_argument("--models", default=None, help="Comma-separated subset of: claude,chatgpt,gemini (default: all with keys)")
     parser.add_argument("--out", default=None)
+    parser.add_argument("--retrieval", action="store_true", help="Probe with live web search enabled (Claude, Gemini); captures which URLs each assistant consults")
     parser.add_argument("--preflight", action="store_true", help="Check keys and available usage info, then exit without running")
     parser.add_argument("--yes", action="store_true", help="Skip the interactive confirmation and run across all available assistants")
     args = parser.parse_args()
@@ -591,7 +620,7 @@ def main() -> None:
 
     config = load_config(args.config)
     requested = [m.strip() for m in args.models.split(",")] if args.models else None
-    providers, skipped = active_providers(requested)
+    providers, skipped = active_providers(requested, retrieval=args.retrieval)
     if not providers:
         sys.exit("No probe models available. Set ANTHROPIC_API_KEY at minimum.")
 

@@ -28,7 +28,8 @@
   "scenarios": [
     {
       "id": "stalled-deals",
-      "situation": "Deals keep stalling after the demo and nobody can tell me why. Reps say the calls went great, then the account goes dark. Our forecast was off by 20 percent again last quarter and my coaching is ad hoc, whoever I happen to sit in with that week."
+      "situation": "Deals keep stalling after the demo and nobody can tell me why. Reps say the calls went great, then the account goes dark. Our forecast was off by 20 percent again last quarter and my coaching is ad hoc, whoever I happen to sit in with that week.",
+      "framings": ["operational", "platform", "methodology", "validation"]
     },
     {
       "id": "board-forecast-pressure",

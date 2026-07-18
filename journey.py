@@ -41,11 +41,32 @@ def persona_intro(icp: dict) -> str:
     return "\n".join(parts)
 
 
-def opening_turn(icp: dict, scenario: dict) -> str:
+# Question framings: the same buyer, the same pain, different question shapes.
+# Which framings unlock the category (and which route to process advice or
+# academic research with no vendor named) is a finding in itself.
+FRAMINGS = {
+    "operational": "How would you approach solving this?",
+    "platform": (
+        "What tools or platforms exist that could address this? What are the "
+        "main options out there and what does each actually do?"
+    ),
+    "methodology": (
+        "Before I look at any tools: is there solid evidence that problems like "
+        "this actually get solved by new tooling at all, versus process and "
+        "coaching changes? What does the research or data say?"
+    ),
+    "validation": (
+        "Suppose I commit to fixing this. What evidence would I need to justify "
+        "the budget to my CFO, and where would that evidence come from?"
+    ),
+}
+
+
+def opening_turn(icp: dict, scenario: dict, framing: str = "operational") -> str:
     return (
         f"{persona_intro(icp)}\n\n"
         f"Here's the situation I'm dealing with: {scenario['situation']}\n\n"
-        "How would you approach solving this?"
+        f"{FRAMINGS[framing]}"
     )
 
 

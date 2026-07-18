@@ -32,6 +32,25 @@ See [example-config.json](example-config.json) for a fully worked example (Gong 
 
 For each scenario, the tool poses as your ICP and runs the same multi-turn chat session against every assistant you have API keys for. The persona is built entirely from your ICP definition: role, jobs to be done, priorities. Each session unfolds the way B2B buying conversations actually do:
 
+### Framings: the same pain, asked four ways
+
+Real buyers phrase the same problem differently on different days, and AI routes those phrasings to completely different answers. Each scenario can therefore run under up to four **framings** of the opening question, holding everything else constant:
+
+| Framing | The buyer opens with | What it measures |
+|---|---|---|
+| `operational` (default) | "How would you approach solving this?" | Does the category enter at all, or does AI route to process advice? |
+| `platform` | "What tools or platforms exist for this?" | Who leads when AI treats it as a vendor evaluation |
+| `methodology` | "Is there evidence tooling even solves this, vs process change?" | Whether AI routes to research with no vendor named, and whether your brand is connected to the evidence debate |
+| `validation` | "What evidence would I need to justify budget to my CFO?" | Which proof sources AI treats as CFO-grade, and whether yours qualify |
+
+Add `"framings": ["operational", "platform", ...]` to a scenario; omit for operational only. Which framings unlock the category and the brand is a keystone finding, and the report compares them directly.
+
+### Retrieval mode: see what AI actually reads
+
+By default probes measure the models' trained-in beliefs. With `--retrieval`, Claude and Gemini probes run with live web search enabled, and the tool records **every URL each assistant actually consulted** per session. That turns prescriptions from "publish this proof" into "publish this proof *in this venue*": the report analyzes which domains carried the verdict (your site, competitor buyer's guides, review aggregators, independent blogs) and names the specific placement for each recommendation. Run both modes to compare what AI believes from memory versus what it finds when it looks.
+
+### Pathways
+
 The journey **branches after stage 1** based on what the assistant does. If the assistant names vendors on its own while answering the problem (a sign the category-to-vendor mapping already works for that framing — typical of established categories like revenue intelligence), the buyer follows that thread: stage 2 becomes a **head-to-head comparison** of the vendors the assistant put on the table. If no vendor surfaces (typical of younger categories), the buyer opens the vendor conversation themselves (**standard pathway**). Both pathways are 4 stages and 8 turns, and each session's report notes which pathway it took: the pathway distribution is itself a category-mapping finding.
 
 Every stage goes two prompts deep, so each session is 8 buyer turns. The stage arc is fixed for comparability, but the buyer's actual words are **adaptive**: a simulated persona built from your full ICP definition (role, jobs, priorities, buying moment, installed stack, decision criteria) reads the assistant's answer and writes the follow-up a real buyer under pressure would, referencing specifics from the answer and raising its own constraints unprompted. Only the opening turn is verbatim from your scenario, so the unprimed category measurement stays clean. A guardrail blocks the buyer from naming the brand, competitors, or category before the assistant does; if generation fails, scripted fallbacks keep the run alive.
