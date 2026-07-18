@@ -1,25 +1,23 @@
 # AI Brand Perception Audit (B2B)
 
-A CLI that measures **how AI assistants perceive and recommend your brand** when your actual buyers work through a real evaluation, and tells you **what to change so they recommend you**.
+A CLI that measures **how AI assistants perceive and recommend your brand** when your buyers work through a real evaluation, and tells you **what to change so they recommend you**.
 
-B2B buying decisions increasingly start inside AI conversations. When your ICP describes their problem to ChatGPT, Claude, Gemini, or Perplexity, the assistant decides whether your *category* is even the answer, who makes the shortlist, and who wins, based on what it believes about you. This tool captures those beliefs and turns them into positioning and content recommendations.
+B2B buying decisions increasingly start inside AI conversations. When your ICP describes their problem to ChatGPT, Claude, Gemini, or Perplexity, the assistant decides whether your *category* is even the answer, who makes the shortlist, and who wins, based on what it believes about you.
 
-Works for **any B2B product**. Everything specific to your brand and buyer lives in a config file you write; nothing about a particular category is baked into the tool.
-
-In one sentence: define your ICP and their moments of pain, and the tool runs adaptive multi-turn buying conversations as that person against Claude, ChatGPT, and Gemini, then reports the funnel (category proposed, mentioned unprompted, shortlisted, recommended, wins the final call under pressure), the beliefs and sources behind every verdict, and the exact evidence, in each model's own words, that would flip the answer. The story of how it was built, and why each design choice exists, is in [BUILD_LOG.md](BUILD_LOG.md).
+Works for **any B2B product**: everything brand-specific lives in a config file you write. Define your ICP and their moments of pain; the tool runs adaptive multi-turn buying conversations as that person against Claude, ChatGPT, and Gemini, then reports the funnel (category proposed, mentioned unprompted, shortlisted, recommended, wins the final call under pressure), the beliefs and sources behind every verdict, and the exact evidence, in each model's own words, that would flip the answer. How it was built, and why each design choice exists: [BUILD_LOG.md](BUILD_LOG.md).
 
 ## Inputs: what the tool needs from you
 
-The audit is only as good as your ICP definition. The config file requires four things:
+The audit is only as good as your ICP definition. The config file needs:
 
 | Input | What good looks like |
 |---|---|
 | **Brand + category + competitors** | The category in your *buyer's* language, not your marketing language. If buyers say "contract software" and you say "CLM platform," use theirs. |
 | **ICP: who the buyer is** | A specific role at a specific kind of company. "VP of Legal Operations at a mid-market fintech, 800 employees, high contract volume", not "legal teams". |
 | **ICP: jobs to be done + priorities** | The outcomes this person is on the hook for, and what they care about most right now. These shape how the persona talks and what trade-offs it makes. Bad: "wants efficiency." Good: "turn contracts around in under 5 days; reduce outside counsel spend; look rigorous in front of the audit committee." |
-| **ICP: buying moment** | The trigger event that put them in market and the pressure clock they're on. This is what makes the simulated buyer push the way a real one does. Good: "third forecast miss just landed; I have one quarter before this becomes a question about me." |
+| **ICP: buying moment** | The trigger event that put them in market and the pressure clock they're on. This makes the simulated buyer push like a real one. Good: "third forecast miss just landed; I have one quarter before this becomes a question about me." |
 | **ICP: installed stack** | Tools they already run that a purchase must coexist with. This is where the realest objections come from: a buyer with Mindtickle installed asks "what happens to my Mindtickle rollout," and so will the simulated one. |
-| **ICP: decision criteria** | What would actually make them buy: proof thresholds, integration constraints, admin capacity, reference requirements. The buyer brings these up unprompted, the way real buyers do. |
+| **ICP: decision criteria** | What would actually make them buy: proof thresholds, integration constraints, admin capacity, reference requirements. The buyer raises these unprompted, as real buyers do. |
 | **Scenarios** | One or more concrete moments where those jobs hit a challenge, written in the buyer's own words, with **no category or vendor names**. Each scenario becomes one buyer-journey session per assistant. Keep each scenario to one dominant pain: multi-pain scenarios measure which pain the model latches onto rather than who wins. Bad: "needs better contract management." Good: "two deals slipped last quarter because redlines sat with us for two weeks and sales is furious." |
 
 Generate a starter template and fill it in:
@@ -32,11 +30,11 @@ See [example-config.json](example-config.json) for a fully worked example (Gong 
 
 ## The method: buyer-journey chat sessions
 
-For each scenario, the tool poses as your ICP and runs the same multi-turn chat session against every assistant you have API keys for. The persona is built entirely from your ICP definition: role, jobs to be done, priorities. Each session unfolds the way B2B buying conversations actually do:
+For each scenario, the tool poses as your ICP and runs the same multi-turn chat session against every assistant you have API keys for. Each session unfolds the way B2B buying conversations actually do:
 
 ### Framings: the same pain, asked four ways
 
-Real buyers phrase the same problem differently on different days, and AI routes those phrasings to completely different answers. Each scenario can therefore run under up to four **framings** of the opening question, holding everything else constant:
+Real buyers phrase the same problem differently on different days, and AI routes those phrasings to completely different answers. Each scenario can run under up to four **framings** of the opening question, everything else held constant:
 
 | Framing | The buyer opens with | What it measures |
 |---|---|---|
@@ -45,17 +43,17 @@ Real buyers phrase the same problem differently on different days, and AI routes
 | `methodology` | "Is there evidence tooling even solves this, vs process change?" | Whether AI routes to research with no vendor named, and whether your brand is connected to the evidence debate |
 | `validation` | "What evidence would I need to justify budget to my CFO?" | Which proof sources AI treats as CFO-grade, and whether yours qualify |
 
-Add `"framings": ["operational", "platform", ...]` to a scenario; omit for operational only. Which framings unlock the category and the brand is a keystone finding, and the report compares them directly.
+Add `"framings": ["operational", "platform", ...]` to a scenario; omit for operational only. Which framings unlock the category and the brand is a keystone finding; the report compares them directly.
 
 ### Retrieval mode: see what AI actually reads
 
-By default probes measure the models' trained-in beliefs. With `--retrieval`, Claude and Gemini probes run with live web search enabled, and the tool records **every URL each assistant actually consulted** per session. That turns prescriptions from "publish this proof" into "publish this proof *in this venue*": the report analyzes which domains carried the verdict (your site, competitor buyer's guides, review aggregators, independent blogs) and names the specific placement for each recommendation. Run both modes to compare what AI believes from memory versus what it finds when it looks.
+By default probes measure trained-in beliefs. With `--retrieval`, Claude and Gemini probe with live web search, and the tool records **every URL each assistant consulted** per session. Prescriptions upgrade from "publish this proof" to "publish this proof *in this venue*": the report analyzes which domains carried the verdict (your site, competitor buyer's guides, review aggregators, independent blogs) and names the placement for each recommendation. Run both modes to compare what AI believes from memory versus what it finds when it looks.
 
 ### Pathways
 
-The journey **branches after stage 1** based on what the assistant does. If the assistant names vendors on its own while answering the problem (a sign the category-to-vendor mapping already works for that framing, typical of established categories like revenue intelligence), the buyer follows that thread: stage 2 becomes a **head-to-head comparison** of the vendors the assistant put on the table. If no vendor surfaces (typical of younger categories), the buyer opens the vendor conversation themselves (**standard pathway**). Both pathways are 4 stages and 8 turns, and each session's report notes which pathway it took: the pathway distribution is itself a category-mapping finding.
+The journey **branches after stage 1** based on what the assistant does. If the assistant names vendors on its own while answering the problem (a sign the category-to-vendor mapping already works for that framing, typical of established categories like revenue intelligence), the buyer follows that thread: stage 2 becomes a **head-to-head comparison** of the vendors the assistant put on the table. If no vendor surfaces (typical of younger categories), the buyer opens the vendor conversation themselves (**standard pathway**). Both pathways are 4 stages and 8 turns; the report notes each session's pathway, and the pathway distribution is itself a category-mapping finding.
 
-Every stage goes two prompts deep, so each session is 8 buyer turns. The stage arc is fixed for comparability, but the buyer's actual words are **adaptive**: a simulated persona built from your full ICP definition (role, jobs, priorities, buying moment, installed stack, decision criteria) reads the assistant's answer and writes the follow-up a real buyer under pressure would, referencing specifics from the answer and raising its own constraints unprompted. Only the opening turn is verbatim from your scenario, so the unprimed category measurement stays clean. A guardrail blocks the buyer from naming the brand, competitors, or category before the assistant does; if generation fails, scripted fallbacks keep the run alive.
+Every stage goes two prompts deep. The stage arc is fixed for comparability; the buyer's words are **adaptive**: a simulated persona built from your full ICP definition (role, jobs, priorities, buying moment, installed stack, decision criteria) reads the assistant's answer and writes the follow-up a real buyer under pressure would, referencing specifics and raising its own constraints unprompted. Only the opening turn is verbatim from your scenario, so the unprimed category measurement stays clean. A guardrail blocks the buyer from naming the brand, competitors, or category before the assistant does; if generation fails, scripted fallbacks keep the run alive.
 
 1. **Problem stage.** The buyer describes the scenario in their own words (no category, no vendor names), then asks which approach gives the most impact fastest. Measures: *does the assistant propose your category, and does the category survive prioritization, not just brainstorming?*
 2. **Vendor stage.** The buyer asks who to shortlist, then makes the assistant defend its top pick and name what would change the ranking. Measures: *do you surface unprompted, where do you rank, and what are the real decision criteria?*
@@ -64,7 +62,7 @@ Every stage goes two prompts deep, so each session is 8 buyer turns. The stage a
 
 ## What you get
 
-- **A funnel and a buyer journey map:** category proposed → brand mentioned unprompted → shortlisted → strongly recommended, across every scenario and assistant, with a visual (mermaid) map of exactly where sessions drop off and which competitor the recommendation diverted to.
+- **A funnel and a buyer journey map:** category proposed → brand mentioned unprompted → shortlisted → strongly recommended, across every scenario and assistant, with a mermaid map of where sessions drop off and which competitor the recommendation diverted to.
 - **The belief inventory:** the concrete claims each assistant made about you, the qualifiers it hedged with, who it prefers over you and why, and whether any of its information came from your own content.
 - **The prescription:** an analysis of what information drives AI opinion of your brand, what proof the assistants needed but didn't have (with its impact on each verdict), and prioritized positioning and content changes to close those gaps.
 - Full raw transcripts in JSON, for receipts.
@@ -98,7 +96,7 @@ Override with `ANTHROPIC_MODEL` / `OPENAI_MODEL` / `GEMINI_MODEL` env vars only 
 
 ## Pre-flight: usage check and confirmation
 
-Before any session runs, the tool checks every key and reports what each API exposes about remaining usage (rate-limit headroom for Claude and OpenAI; key validity for Gemini; none of the three expose credit balances via API, so it points you at the right dashboard). It then shows the planned session count and asks which assistants to include: all, or a subset for this audit.
+Before any session runs, the tool checks every key and reports what each API exposes about remaining usage (rate-limit headroom for Claude and OpenAI; key validity for Gemini; none expose credit balances via API, so it points you at the right dashboard), then shows the planned session count and asks which assistants to include: all, or a subset.
 
 ```bash
 python audit.py audit-config.json --preflight   # check only, don't run
@@ -126,8 +124,8 @@ python audit.py audit-config.json --yes         # skip confirmation (CI)
 
 ## Scope and honesty notes
 
-- Built for **B2B** evaluations. The persona models an accountable buyer working through a real evaluation, not a consumer impulse purchase.
-- One ICP per audit keeps the comparison clean: differences between sessions are differences between models and scenarios, not personas. Auditing another ICP is another config file.
+- Built for **B2B**: the persona models an accountable buyer working through a real evaluation, not a consumer impulse purchase.
+- One ICP per audit keeps the comparison clean: session differences are model and scenario differences, not persona differences. Another ICP is another config file.
 - API models are proxies for the consumer apps (the apps add retrieval and memory). Treat results as a strong signal of the model's beliefs, not a pixel-perfect replay of chatgpt.com.
 - A few sessions is a probe, not a census. Re-run monthly; model updates move these answers.
 

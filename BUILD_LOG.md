@@ -1,30 +1,30 @@
 # Build Log: AI Brand Perception Audit
 
-How this tool went from a one-shot prompt script to a branching, multi-model buyer-journey instrument, in one day of iterations. Each version shipped, ran live, and the findings from real runs drove the next design change. This file is the story; the [README](README.md) is the manual.
+How this tool went from a one-shot prompt script to a branching, multi-model buyer-journey instrument, in one day of iterations. Each version shipped and ran live; findings from real runs drove the next change. This file is the story; the [README](README.md) is the manual.
 
 ## The idea
 
-B2B buying research increasingly happens inside AI conversations. When an ICP describes their problem to ChatGPT, Claude, or Gemini, the assistant decides whether the product's category is even the answer, who makes the shortlist, and who wins. Those verdicts rest on what the model believes about a brand, and no one measures it. The tool poses as the buyer, runs the conversation, and extracts the beliefs, the objections, and the proof that would change the answer.
+B2B buying research increasingly happens inside AI conversations. When an ICP describes their problem to ChatGPT, Claude, or Gemini, the assistant decides whether the product's category is even the answer, who makes the shortlist, and who wins. Those verdicts rest on what the model believes about a brand, which no one measures. The tool poses as the buyer, runs the conversation, and extracts the beliefs, the objections, and the proof that would change the answer.
 
 ## Version history
 
 ### v1: One-shot probes
-Five single-question buyer scenarios (cold start, budget buyer, enterprise, switcher, head-to-head), asked flat, with a structured extraction pass per answer. Worked, but shallow: real buying conversations are multi-turn, and one-shot answers over-reward name recognition.
+Five single-question buyer scenarios (cold start, budget buyer, enterprise, switcher, head-to-head), asked flat, with a structured extraction pass per answer. Shallow: real buying conversations are multi-turn, and one-shot answers over-reward name recognition.
 
 ### v2: The buyer journey
 Rebuilt around a multi-turn arc that mirrors how B2B evaluations actually unfold: the buyer describes the pain (no category or vendor names), asks who to shortlist, raises the target brand for a candid take. Three buying-committee personas per assistant. Added the synthesis layer: how AI sees the brand vs competitors, what information drives the opinion, what proof is missing, and prescriptive positioning/content changes.
 
 ### v3: One ICP per audit
-Running three personas in one audit muddied the comparison: differences between sessions could be persona or model. Switched to a single ICP per audit, run identically across models. Different ICP, different audit.
+Three personas per audit muddied the comparison: session differences could be persona or model. Switched to one ICP per audit, run identically across models; another ICP is another audit.
 
 ### v4: The pressure stage
-Turn-3 verdicts were uniformly hedged ("qualified"), which hid the real signal. Added a scripted final stage: "would any of those concerns actually stop you? Commit today: them or someone else?" This separates soft objections (dissolve under pushback) from real ones (harden into dealbreakers), and forces a final call. Test runs showed identical "qualified" verdicts splitting into a win and a loss under pressure.
+Turn-3 verdicts were uniformly hedged ("qualified"), hiding the signal. Added a scripted final stage: "would any of those concerns actually stop you? Commit today: them or someone else?" This separates soft objections (dissolve under pushback) from real ones (harden into dealbreakers), and forces a final call. In test runs, identical "qualified" verdicts split into a win and a loss under pressure.
 
 ### v5: Config-driven inputs
 Moved everything brand-specific into a JSON config with a demanded structure: ICP as role + firmographics + jobs-to-be-done + priorities, and scenarios as concrete moments where those jobs hit a wall, written in the buyer's words. Killed the last category-specific defaults so the tool applies to any B2B product. `--init` writes a guided template.
 
 ### v6: Depth per stage
-Each stage became question + follow-up (8 turns): prioritization pressure after the problem, top-pick defense after the shortlist, a provenance interrogation after the brand verdict ("what is that assessment based on, how current is it?"), and after the final call, a three-sentence CEO pitch plus the flip condition: the single piece of evidence that would change the assistant's mind. The flip conditions turned out to be the sharpest output in every subsequent run: models state their own decision boundaries, often as falsifiable pilot designs.
+Each stage became question + follow-up (8 turns): prioritization pressure after the problem, top-pick defense after the shortlist, a provenance interrogation after the brand verdict ("what is that assessment based on, how current is it?"), and after the final call, a three-sentence CEO pitch plus the flip condition: the single piece of evidence that would change the assistant's mind. Flip conditions proved the sharpest output in every later run: models state their own decision boundaries, often as falsifiable pilot designs.
 
 ### v7: Multi-model, defaults-only, pre-flight
 Provider layer for Claude, ChatGPT, and Gemini with a hard model policy: probe each vendor's default-tier model at medium effort, because that's what real buyers talk to (analysis stays on a stronger Claude model, deliberately). Added `--preflight`: key checks, whatever usage data each API exposes, planned session count, and an interactive confirm of which assistants to spend on. Plus resilience learned from real failures: retry with long cool-downs on rate limits, and per-session failure tolerance so one provider outage can't sink a run (failed cells are listed in the report, never silently dropped).
