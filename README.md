@@ -15,7 +15,7 @@ The audit is only as good as your ICP definition. The config file requires four 
 | Input | What good looks like |
 |---|---|
 | **Brand + category + competitors** | The category in your *buyer's* language, not your marketing language. If buyers say "contract software" and you say "CLM platform," use theirs. |
-| **ICP: who the buyer is** | A specific role at a specific kind of company. "VP of Legal Operations at a mid-market fintech, 800 employees, high contract volume" — not "legal teams." |
+| **ICP: who the buyer is** | A specific role at a specific kind of company. "VP of Legal Operations at a mid-market fintech, 800 employees, high contract volume", not "legal teams". |
 | **ICP: jobs to be done + priorities** | The outcomes this person is on the hook for, and what they care about most right now. These shape how the persona talks and what trade-offs it makes. Bad: "wants efficiency." Good: "turn contracts around in under 5 days; reduce outside counsel spend; look rigorous in front of the audit committee." |
 | **ICP: buying moment** | The trigger event that put them in market and the pressure clock they're on. This is what makes the simulated buyer push the way a real one does. Good: "third forecast miss just landed; I have one quarter before this becomes a question about me." |
 | **ICP: installed stack** | Tools they already run that a purchase must coexist with. This is where the realest objections come from: a buyer with Mindtickle installed asks "what happens to my Mindtickle rollout," and so will the simulated one. |
@@ -53,14 +53,14 @@ By default probes measure the models' trained-in beliefs. With `--retrieval`, Cl
 
 ### Pathways
 
-The journey **branches after stage 1** based on what the assistant does. If the assistant names vendors on its own while answering the problem (a sign the category-to-vendor mapping already works for that framing — typical of established categories like revenue intelligence), the buyer follows that thread: stage 2 becomes a **head-to-head comparison** of the vendors the assistant put on the table. If no vendor surfaces (typical of younger categories), the buyer opens the vendor conversation themselves (**standard pathway**). Both pathways are 4 stages and 8 turns, and each session's report notes which pathway it took: the pathway distribution is itself a category-mapping finding.
+The journey **branches after stage 1** based on what the assistant does. If the assistant names vendors on its own while answering the problem (a sign the category-to-vendor mapping already works for that framing, typical of established categories like revenue intelligence), the buyer follows that thread: stage 2 becomes a **head-to-head comparison** of the vendors the assistant put on the table. If no vendor surfaces (typical of younger categories), the buyer opens the vendor conversation themselves (**standard pathway**). Both pathways are 4 stages and 8 turns, and each session's report notes which pathway it took: the pathway distribution is itself a category-mapping finding.
 
 Every stage goes two prompts deep, so each session is 8 buyer turns. The stage arc is fixed for comparability, but the buyer's actual words are **adaptive**: a simulated persona built from your full ICP definition (role, jobs, priorities, buying moment, installed stack, decision criteria) reads the assistant's answer and writes the follow-up a real buyer under pressure would, referencing specifics from the answer and raising its own constraints unprompted. Only the opening turn is verbatim from your scenario, so the unprimed category measurement stays clean. A guardrail blocks the buyer from naming the brand, competitors, or category before the assistant does; if generation fails, scripted fallbacks keep the run alive.
 
-1. **Problem stage.** The buyer describes the scenario in their own words (no category, no vendor names), then asks which approach gives the most impact fastest. Measures: *does the assistant propose your category — and does the category survive prioritization, not just brainstorming?*
+1. **Problem stage.** The buyer describes the scenario in their own words (no category, no vendor names), then asks which approach gives the most impact fastest. Measures: *does the assistant propose your category, and does the category survive prioritization, not just brainstorming?*
 2. **Vendor stage.** The buyer asks who to shortlist, then makes the assistant defend its top pick and name what would change the ranking. Measures: *do you surface unprompted, where do you rank, and what are the real decision criteria?*
-3. **Brand stage.** The buyer raises your brand directly for a candid take, then asks what that view is based on and how current it is. Measures: *recommendation strength, the qualifiers attached, whether a competitor gets recommended over you, and the provenance of the assistant's information — your content, third parties, or stale training data it admits it can't vouch for.*
-4. **Pressure stage.** The buyer pushes back — "would any of those concerns actually stop you? Commit today: them or someone else?" — then demands a three-sentence case to the CEO and the single piece of evidence that would change the assistant's mind. Measures: *which qualifiers dissolve (soft objections) vs harden into dealbreakers (real objections), who wins the final call, the pitch your brand gets made with, and the exact flip condition your content strategy should target.*
+3. **Brand stage.** The buyer raises your brand directly for a candid take, then asks what that view is based on and how current it is. Measures: *recommendation strength, the qualifiers attached, whether a competitor gets recommended over you, and the provenance of the assistant's information: your content, third parties, or stale training data it admits it can't vouch for.*
+4. **Pressure stage.** The buyer pushes back ("would any of those concerns actually stop you? Commit today: them or someone else?") then demands a three-sentence case to the CEO and the single piece of evidence that would change the assistant's mind. Measures: *which qualifiers dissolve (soft objections) vs harden into dealbreakers (real objections), who wins the final call, the pitch your brand gets made with, and the exact flip condition your content strategy should target.*
 
 ## What you get
 
@@ -86,7 +86,7 @@ Any assistant without a key is skipped with a notice. Analysis and extraction al
 
 ## Model policy: probe the defaults, at medium effort
 
-Probe sessions always use each vendor's **default-tier model at medium effort** — that's what real buyers are talking to, and it keeps runs fast and cheap. Do not point probes at heavyweight frontier models (Claude Fable/Opus, OpenAI's pro-tier models, Gemini Pro/Ultra).
+Probe sessions always use each vendor's **default-tier model at medium effort**: that's what real buyers are talking to, and it keeps runs fast and cheap. Do not point probes at heavyweight frontier models (Claude Fable/Opus, OpenAI's pro-tier models, Gemini Pro/Ultra).
 
 | Assistant | Probe model | Effort setting |
 |---|---|---|
@@ -98,7 +98,7 @@ Override with `ANTHROPIC_MODEL` / `OPENAI_MODEL` / `GEMINI_MODEL` env vars only 
 
 ## Pre-flight: usage check and confirmation
 
-Before any session runs, the tool checks every key and reports what each API exposes about remaining usage (rate-limit headroom for Claude and OpenAI; key validity for Gemini — none of the three expose credit balances via API, so it points you at the right dashboard). It then shows the planned session count and asks which assistants to include: all, or a subset for this audit.
+Before any session runs, the tool checks every key and reports what each API exposes about remaining usage (rate-limit headroom for Claude and OpenAI; key validity for Gemini; none of the three expose credit balances via API, so it points you at the right dashboard). It then shows the planned session count and asks which assistants to include: all, or a subset for this audit.
 
 ```bash
 python audit.py audit-config.json --preflight   # check only, don't run
