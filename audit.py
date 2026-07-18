@@ -21,6 +21,7 @@ GEMINI_API_KEY, PERPLEXITY_API_KEY to probe those assistants too.
 import argparse
 import json
 import os
+import re
 import sys
 from datetime import date
 
@@ -589,8 +590,12 @@ def write_report(audit: dict, out_path: str) -> None:
         ]
 
     lines += [audit["analysis"], ""]
+    text = "\n".join(lines)
+    # Model-generated content (synthesis, extracted fields) may use em dashes
+    # even though our own copy never does; normalize on the way out.
+    text = re.sub(r"\s*—\s*", ", ", text).replace("–", "-")
     with open(out_path, "w") as f:
-        f.write("\n".join(lines))
+        f.write(text)
 
 
 def main() -> None:
