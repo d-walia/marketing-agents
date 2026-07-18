@@ -6,6 +6,8 @@ B2B buying decisions increasingly start inside AI conversations. When your ICP d
 
 Works for **any B2B product**. Everything specific to your brand and buyer lives in a config file you write; nothing about a particular category is baked into the tool.
 
+In one sentence: define your ICP and their moments of pain, and the tool runs adaptive multi-turn buying conversations as that person against Claude, ChatGPT, and Gemini, then reports the funnel (category proposed, mentioned unprompted, shortlisted, recommended, wins the final call under pressure), the beliefs and sources behind every verdict, and the exact evidence, in each model's own words, that would flip the answer. The story of how it was built, and why each design choice exists, is in [BUILD_LOG.md](BUILD_LOG.md).
+
 ## Inputs: what the tool needs from you
 
 The audit is only as good as your ICP definition. The config file requires four things:
@@ -109,6 +111,18 @@ python audit.py audit-config.json --yes         # skip confirmation (CI)
 - **Category never proposed** is the most serious finding: AI doesn't route your ICP's problem to your category. No amount of brand content fixes that until the category-to-problem link exists in public writing.
 - **Shortlisted but never recommended:** read the qualifiers and the competitor-preferred reasons. Those are the exact objections your proof points need to answer.
 - **No first-party sources cited:** third parties are defining you. The prescription section will tell you what to publish.
+
+## Repository layout
+
+| File | What it is |
+|---|---|
+| [audit.py](audit.py) | The CLI: config loading, pre-flight, session orchestration, extraction, synthesis, markdown report |
+| [journey.py](journey.py) | The buyer: persona construction, framings, the four-stage arc, both pathways, the adaptive-buyer prompt |
+| [providers.py](providers.py) | Model providers (Claude, ChatGPT, Gemini): default-tier model policy, retries, retrieval mode, pre-flight checks |
+| [report_html.py](report_html.py) | Renders an audit's JSON into a designed, self-contained HTML report |
+| [example-config.json](example-config.json) | Fully worked example config (Gong as demo subject; swap in any B2B brand) |
+| [sample-report.md](sample-report.md) / [.json](sample-report.json) | Real output from a live cross-model run of the example config |
+| [BUILD_LOG.md](BUILD_LOG.md) | How this tool was built: version history, findings from live runs, design principles |
 
 ## Scope and honesty notes
 
