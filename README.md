@@ -119,7 +119,9 @@ python audit.py audit-config.json --yes         # skip confirmation (CI)
 | [providers.py](providers.py) | Model providers (Claude, ChatGPT, Gemini): default-tier model policy, retries, retrieval mode, pre-flight checks |
 | [report_html.py](report_html.py) | Renders an audit's JSON into a designed, self-contained HTML report |
 | [example-config.json](example-config.json) | Fully worked example config (Gong as demo subject; swap in any B2B brand) |
-| [sample-report.md](sample-report.md) / [.json](sample-report.json) | Real output from a live cross-model run of the example config |
+| [audits/gong/](audits/gong/) | Real output from a live run of the example config (`.md`, `.json`, designed `.html`) |
+| [audits/hyperbound/v1/](audits/hyperbound/v1/) | First Hyperbound audit: scripted 8-turn journey, thin ICP |
+| [audits/hyperbound/v2/](audits/hyperbound/v2/) | Re-run on the adaptive engine: generative buyer, branching pathways, enriched ICP |
 | [BUILD_LOG.md](BUILD_LOG.md) | How this tool was built: version history, findings from live runs, design principles |
 
 ## Scope and honesty notes
