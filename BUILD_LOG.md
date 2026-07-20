@@ -41,6 +41,17 @@ Two dimensions that measure the upstream battle:
 - **Framings.** The same buyer phrases the same pain four ways: operational ("what do I do?"), platform ("what tools exist?"), methodology ("does tooling even solve this?"), validation ("what evidence justifies budget?"). AI routes these to completely different answers, and which framings unlock the category, and the brand, is a keystone finding. Scenarios opt in per framing; everything else holds constant.
 - **Retrieval mode (`--retrieval`).** Default probes measure trained-in beliefs. With retrieval on, Claude and Gemini probe with live web search and the tool records every URL each assistant actually consulted. Prescriptions upgrade from "publish this proof" to "publish this proof in this venue," based on the domains that actually carried the verdict. First live test surfaced a competitor's buyer's guide among the pages consulted to form category opinions: the venue battle is real and measurable.
 
+### v10.5: Output hygiene and house style
+Smaller work, but it changed every artifact the tool produces.
+
+**The designed HTML report** (`report_html.py`) renders an audit's JSON as a self-contained page: masthead with the ICP and coverage, the funnel as horizontal bars with the failed stage in red, one card per session with colour-coded verdict chips, then the synthesis as designed prose and tables. No dependencies, no external assets; open it, print it to PDF, or email it.
+
+**Restyled to stop looking machine-made.** The first version used a teal accent with green/amber/red status chips throughout, which reads as generic dashboard. Replaced with a near-monochrome treatment: a cool near-white ground, a single restrained red reserved for outright failures, square-edged bordered chips instead of pills, and monospace for every number and label so data reads as instrumentation. Serif headlines, adaptive to dark mode and mobile.
+
+**Em dashes scrubbed at render time.** House style forbids them, but the synthesis and extracted fields are model-written and the model uses them freely. Rather than fight the prompt, both renderers normalize on the way out: `report_html.py` scrubs during escaping, `audit.py` scrubs the assembled markdown before writing. Generated reports match the house style regardless of what the model produced.
+
+**Reports organized by subject.** Output moved from flat filenames at the repo root into `audits/<brand>/`, with versioned subfolders where a brand was audited more than once (`audits/hyperbound/v1/`, `/v2/`). Each folder is self-contained: the config that produced the run sits beside its report and raw data, so any result can be reproduced or diffed against a later run.
+
 ### v11: The scorecard and the evidence graph
 Comparing the tool's output against a boutique agency's hand-built read of the same brand exposed what a rigorous funnel still fails to deliver: a verdict a busy executive can absorb, and source-level accountability for every belief. Six additions, in three groups.
 

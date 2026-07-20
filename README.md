@@ -74,6 +74,19 @@ A report that reads top-down from a five-second verdict to the transcripts behin
 - **The belief inventory and prescription.** The qualifiers AI hedged with, who it prefers over you and why, what proof was missing (with each gap's impact on the verdict), and prioritized positioning and content changes to close them.
 - Full raw transcripts in JSON, for receipts.
 
+### Three output formats
+
+Every run writes markdown and JSON. The JSON carries everything: extractions, per-turn presence records, retrieved URLs, and full transcripts, which is what makes runs diffable month over month.
+
+```bash
+python audit.py audit-config.json --out report.md   # markdown + report.json alongside it
+python report_html.py report.json                   # designed, self-contained report.html
+```
+
+The HTML report is a single file with no external assets: open it, print it to PDF, or email it. Near-monochrome by design, with one restrained red reserved for outright failures and monospace for every figure, so the data reads as instrumentation rather than dashboard decoration. It adapts to dark mode and mobile.
+
+Both renderers normalize em dashes out of model-written prose on the way to disk, so generated reports match house style regardless of what the model produced.
+
 ## Quick start
 
 ```bash
@@ -129,9 +142,9 @@ python audit.py audit-config.json --yes         # skip confirmation (CI)
 | [providers.py](providers.py) | Model providers (Claude, ChatGPT, Gemini): default-tier model policy, retries, retrieval mode, pre-flight checks |
 | [report_html.py](report_html.py) | Renders an audit's JSON into a designed, self-contained HTML report |
 | [example-config.json](example-config.json) | Fully worked example config (Gong as demo subject; swap in any B2B brand) |
-| [audits/gong/](audits/gong/) | Real output from a live run of the example config (`.md`, `.json`, designed `.html`) |
-| [audits/hyperbound/v1/](audits/hyperbound/v1/) | First Hyperbound audit: scripted 8-turn journey, thin ICP |
-| [audits/hyperbound/v2/](audits/hyperbound/v2/) | Re-run on the adaptive engine: generative buyer, branching pathways, enriched ICP |
+| [audits/gong/](audits/gong/) | Live run of the example config: `gong-report.md`, `gong-report-config.json` (raw data and transcripts), `gong-report.html` |
+| [audits/hyperbound/v1/](audits/hyperbound/v1/) | First Hyperbound audit: scripted 8-turn journey, thin ICP. Config sits beside the report so the run is reproducible |
+| [audits/hyperbound/v2/](audits/hyperbound/v2/) | Same brand re-run on the adaptive engine: generative buyer, branching pathways, enriched ICP. Diff against v1 to see what the instrument change surfaced |
 | [BUILD_LOG.md](BUILD_LOG.md) | How this tool was built: version history, findings from live runs, design principles |
 
 ## Scope and honesty notes
