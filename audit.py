@@ -519,6 +519,9 @@ def run_audit(config: dict, providers: list) -> dict:
                     "retrieved_sources": retrieved,
                     "pathway": pathway,
                     "unprompted_vendors_stage1": unprompted,
+                    "presence": compute_presence(
+                        transcript, config["brand"], config.get("competitors", [])
+                    ),
                     "transcript": transcript,
                     **data,
                 })
@@ -673,49 +676,61 @@ def evidence_graph(audit: dict) -> list:
 STAGE_OF_TURN = ["problem", "problem", "vendors", "vendors", "brand", "brand", "pressure", "pressure"]
 
 
-def presence_trace(audit: dict) -> list:
-    """Turn-by-turn: where the brand is present, and where it falls out.
+def compute_presence(transcript: str, brand: str, competitors: list) -> dict:
+    """Scan a completed transcript for where the brand is present per turn.
 
-    Measured directly from the transcript rather than extracted, so it is
-    deterministic and works on any report that stored transcripts. The
-    interesting signal is the unprompted stages (problem, vendors): a brand
-    that leads early and disappears once the conversation narrows to specific
+    Deterministic local measurement, run once after a session completes. The
+    signal that matters is the unprompted stages (problem, vendors): a brand
+    named early that disappears once the conversation narrows to specific
     criteria is losing ground mid-conversation, which endpoint metrics miss.
     """
-    brand = audit["brand"].lower()
-    competitors = [c for c in audit.get("competitors", [])]
+    brand = brand.lower()
+    turns = [
+        block.split("\n", 1)[1] if "\n" in block else ""
+        for block in (transcript or "").split("[ASSISTANT]")[1:]
+    ]
+    turns = [t.split("[USER]")[0].lower() for t in turns]
+    if not turns:
+        return {}
+
+    marks = ["Y" if brand in t else "-" for t in turns]
+    rivals = [sum(1 for c in competitors if c.lower() in t) for t in turns]
+
+    narrowing = None
+    for i in (0, 2):  # problem stage, vendor stage
+        if i + 1 < len(marks) and marks[i] == "Y" and marks[i + 1] == "-" and rivals[i + 1] > 0:
+            narrowing = STAGE_OF_TURN[i]
+            break
+
+    return {
+        "marks": marks,
+        "rivals": rivals,
+        "first_turn": next((i + 1 for i, m in enumerate(marks) if m == "Y"), None),
+        "narrowing_stage": narrowing,
+    }
+
+
+def presence_trace(audit: dict) -> list:
+    """Render the presence data captured at run time.
+
+    Falls back to scanning the stored transcript for reports generated before
+    presence was computed and stored.
+    """
     rows, any_narrowing = [], False
-
     for s in audit["sessions"]:
-        turns = [
-            block.split("\n", 1)[1] if "\n" in block else ""
-            for block in s.get("transcript", "").split("[ASSISTANT]")[1:]
-        ]
-        turns = [t.split("[USER]")[0].lower() for t in turns]
-        if not turns:
+        p = s.get("presence") or compute_presence(
+            s.get("transcript", ""), audit["brand"], audit.get("competitors", [])
+        )
+        if not p:
             continue
-
-        marks, rival_counts = [], []
-        for t in turns:
-            marks.append("Y" if brand in t else "-")
-            rival_counts.append(sum(1 for c in competitors if c.lower() in t))
-
-        # Narrowing: present in the first half of an unprompted stage, gone by
-        # the second, while rivals persist.
-        narrowing = None
-        for i in (0, 2):  # problem stage, vendor stage
-            if i + 1 < len(marks) and marks[i] == "Y" and marks[i + 1] == "-" and rival_counts[i + 1] > 0:
-                narrowing = STAGE_OF_TURN[i]
-                any_narrowing = True
-                break
-
-        first_seen = next((i + 1 for i, m in enumerate(marks) if m == "Y"), None)
+        if p.get("narrowing_stage"):
+            any_narrowing = True
         rows.append({
             "label": f"{s['scenario']} [{s.get('framing', 'operational')}] x {s['assistant']}",
-            "marks": marks,
-            "rivals": rival_counts,
-            "first": first_seen,
-            "narrowing": narrowing,
+            "marks": p["marks"],
+            "rivals": p["rivals"],
+            "first": p.get("first_turn"),
+            "narrowing": p.get("narrowing_stage"),
         })
 
     if not rows:
