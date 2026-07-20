@@ -462,14 +462,28 @@ def build_fragment(audit: dict) -> str:
     icp = audit["icp"]
     n = len(audit["sessions"])
     assistants = ", ".join(sorted({s["assistant"] for s in audit["sessions"]}))
+    retrieval_on = any(s.get("retrieval_enabled") for s in audit["sessions"])
+    mode = ("live web search: beliefs AI forms when it can look"
+            if retrieval_on else
+            "parametric: beliefs from training memory, no browsing")
+    failed = audit.get("failed_sessions") or []
+    personas = audit.get("personas_run") or []
     meta = [
         ("Category", audit["category"]),
         ("Buyer persona", f"{icp['role']}. {icp['description']}"),
         ("Jobs to be done", "; ".join(icp["jobs_to_be_done"])),
         ("Priorities", "; ".join(icp["priorities"])),
         ("Scenarios", ", ".join(s["id"] for s in audit["scenarios"])),
+        ("Probe mode", mode),
         ("Coverage", f"{assistants} · {n} sessions · {audit['date']}"),
     ]
+    if len(personas) > 1:
+        meta.append(("Personas swept", ", ".join(personas)))
+    if failed:
+        meta.append((
+            "Excluded (failed)",
+            ", ".join(f"{f['scenario']} [{f.get('framing', 'operational')}] {f['assistant']}" for f in failed),
+        ))
     meta_html = "".join(
         f'<div><div class="k">{esc(k)}</div><div class="v">{esc(v)}</div></div>' for k, v in meta
     )

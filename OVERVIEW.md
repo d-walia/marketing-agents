@@ -72,6 +72,14 @@ Working draft. This is the skeleton for the overview deck: each section carries 
 
 **The measurement layer, in brief:** the audit poses as your real ICP, runs adaptive multi-turn buying conversations against the assistants your buyers use, and never names your category or brand first, so unprompted behavior is what gets measured. It phrases the same pain several ways, pressures every verdict into a final call, and extracts the model's own flip condition: the exact evidence that would reverse its decision, in its words. With retrieval on, it records every source the model actually read, so prescriptions name the venue, not just the proof. (Full mechanics in the [README](README.md) and [BUILD_LOG](BUILD_LOG.md).)
 
+**What the report puts in front of you:**
+
+- **An AI behavior scorecard.** One line per buying conversation: does AI route the problem to your category, does your brand surface inside it, does AI endorse you under pressure. Pass, mixed, or fail. The five-second read for someone who will not open the rest.
+- **The evidence graph.** Every belief AI holds about you, traced to what it rests on and who owns that source: your content, an independent source, or stale memory it admits it cannot vouch for. Plus the numbers AI has memorized and repeats, and the specific competitor assets it reaches for as counter-proof. In the first live run against a real brand, only a fifth of the claims traced to the brand's own content, and every first-party source that did appear was flagged by the model as self-reported.
+- **Where you fall out of the conversation.** Turn by turn, whether you stay named as the buyer gets specific, or drop out mid-thread while a competitor persists. A loss no first-answer or final-call metric can see.
+- **Belief stability.** The same intent, reworded many ways. Claims that survive the rewording are what AI actually believes; claims that appear once are noise a single-prompt tool would have reported as findings. The measured version of the paraphrase-brittleness problem, run on your own brand.
+- **The say-versus-believe gap.** Your own positioning, claim by claim, against what AI absorbed, contradicts, or has never heard. That gap is the work.
+
 **The output is a to-do list, not a dashboard:** which beliefs are wrong, which objections actually block deals, what evidence closes each gap, and where to publish it so models encounter it.
 
 ---

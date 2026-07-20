@@ -25,15 +25,27 @@
       "defensible to the board: reference customers at our size I can call"
     ]
   },
+  "positioning": [
+    "Gong captures and analyzes every customer interaction so revenue teams see what actually happened in deals, not what reps report happened.",
+    "Deal and pipeline intelligence surfaces stalled and at-risk deals with the reasons, replacing opinion-driven pipeline reviews with reality.",
+    "AI-driven coaching turns real call data into repeatable rep development, so performance stops depending on tribal knowledge.",
+    "Forecasts are grounded in conversation signal, not just CRM stage hygiene."
+  ],
   "scenarios": [
     {
       "id": "stalled-deals",
-      "situation": "Deals keep stalling after the demo and nobody can tell me why. Reps say the calls went great, then the account goes dark. Our forecast was off by 20 percent again last quarter and my coaching is ad hoc, whoever I happen to sit in with that week.",
+      "situation": "Deals keep stalling after the demo and nobody can tell me why. Reps swear the calls went great, then the account goes dark and I have no independent read on what actually happened in those conversations.",
       "framings": ["operational", "platform", "methodology", "validation"]
     },
     {
       "id": "board-forecast-pressure",
-      "situation": "The board just told me a third consecutive forecast miss is unacceptable. My pipeline reviews are opinion-driven: every rep swears their deals will close and I have no independent signal to challenge them with. I need to walk into the next board meeting with a forecast I can actually defend."
+      "situation": "The board just told me a third consecutive forecast miss is unacceptable. My pipeline reviews are opinion-driven: every rep swears their deals will close and I have no independent signal to challenge them with. I need to walk into the next board meeting with a forecast I can actually defend.",
+      "framings": ["operational", "platform", "methodology", "validation"]
+    },
+    {
+      "id": "ad-hoc-coaching",
+      "situation": "My rep coaching is whoever I happen to sit in with that week. New hires ramp slowly and my best reps' habits never make it to the rest of the team, so performance lives and dies on tribal knowledge I cannot scale.",
+      "framings": ["operational", "platform"]
     }
   ]
 }
