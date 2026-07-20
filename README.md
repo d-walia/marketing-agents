@@ -18,6 +18,7 @@ The audit is only as good as your ICP definition. The config file needs:
 | **ICP: buying moment** | The trigger event that put them in market and the pressure clock they're on. This makes the simulated buyer push like a real one. Good: "third forecast miss just landed; I have one quarter before this becomes a question about me." |
 | **ICP: installed stack** | Tools they already run that a purchase must coexist with. This is where the realest objections come from: a buyer with Mindtickle installed asks "what happens to my Mindtickle rollout," and so will the simulated one. |
 | **ICP: decision criteria** | What would actually make them buy: proof thresholds, integration constraints, admin capacity, reference requirements. The buyer raises these unprompted, as real buyers do. |
+| **Verified facts** (optional) | Your real, checkable numbers and facts, one per line. With these, the audit grades every number AI stated about you as accurate, distorted, or fabricated. A distorted or invented number AI repeats to buyers is more urgent than a missing one. |
 | **Scenarios** | One or more concrete moments where those jobs hit a challenge, written in the buyer's own words, with **no category or vendor names**. Each scenario becomes one buyer-journey session per assistant. Keep each scenario to one dominant pain: multi-pain scenarios measure which pain the model latches onto rather than who wins. Bad: "needs better contract management." Good: "two deals slipped last quarter because redlines sat with us for two weeks and sales is furious." |
 
 Generate a starter template and fill it in:
@@ -70,6 +71,7 @@ A report that reads top-down from a five-second verdict to the transcripts behin
 - **The evidence graph.** Every substantive claim AI made about you, traced to what it rests on and who owns that source: your content, an independent source, training memory, or nothing stated. Plus the share of claims the assistant itself caveated as self-reported or stale.
 - **The numbers AI repeats about you.** Specific figures already memorized and doing work in buying conversations, verbatim. These are also the claims a competitor would need to counter.
 - **The competitor counter-evidence map.** Named rival assets AI reached for as counter-proof (a case study, a customer, an analyst report) and the buying criterion each one won. This is an out-publish list.
+- **The fact check.** If you provide verified facts, every number AI stated about you is graded against them: accurate, distorted (right topic, wrong value), fabricated, or not covered. A confidently wrong number in circulation is the most urgent fix, because correcting the public record stops active misinformation.
 - **Citation depth.** Whether AI cites your specific product and use-case pages or only your homepage: does it understand the product, or merely know the brand exists.
 - **The belief inventory and prescription.** The qualifiers AI hedged with, who it prefers over you and why, what proof was missing (with each gap's impact on the verdict), and prioritized positioning and content changes to close them.
 - Full raw transcripts in JSON, for receipts.

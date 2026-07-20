@@ -66,6 +66,12 @@ CONFIG_TEMPLATE = {
         "e.g. 'fastest contract turnaround in mid-market, days not weeks'",
         "e.g. 'works alongside your existing CLM rather than replacing it'",
     ],
+    "verified_facts": [
+        "optional, provided by the brand: your real, true, current facts and numbers, one per line. The audit grades every number AI stated about you against these, labelling each accurate, distorted, or fabricated. Give specifics with values.",
+        "e.g. 'Starting price is 15,000 USD per year for up to 50 users'",
+        "e.g. 'Median implementation time is 6 weeks, not 3 to 6 months'",
+        "e.g. 'We integrate natively with Salesforce, HubSpot, and Slack'",
+    ],
     "icp_variants": [
         {
             "_note": "optional: other seats at the buying table to sweep. Same shape as icp. Each one multiplies the run, so add deliberately.",
@@ -661,6 +667,9 @@ def review_config(client, config: dict) -> dict:
             "- decision_criteria: proof thresholds and constraints the buyer raises unprompted.\n"
             "- positioning: the brand's own claims. Without it the audit cannot measure the gap "
             "between what the brand says and what AI believes.\n"
+            "- verified_facts: the brand's real, checkable numbers and facts. Optional but valuable: "
+            "with it the audit grades whether the numbers AI repeats are true. Flag any listed fact "
+            "that is vague or lacks a value, since a fact with no number cannot verify a claim.\n"
             "- scenarios[].situation: one dominant pain in the buyer's own words, with NO category "
             "or vendor names. Multi-pain scenarios measure which pain the model latches onto "
             "rather than who wins. Category or vendor leakage invalidates the unprompted measurement.\n"
@@ -671,6 +680,108 @@ def review_config(client, config: dict) -> dict:
         )}],
     )
     return json.loads(next(b.text for b in resp.content if b.type == "text"))
+
+
+
+VERIFY_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "checks": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "ai_claim": {"type": "string", "description": "The claim or number AI stated about the brand"},
+                    "verdict": {
+                        "type": "string",
+                        "enum": ["accurate", "distorted", "fabricated", "unverifiable"],
+                        "description": "accurate = matches a provided fact; distorted = same topic as a provided fact but the value is wrong; fabricated = a specific claim that a provided fact directly contradicts or that no fact supports and would be knowable if true; unverifiable = the provided facts do not cover this topic",
+                    },
+                    "matched_fact": {"type": ["string", "null"], "description": "The provided fact this was checked against, or null"},
+                    "note": {"type": "string", "description": "One sentence: how AI's claim compares to the fact"},
+                },
+                "required": ["ai_claim", "verdict", "matched_fact", "note"],
+                "additionalProperties": False,
+            },
+        }
+    },
+    "required": ["checks"],
+    "additionalProperties": False,
+}
+
+
+def verify_claims(client, audit: dict, verified_facts: list) -> list:
+    """Grade every number/claim AI stated about the brand against brand-provided ground truth."""
+    facts = [f for f in verified_facts if not str(f).startswith(("optional", "e.g."))]
+    if not facts:
+        return []
+    claims = sorted({q for s in audit["sessions"] for q in (s.get("quantified_claims") or [])})
+    for s in audit["sessions"]:
+        for e in (s.get("evidence_chain") or []):
+            c = e.get("claim", "")
+            if any(ch.isdigit() for ch in c):
+                claims.append(c)
+    claims = sorted(set(claims))
+    if not claims:
+        return []
+    try:
+        resp = client.messages.create(
+            model=ANALYSIS_MODEL, max_tokens=4000,
+            output_config={"format": {"type": "json_schema", "schema": VERIFY_SCHEMA}},
+            messages=[{"role": "user", "content": (
+                f"The brand is {audit['brand']}. Below are TRUE FACTS the brand provided, then "
+                "CLAIMS an AI assistant made about the brand. Grade each claim against the facts. "
+                "A claim is accurate only if a fact supports its value; distorted if it is about a "
+                "fact's topic but the number or detail is wrong; fabricated if a fact contradicts it "
+                "or it is a specific checkable claim no fact supports; unverifiable if the facts do "
+                "not cover its topic. Do not grade a claim accurate just because it sounds plausible."
+                "\n\nTRUE FACTS:\n" + "\n".join(f"- {f}" for f in facts)
+                + "\n\nAI CLAIMS:\n" + "\n".join(f"- {c}" for c in claims)
+            )}],
+        )
+        return json.loads(next(b.text for b in resp.content if b.type == "text"))["checks"]
+    except Exception as e:
+        print(f"    fact verification failed ({e})", file=sys.stderr)
+        return []
+
+
+VERIFY_LABEL = {
+    "accurate": "accurate", "distorted": "distorted",
+    "fabricated": "fabricated", "unverifiable": "not covered",
+}
+
+
+def verification_report(audit: dict) -> list:
+    checks = audit.get("fact_checks") or []
+    if not checks:
+        return []
+    order = {"fabricated": 0, "distorted": 1, "accurate": 2, "unverifiable": 3}
+    checks = sorted(checks, key=lambda c: order.get(c["verdict"], 4))
+    counts = {}
+    for c in checks:
+        counts[c["verdict"]] = counts.get(c["verdict"], 0) + 1
+    wrong = counts.get("fabricated", 0) + counts.get("distorted", 0)
+    summary = ", ".join(f"{counts[k]} {VERIFY_LABEL[k]}" for k in ["accurate", "distorted", "fabricated", "unverifiable"] if counts.get(k))
+    lines = [
+        "## Fact check: is what AI says about you true",
+        "",
+        f"Every number and specific claim AI stated about {audit['brand']}, graded against the "
+        f"facts the brand provided. {summary}.",
+        "",
+    ]
+    if wrong:
+        lines += [
+            f"**{wrong} claim(s) AI repeats to buyers are wrong.** A confidently false number in "
+            "circulation is more urgent than a missing one: it is actively costing or misleading "
+            "deals, and correcting the public record is the fix.", "",
+        ]
+    lines += ["| Verdict | AI's claim | Checked against | Note |", "|---|---|---|---|"]
+    for c in checks:
+        lines.append(
+            f"| {VERIFY_LABEL[c['verdict']]} | {c['ai_claim']} | {c['matched_fact'] or 'no matching fact'} | {c['note']} |"
+        )
+    lines.append("")
+    return lines
 
 
 def paraphrase_report(audit: dict) -> list:
@@ -810,6 +921,9 @@ def run_audit(config: dict, providers: list, paraphrase: int = 0) -> dict:
         "failed_sessions": failed,
         "paraphrase_probes": probes,
     }
+    if config.get("verified_facts"):
+        print("  fact-checking AI claims against provided facts ...", file=sys.stderr)
+        audit["fact_checks"] = verify_claims(client, audit, config["verified_facts"])
     print("  synthesizing recommendations ...", file=sys.stderr)
     audit["analysis"] = synthesize(client, audit)
     return audit
@@ -1120,7 +1234,7 @@ def write_report(audit: dict, out_path: str) -> None:
         "|---|---|",
     ]
     lines += [f"| {label} | {count}/{total} |" for label, count, total in stages]
-    lines += ["", *journey_map(audit), *presence_trace(audit), *paraphrase_report(audit), *evidence_graph(audit), "## Session summaries", ""]
+    lines += ["", *journey_map(audit), *presence_trace(audit), *paraphrase_report(audit), *evidence_graph(audit), *verification_report(audit), "## Session summaries", ""]
 
     for s in sessions:
         comp = (

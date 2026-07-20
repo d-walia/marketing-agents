@@ -61,8 +61,11 @@ Comparing the tool's output against a boutique agency's hand-built read of the s
 
 **Where the conversation narrows.** A **presence trace** records, turn by turn, whether the brand is named and how many rivals appear alongside it. A brand can lead turn 1 and vanish by turn 2 while competitors persist: a mid-conversation loss invisible to both first-answer and final-call metrics. Deliberately not extracted by a model but measured locally from the completed transcript, so it is deterministic and free. Computed once after each session and stored in the session record, which makes it diffable month over month; a transcript-scan fallback keeps it working on reports generated before the field existed.
 
+### v11.1: Grade the claims against truth
+The evidence graph captured what AI says about a brand but never checked whether it was true, which is fine for perception data and dangerous the moment anyone treats a captured number as a fact. Added an optional **fact check**: the brand provides its real numbers in a `verified_facts` config field, and after extraction the tool grades every number and specific claim AI stated as accurate, distorted (right topic, wrong value), fabricated, or not covered. The ground truth comes from the customer, so the tool never has to know the facts itself. A distorted or invented number AI repeats to buyers is flagged as the most urgent fix, since correcting the public record stops active misinformation rather than filling a gap. Renders in markdown and HTML; synthesis leads the prescription with any wrong claim.
+
 ### The report layer
-Reports render three ways: markdown (scorecard, funnel, mermaid buyer-journey map with drop-off and divert branches, presence trace, evidence graph, session summaries, synthesis), raw JSON with full transcripts, and a designed self-contained HTML report (`report_html.py`).
+Reports render three ways: markdown (scorecard, funnel, mermaid buyer-journey map with drop-off and divert branches, presence trace, paraphrase sensitivity, evidence graph, fact check, session summaries, synthesis), raw JSON with full transcripts, and a designed self-contained HTML report (`report_html.py`).
 
 ## Design principles that emerged
 

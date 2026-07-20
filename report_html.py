@@ -458,6 +458,35 @@ def render_evidence(audit: dict) -> str:
     return out
 
 
+
+def render_verification(audit: dict) -> str:
+    checks = audit.get("fact_checks") or []
+    if not checks:
+        return ""
+    order = {"fabricated": 0, "distorted": 1, "accurate": 2, "unverifiable": 3}
+    checks = sorted(checks, key=lambda c: order.get(c["verdict"], 4))
+    label = {"accurate": "accurate", "distorted": "distorted", "fabricated": "fabricated", "unverifiable": "not covered"}
+    cls = {"accurate": "pass", "distorted": "fail", "fabricated": "fail", "unverifiable": "muted"}
+    counts = {}
+    for c in checks:
+        counts[c["verdict"]] = counts.get(c["verdict"], 0) + 1
+    wrong = counts.get("fabricated", 0) + counts.get("distorted", 0)
+    summary = ", ".join(f"{counts[k]} {label[k]}" for k in ["accurate", "distorted", "fabricated", "unverifiable"] if counts.get(k))
+    intro = (f'<p class="flagnote">{wrong} claim(s) AI repeats to buyers are wrong. A confidently '
+             "false number in circulation is more urgent than a missing one.</p>") if wrong else ""
+    rows = "".join(
+        f'<tr><td><span class="verdict {cls[c["verdict"]]}">{label[c["verdict"]]}</span></td>'
+        f'<td>{esc(c["ai_claim"])}</td><td>{esc(c["matched_fact"] or "no matching fact")}</td>'
+        f'<td>{esc(c["note"])}</td></tr>'
+        for c in checks
+    )
+    return (f'<p class="legend">Every number and specific claim AI stated, graded against the '
+            f'brand-provided facts. {summary}.</p>{intro}'
+            '<div class="table-wrap"><table><thead><tr><th>Verdict</th><th>AI\'s claim</th>'
+            '<th>Checked against</th><th>Note</th></tr></thead>'
+            f'<tbody>{rows}</tbody></table></div>')
+
+
 def build_fragment(audit: dict) -> str:
     icp = audit["icp"]
     n = len(audit["sessions"])
@@ -492,6 +521,8 @@ def build_fragment(audit: dict) -> str:
     presence_block = f"<h2>Where the brand falls out of the conversation</h2>{_p}" if _p else ""
     _e = render_evidence(audit)
     evidence_block = f"<h2>Evidence graph: what the beliefs rest on</h2>{_e}" if _e else ""
+    _v = render_verification(audit)
+    verify_block = f"<h2>Fact check: is what AI says about you true</h2>{_v}" if _v else ""
     return f"""<style>{CSS}</style>
 <main class="rpt">
   <div class="eyebrow">AI Brand Perception Audit</div>
@@ -507,6 +538,7 @@ def build_fragment(audit: dict) -> str:
 
   {presence_block}
   {evidence_block}
+  {verify_block}
   <h2>Sessions at a glance</h2>
   <div class="cards">{cards}</div>
 
