@@ -156,6 +156,52 @@ SESSION_SCHEMA = {
             "type": ["string", "null"],
             "description": "What the assistant admitted about how current/reliable its information on the target brand is, and what it told the buyer to verify",
         },
+        "evidence_chain": {
+            "type": "array",
+            "description": "The evidence graph: for each substantive claim about the target brand, what that claim rests on. Shows whose information is doing the persuading.",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "claim": {"type": "string", "description": "The claim about the brand, in the assistant's terms"},
+                    "source": {"type": "string", "description": "What it rests on: a named URL or site, a source type (analyst, review site, case study), or 'training memory' if nothing was cited"},
+                    "provenance": {
+                        "type": "string",
+                        "enum": ["first_party", "third_party", "training_memory", "unstated"],
+                        "description": "first_party = the brand's own site or content; third_party = independent source; training_memory = the assistant said it was recalling rather than reading; unstated = no basis given",
+                    },
+                    "assistant_flagged_weakness": {
+                        "type": "boolean",
+                        "description": "Did the assistant itself caveat this source as self-reported, unverified, or stale?",
+                    },
+                },
+                "required": ["claim", "source", "provenance", "assistant_flagged_weakness"],
+                "additionalProperties": False,
+            },
+        },
+        "quantified_claims": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Specific numbers or metrics the assistant repeated about the brand, verbatim where possible (e.g. 'cut ramp from 210 to 75 days'). These claims are memorized and doing work.",
+        },
+        "citation_depth": {
+            "type": "string",
+            "enum": ["deep_pages", "homepage_only", "no_urls", "not_applicable"],
+            "description": "Retrieval runs only: did the assistant cite specific product/use-case pages (deep_pages), only the homepage or bare brand name (homepage_only), or no URLs (no_urls)? Use not_applicable when no sources were retrieved.",
+        },
+        "competitor_counter_evidence": {
+            "type": "array",
+            "description": "Specific competitor assets the assistant reached for as counter-proof: named case studies, customers, analyst placements",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "competitor": {"type": "string"},
+                    "asset": {"type": "string", "description": "The named case study, customer, or report doing the damage"},
+                    "criterion": {"type": "string", "description": "The buying criterion where this asset beat the target brand"},
+                },
+                "required": ["competitor", "asset", "criterion"],
+                "additionalProperties": False,
+            },
+        },
     },
     "required": [
         "category_proposed", "category_terms_used", "unprompted_brand_mention",
@@ -163,7 +209,8 @@ SESSION_SCHEMA = {
         "competitor_preferred_reason", "sources_cited", "brand_sources_first_party",
         "beliefs_about_brand", "proof_gaps", "final_call", "final_call_vendor",
         "pressure_outcome", "dealbreakers", "ceo_pitch", "flip_condition",
-        "information_confidence",
+        "information_confidence", "evidence_chain", "quantified_claims",
+        "citation_depth", "competitor_counter_evidence",
     ],
     "additionalProperties": False,
 }
@@ -353,7 +400,18 @@ def synthesize(client: anthropic.Anthropic, audit: dict) -> str:
         "'retrieved_sources' (URLs the assistant actually consulted live), "
         "analyze them: which domains carried the verdict, first-party vs "
         "third-party, and make every content recommendation name the specific "
-        "venue it should live in, based on what was actually retrieved.\n\n"
+        "venue it should live in, based on what was actually retrieved. "
+        "Use 'evidence_chain' as the backbone of section 2: trace each belief to "
+        "its source and provenance, and say plainly whether the brand's own "
+        "content or third parties are doing the persuading. Call out any claim "
+        "the assistant itself flagged as self-reported or unverified, since a "
+        "proof base that traces entirely to vendor-published material is a "
+        "structural weakness, not just a gap. Read 'quantified_claims' as the "
+        "numbers already memorized and working, 'competitor_counter_evidence' as "
+        "the named assets to out-publish, and 'citation_depth' as whether AI "
+        "understands the product or merely knows the brand exists. If the "
+        "presence trace shows the brand dropping out mid-conversation while rivals persist, treat that as a distinct finding from losing the final "
+        "call: it means the brand fails as the buyer gets specific, and name which criterion the conversation had narrowed to.\n\n"
         f"{json.dumps(condensed, indent=2)}\n\n"
         "Write the analysis sections of the audit report in markdown (start at "
         "'## How AI models see the brand'). Cover:\n"
@@ -492,6 +550,215 @@ def funnel_counts(brand: str, sessions: list) -> list:
     ]
 
 
+def behavior_marks(brand: str, s: dict) -> tuple:
+    """Compress one session into three AI-behavior verdicts.
+
+    CATEGORY       does AI route this pain to the category at all?
+    VISIBILITY     does the brand surface, and how prominently?
+    RECOMMENDATION does AI endorse it, hedge, or send the buyer elsewhere?
+    """
+    category = "PASS" if s["category_proposed"] else "FAIL"
+
+    shortlisted = any(brand.lower() in v.lower() for v in s["shortlist"])
+    if s["unprompted_brand_mention"] and shortlisted:
+        visibility = "PASS"
+    elif shortlisted or s["unprompted_brand_mention"]:
+        visibility = "MIXED"
+    else:
+        visibility = "FAIL"
+
+    won = s["final_call"] == "target_brand"
+    if s["brand_recommendation"] == "strong" and won:
+        rec = "PASS"
+    elif s["brand_recommendation"] in ("negative",) or s["final_call"] == "competitor":
+        rec = "FAIL"
+    else:
+        rec = "MIXED"
+    return category, visibility, rec
+
+
+MARK = {"PASS": "PASS", "MIXED": "MIXED", "FAIL": "FAIL"}
+
+
+def scorecard(audit: dict) -> list:
+    """Three-behavior scorecard, one row per session. The five-second read."""
+    brand = audit["brand"]
+    lines = [
+        "## AI behavior scorecard",
+        "",
+        "Three questions per session: does AI route the problem to the category, "
+        "does the brand surface inside it, and does AI actually endorse it under pressure.",
+        "",
+        "| Scenario | Framing | Assistant | Category | Visibility | Recommendation |",
+        "|---|---|---|---|---|---|",
+    ]
+    for s in audit["sessions"]:
+        c, v, r = behavior_marks(brand, s)
+        lines.append(
+            f"| {s['scenario']} | {s.get('framing', 'operational')} | {s['assistant']} "
+            f"| {MARK[c]} | {MARK[v]} | {MARK[r]} |"
+        )
+    lines += ["", "PASS = works today. MIXED = surfaces but hedged. FAIL = the brand or category does not make it.", ""]
+    return lines
+
+
+def evidence_graph(audit: dict) -> list:
+    """What every belief rests on, and who owns that source."""
+    sessions = audit["sessions"]
+    chains = [(s, e) for s in sessions for e in (s.get("evidence_chain") or [])]
+    if not chains:
+        return []
+
+    counts = {}
+    for _, e in chains:
+        counts[e["provenance"]] = counts.get(e["provenance"], 0) + 1
+    total = len(chains)
+    flagged = sum(1 for _, e in chains if e["assistant_flagged_weakness"])
+
+    lines = [
+        "## Evidence graph: what the beliefs rest on",
+        "",
+        f"{total} claims traced across {len(sessions)} session(s). "
+        f"{flagged} were caveated by the assistant itself as self-reported, unverified, or stale.",
+        "",
+        "| Provenance | Claims | Share |",
+        "|---|---|---|",
+    ]
+    labels = {
+        "first_party": "The brand's own content",
+        "third_party": "Independent sources",
+        "training_memory": "Training memory, nothing read",
+        "unstated": "No basis given",
+    }
+    for key, label in labels.items():
+        n = counts.get(key, 0)
+        if n:
+            lines.append(f"| {label} | {n} | {round(100 * n / total)}% |")
+
+    lines += ["", "### Claim by claim", "", "| Claim | Rests on | Provenance | Assistant flagged it |", "|---|---|---|---|"]
+    for s, e in chains:
+        flag = "yes" if e["assistant_flagged_weakness"] else ""
+        lines.append(
+            f"| {e['claim']} | {e['source']} | {e['provenance'].replace('_', ' ')} | {flag} |"
+        )
+
+    quantified = sorted({q for s in sessions for q in (s.get("quantified_claims") or [])})
+    if quantified:
+        lines += [
+            "", "### Numbers AI repeats about the brand", "",
+            "These are memorized and doing work in the conversation. They are also the claims a competitor would need to counter.", "",
+        ] + [f"- {q}" for q in quantified]
+
+    counter = [(s, c) for s in sessions for c in (s.get("competitor_counter_evidence") or [])]
+    if counter:
+        lines += [
+            "", "### Competitor assets used as counter-proof", "",
+            "| Competitor | Asset AI reached for | Criterion it won |", "|---|---|---|",
+        ] + [
+            f"| {c['competitor']} | {c['asset']} | {c['criterion']} |" for _, c in counter
+        ]
+
+    depths = [s.get("citation_depth") for s in sessions if s.get("citation_depth") not in (None, "not_applicable")]
+    if depths:
+        deep = depths.count("deep_pages")
+        lines += [
+            "", "### Citation depth", "",
+            f"{deep}/{len(depths)} session(s) cited specific product or use-case pages rather than the homepage alone. "
+            "Deep-page citation means AI understands the product; homepage-only means it knows the brand exists.", "",
+        ]
+    lines.append("")
+    return lines
+
+
+STAGE_OF_TURN = ["problem", "problem", "vendors", "vendors", "brand", "brand", "pressure", "pressure"]
+
+
+def presence_trace(audit: dict) -> list:
+    """Turn-by-turn: where the brand is present, and where it falls out.
+
+    Measured directly from the transcript rather than extracted, so it is
+    deterministic and works on any report that stored transcripts. The
+    interesting signal is the unprompted stages (problem, vendors): a brand
+    that leads early and disappears once the conversation narrows to specific
+    criteria is losing ground mid-conversation, which endpoint metrics miss.
+    """
+    brand = audit["brand"].lower()
+    competitors = [c for c in audit.get("competitors", [])]
+    rows, any_narrowing = [], False
+
+    for s in audit["sessions"]:
+        turns = [
+            block.split("\n", 1)[1] if "\n" in block else ""
+            for block in s.get("transcript", "").split("[ASSISTANT]")[1:]
+        ]
+        turns = [t.split("[USER]")[0].lower() for t in turns]
+        if not turns:
+            continue
+
+        marks, rival_counts = [], []
+        for t in turns:
+            marks.append("Y" if brand in t else "-")
+            rival_counts.append(sum(1 for c in competitors if c.lower() in t))
+
+        # Narrowing: present in the first half of an unprompted stage, gone by
+        # the second, while rivals persist.
+        narrowing = None
+        for i in (0, 2):  # problem stage, vendor stage
+            if i + 1 < len(marks) and marks[i] == "Y" and marks[i + 1] == "-" and rival_counts[i + 1] > 0:
+                narrowing = STAGE_OF_TURN[i]
+                any_narrowing = True
+                break
+
+        first_seen = next((i + 1 for i, m in enumerate(marks) if m == "Y"), None)
+        rows.append({
+            "label": f"{s['scenario']} [{s.get('framing', 'operational')}] x {s['assistant']}",
+            "marks": marks,
+            "rivals": rival_counts,
+            "first": first_seen,
+            "narrowing": narrowing,
+        })
+
+    if not rows:
+        return []
+
+    width = max(len(r["marks"]) for r in rows)
+    header = " | ".join(f"T{i + 1}" for i in range(width))
+    lines = [
+        "## Where the brand falls out of the conversation",
+        "",
+        "Presence of the brand in each assistant turn, measured from the transcript. "
+        "Turns 1 to 4 are unprompted: the buyer has not named the brand yet. "
+        "Y = named, - = absent. The rivals row counts how many known competitors appear in that turn.",
+        "",
+        f"| Session | {header} | First appears | Narrowing |",
+        "|---" * (width + 3) + "|",
+    ]
+    for r in rows:
+        marks = r["marks"] + ["-"] * (width - len(r["marks"]))
+        rivals = r["rivals"] + [0] * (width - len(r["rivals"]))
+        cells = " | ".join(
+            f"{m}" + (f" ({rv})" if rv else "") for m, rv in zip(marks, rivals)
+        )
+        first = f"turn {r['first']}" if r["first"] else "never unprompted"
+        narrow = f"drops in {r['narrowing']} stage" if r["narrowing"] else ""
+        lines.append(f"| {r['label']} | {cells} | {first} | {narrow} |")
+
+    lines.append("")
+    if any_narrowing:
+        lines.append(
+            "At least one session shows narrowing: the brand is named early, then drops out "
+            "while competitors stay in the answer as the buyer presses on specifics. That is a "
+            "mid-conversation loss, invisible to any metric that only looks at the first answer "
+            "or the final call."
+        )
+    else:
+        lines.append(
+            "No narrowing detected: where the brand enters the conversation, it stays in it."
+        )
+    lines.append("")
+    return lines
+
+
 def journey_map(audit: dict) -> list:
     """Render the buyer journey as a mermaid flowchart with drop-off branches."""
     sessions = audit["sessions"]
@@ -550,13 +817,14 @@ def write_report(audit: dict, out_path: str) -> None:
             )] if audit.get("failed_sessions") else []
         ),
         "",
+        *scorecard(audit),
         "## The funnel",
         "",
         "| Stage | Result |",
         "|---|---|",
     ]
     lines += [f"| {label} | {count}/{total} |" for label, count, total in stages]
-    lines += ["", *journey_map(audit), "## Session summaries", ""]
+    lines += ["", *journey_map(audit), *presence_trace(audit), *evidence_graph(audit), "## Session summaries", ""]
 
     for s in sessions:
         comp = (
