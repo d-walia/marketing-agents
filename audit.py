@@ -28,7 +28,8 @@ from datetime import date
 import anthropic
 
 from journey import (
-    BUYER_MODEL, FRAMINGS, buyer_prompt, comparison_continuation, opening_turn,
+    BUYER_MODEL, FRAMINGS, PARAPHRASE_VENDOR_TURN, buyer_prompt,
+    comparison_continuation, opening_turn, paraphrase_prompt, persona_intro,
     problem_stage, standard_continuation,
 )
 from providers import active_providers
@@ -60,6 +61,20 @@ CONFIG_TEMPLATE = {
             "e.g. 'works with our existing Salesforce workflow, no rip-and-replace'",
         ],
     },
+    "positioning": [
+        "optional, high value: how YOU describe the product, one claim per line. The audit compares these against what AI actually believes, which is the alignment gap.",
+        "e.g. 'fastest contract turnaround in mid-market, days not weeks'",
+        "e.g. 'works alongside your existing CLM rather than replacing it'",
+    ],
+    "icp_variants": [
+        {
+            "_note": "optional: other seats at the buying table to sweep. Same shape as icp. Each one multiplies the run, so add deliberately.",
+            "role": "e.g. 'Chief Financial Officer'",
+            "description": "same company, different seat",
+            "jobs_to_be_done": ["what this person is on the hook for"],
+            "priorities": ["what this person cares about"],
+        }
+    ],
     "scenarios": [
         {
             "id": "short-slug-for-this-scenario",
@@ -451,7 +466,7 @@ def synthesize(client: anthropic.Anthropic, audit: dict) -> str:
     return "".join(b.text for b in response.content if b.type == "text")
 
 
-def preflight(providers, skipped, config) -> None:
+def preflight(providers, skipped, config, paraphrase: int = 0) -> None:
     """Check every key, report what usage info each API exposes."""
     print("\nPre-flight check", file=sys.stderr)
     print("----------------", file=sys.stderr)
@@ -461,14 +476,25 @@ def preflight(providers, skipped, config) -> None:
         print(f"  [{status}] {p.name} ({p.model}): {result['detail']}", file=sys.stderr)
     for name in skipped:
         print(f"  [SKIP] {name}: no API key set", file=sys.stderr)
+    n_personas = len(personas_for(config))
     n_cells = sum(len(s.get("framings") or ["operational"]) for s in config["scenarios"])
-    n_sessions = n_cells * len(providers)
+    n_sessions = n_cells * len(providers) * n_personas
+    persona_note = f" x {n_personas} persona(s)" if n_personas > 1 else ""
     print(
-        f"\nPlanned run: {n_cells} scenario-framing cell(s) x {len(providers)} assistant(s) "
-        f"= {n_sessions} sessions of 8 turns each, plus {n_sessions} extraction call(s) "
-        "and 1 synthesis call on Claude.",
+        f"\nPlanned run: {n_cells} scenario-framing cell(s) x {len(providers)} assistant(s)"
+        f"{persona_note} = {n_sessions} sessions of 8 turns each, plus {n_sessions} extraction "
+        "call(s) and 1 synthesis call on Claude.",
         file=sys.stderr,
     )
+    if n_personas > 1:
+        print("  Personas: " + ", ".join(p["_label"] for p in personas_for(config)), file=sys.stderr)
+    if paraphrase:
+        n_probe = len(config["scenarios"]) * len(providers)
+        print(
+            f"  Paraphrase probes: {n_probe} probe(s) x {paraphrase} wordings = "
+            f"{n_probe * paraphrase * 2} extra turns, plus {n_probe} stability call(s).",
+            file=sys.stderr,
+        )
 
 
 def confirm_selection(providers):
@@ -489,50 +515,300 @@ def confirm_selection(providers):
     return [p for p in providers if p.name in chosen]
 
 
-def run_audit(config: dict, providers: list) -> dict:
+
+STABILITY_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "claims": {
+            "type": "array",
+            "description": "Every distinct claim made about the target brand across the variant answers",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "claim": {"type": "string"},
+                    "variants_appeared_in": {"type": "integer"},
+                },
+                "required": ["claim", "variants_appeared_in"],
+                "additionalProperties": False,
+            },
+        }
+    },
+    "required": ["claims"],
+    "additionalProperties": False,
+}
+
+CONFIG_REVIEW_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "findings": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "field": {"type": "string", "description": "Which config field, e.g. 'icp.jobs_to_be_done' or 'scenarios[0].situation'"},
+                    "severity": {"type": "string", "enum": ["blocker", "weakens_results", "polish"]},
+                    "problem": {"type": "string"},
+                    "fix": {"type": "string", "description": "Concrete rewrite or addition, specific to this config"},
+                },
+                "required": ["field", "severity", "problem", "fix"],
+                "additionalProperties": False,
+            },
+        },
+        "readiness": {"type": "string", "enum": ["ready", "usable_with_gaps", "not_ready"]},
+        "summary": {"type": "string"},
+    },
+    "required": ["findings", "readiness", "summary"],
+    "additionalProperties": False,
+}
+
+
+def generate_paraphrases(client, scenario: dict, n: int) -> list:
+    """Reword the situation n ways, holding intent constant."""
+    resp = client.messages.create(
+        model=BUYER_MODEL,
+        max_tokens=1500,
+        output_config={"effort": "low"},
+        messages=[{"role": "user", "content": paraphrase_prompt(scenario, n)}],
+    )
+    text = "".join(b.text for b in resp.content if b.type == "text")
+    return [l.strip(" -*\t") for l in text.splitlines() if len(l.strip()) > 40][:n]
+
+
+def brands_in(text: str, names: list) -> set:
+    low = text.lower()
+    return {nm for nm in names if nm.lower() in low}
+
+
+def jaccard(a: set, b: set) -> float:
+    if not (a | b):
+        return 1.0
+    return len(a & b) / len(a | b)
+
+
+def run_paraphrase_probe(provider, client, config: dict, scenario: dict, n: int) -> dict:
+    """Same intent, n wordings. Two turns each, so wording is the only variable."""
+    names = [config["brand"], *config.get("competitors", [])]
+    variants = generate_paraphrases(client, scenario, n)
+    if not variants:
+        return {}
+
+    runs = []
+    for wording in variants:
+        msgs = [{"role": "user", "content": (
+            f"{persona_intro(config['icp'])}\n\nHere's the situation I'm dealing with: "
+            f"{wording}\n\nHow would you approach solving this?"
+        )}]
+        a1, _ = provider.ask(msgs)
+        msgs += [{"role": "assistant", "content": a1},
+                 {"role": "user", "content": PARAPHRASE_VENDOR_TURN}]
+        a2, _ = provider.ask(msgs)
+        answer = a1 + "\n" + a2
+        runs.append({"wording": wording, "answer": answer,
+                     "brands": sorted(brands_in(answer, names))})
+
+    sets = [set(r["brands"]) for r in runs]
+    pairs = [jaccard(sets[i], sets[j]) for i in range(len(sets)) for j in range(i + 1, len(sets))]
+    hits = sum(1 for s in sets if config["brand"] in s)
+
+    claims = []
+    try:
+        joined = "\n\n".join(
+            f"=== VARIANT {i + 1} ===\n{r['answer'][:4000]}" for i, r in enumerate(runs)
+        )
+        resp = client.messages.create(
+            model=ANALYSIS_MODEL, max_tokens=3000,
+            output_config={"format": {"type": "json_schema", "schema": STABILITY_SCHEMA}},
+            messages=[{"role": "user", "content": (
+                f"Target brand: {config['brand']}. Below are {len(runs)} answers to the SAME "
+                "question asked in different words. For every distinct claim made about the "
+                "target brand, count how many numbered variants contained it. A claim in most "
+                "variants is a stable belief; one appearing once is conversational noise."
+                f"\n\n{joined}"
+            )}],
+        )
+        claims = json.loads(next(b.text for b in resp.content if b.type == "text"))["claims"]
+    except Exception as e:
+        print(f"    stability extraction failed ({e})", file=sys.stderr)
+
+    return {
+        "scenario": scenario["id"], "assistant": provider.name,
+        "variant_count": len(runs), "runs": runs,
+        "mean_overlap": round(sum(pairs) / len(pairs), 3) if pairs else None,
+        "brand_appearance_rate": f"{hits}/{len(runs)}",
+        "brand_appearance_pct": round(100 * hits / len(runs)),
+        "claims": claims,
+    }
+
+
+def review_config(client, config: dict) -> dict:
+    """Critique the inputs before spending money on a run."""
+    resp = client.messages.create(
+        model=ANALYSIS_MODEL, max_tokens=4000,
+        output_config={"format": {"type": "json_schema", "schema": CONFIG_REVIEW_SCHEMA}},
+        messages=[{"role": "user", "content": (
+            "You are reviewing the input config for an AI brand perception audit. The audit "
+            "simulates a B2B buyer talking to AI assistants, so the quality of the buyer "
+            "definition determines the quality of every finding.\n\n"
+            "Judge against these standards:\n"
+            "- category: must be the buyer's words, not marketing language.\n"
+            "- icp.role and description: a specific person at a specific kind of company, not a segment.\n"
+            "- jobs_to_be_done and priorities: outcomes this person is accountable for, concrete "
+            "enough to drive trade-offs. 'Wants efficiency' is useless.\n"
+            "- buying_moment: a trigger event and a pressure clock. Without it the simulated buyer "
+            "does not push like a real one.\n"
+            "- installed_stack: what a purchase must coexist with. This is where the strongest "
+            "objections come from, and its absence is a common silent gap.\n"
+            "- decision_criteria: proof thresholds and constraints the buyer raises unprompted.\n"
+            "- positioning: the brand's own claims. Without it the audit cannot measure the gap "
+            "between what the brand says and what AI believes.\n"
+            "- scenarios[].situation: one dominant pain in the buyer's own words, with NO category "
+            "or vendor names. Multi-pain scenarios measure which pain the model latches onto "
+            "rather than who wins. Category or vendor leakage invalidates the unprompted measurement.\n"
+            "- competitors: the rivals AI would plausibly name, used for detection.\n\n"
+            "Flag placeholder text left from the template as a blocker. Be specific: every fix "
+            "should be a concrete rewrite for THIS config, not general advice.\n\n"
+            f"CONFIG:\n{json.dumps(config, indent=2)}"
+        )}],
+    )
+    return json.loads(next(b.text for b in resp.content if b.type == "text"))
+
+
+def paraphrase_report(audit: dict) -> list:
+    probes = audit.get("paraphrase_probes") or []
+    if not probes:
+        return []
+    lines = [
+        "## Paraphrase sensitivity and belief stability",
+        "",
+        "The same buyer intent, reworded. Only the opening wording changes, so any difference in "
+        "which vendors appear is caused by phrasing alone.",
+        "",
+        "| Scenario | Assistant | Wordings | Brand appeared | Vendor-set overlap |",
+        "|---|---|---|---|---|",
+    ]
+    for p in probes:
+        ov = "n/a" if p.get("mean_overlap") is None else f"{round(100 * p['mean_overlap'])}%"
+        lines.append(
+            f"| {p['scenario']} | {p['assistant']} | {p['variant_count']} "
+            f"| {p['brand_appearance_rate']} ({p['brand_appearance_pct']}%) | {ov} |"
+        )
+    lines += [
+        "",
+        "Vendor-set overlap is the mean pairwise similarity of shortlists across wordings. High "
+        "overlap means the model holds a stable view of the category. Low overlap means shortlists "
+        "are an artifact of phrasing, and any single-prompt visibility metric is measuring noise.",
+        "",
+    ]
+
+    stable = [(p, c) for p in probes for c in p.get("claims", []) if c["variants_appeared_in"] > 1]
+    noise = [(p, c) for p in probes for c in p.get("claims", []) if c["variants_appeared_in"] == 1]
+    if stable:
+        lines += [
+            "### Stable beliefs", "",
+            "Claims that survived rewording. This is what the model actually believes, and what "
+            "content strategy should target.", "",
+            "| Claim | Appeared in |", "|---|---|",
+        ] + [
+            f"| {c['claim']} | {c['variants_appeared_in']}/{p['variant_count']} wordings |"
+            for p, c in sorted(stable, key=lambda x: -x[1]["variants_appeared_in"])
+        ] + [""]
+    if noise:
+        lines += [
+            f"{len(noise)} claim(s) appeared in only one wording. Treat as noise, not belief: a "
+            "single-prompt audit would have reported them as findings.", "",
+        ]
+    return lines
+
+
+def personas_for(config: dict) -> list:
+    """The primary ICP, plus any variants worth sweeping, each labelled."""
+    out = [dict(config["icp"], _label=config["icp"]["role"])]
+    for v in config.get("icp_variants") or []:
+        role = str(v.get("role", ""))
+        if role and not role.startswith("e.g."):
+            out.append(dict(v, _label=role))
+    return out
+
+
+def run_cell(provider, client, cfg, scenario, framing, persona_label):
+    """One session. Returns the session record, or None if it failed."""
+    messages, pathway, unprompted, retrieved = conduct_session(
+        provider, client, cfg, scenario, framing
+    )
+    transcript = transcript_text(messages)
+    data = extract_session(client, transcript, cfg["brand"], cfg["category"])
+    return {
+        "scenario": scenario["id"],
+        "persona": persona_label,
+        "framing": framing,
+        "assistant": provider.name,
+        "assistant_model": provider.model,
+        "retrieval_enabled": getattr(provider, "retrieval", False),
+        "retrieved_sources": retrieved,
+        "pathway": pathway,
+        "unprompted_vendors_stage1": unprompted,
+        "presence": compute_presence(
+            transcript, cfg["brand"], cfg.get("competitors", [])
+        ),
+        "transcript": transcript,
+        **data,
+    }
+
+
+def run_audit(config: dict, providers: list, paraphrase: int = 0) -> dict:
     client = anthropic.Anthropic()
     sessions, failed = [], []
-    for scenario in config["scenarios"]:
-        for framing in scenario.get("framings") or ["operational"]:
-            for provider in providers:
-                label = f"{scenario['id']} [{framing}] x {provider.name}"
-                print(f"  session: {label} ...", file=sys.stderr)
-                try:
-                    messages, pathway, unprompted, retrieved = conduct_session(
-                        provider, client, config, scenario, framing
+    personas = personas_for(config)
+
+    for persona in personas:
+        cfg = dict(config, icp=persona)
+        for scenario in cfg["scenarios"]:
+            for framing in scenario.get("framings") or ["operational"]:
+                for provider in providers:
+                    label = (
+                        f"{scenario['id']} [{framing}] x {provider.name}"
+                        + (f" ({persona['_label']})" if len(personas) > 1 else "")
                     )
-                    transcript = transcript_text(messages)
-                    data = extract_session(client, transcript, config["brand"], config["category"])
-                except Exception as e:
-                    print(f"    FAILED ({e}); continuing with remaining sessions", file=sys.stderr)
-                    failed.append({
-                        "scenario": scenario["id"], "framing": framing,
-                        "assistant": provider.name, "error": str(e),
-                    })
-                    continue
-                sessions.append({
-                    "scenario": scenario["id"],
-                    "framing": framing,
-                    "assistant": provider.name,
-                    "assistant_model": provider.model,
-                    "retrieval_enabled": getattr(provider, "retrieval", False),
-                    "retrieved_sources": retrieved,
-                    "pathway": pathway,
-                    "unprompted_vendors_stage1": unprompted,
-                    "presence": compute_presence(
-                        transcript, config["brand"], config.get("competitors", [])
-                    ),
-                    "transcript": transcript,
-                    **data,
-                })
+                    print(f"  session: {label} ...", file=sys.stderr)
+                    try:
+                        sessions.append(
+                            run_cell(provider, client, cfg, scenario, framing, persona["_label"])
+                        )
+                    except Exception as e:
+                        print(f"    FAILED ({e}); continuing with remaining sessions", file=sys.stderr)
+                        failed.append({
+                            "scenario": scenario["id"], "framing": framing,
+                            "persona": persona["_label"], "assistant": provider.name,
+                            "error": str(e),
+                        })
 
     if not sessions:
         sys.exit("Every session failed; nothing to analyze.")
+
+    probes = []
+    if paraphrase:
+        for scenario in config["scenarios"]:
+            for provider in providers:
+                print(f"  paraphrase probe: {scenario['id']} x {provider.name} "
+                      f"({paraphrase} wordings) ...", file=sys.stderr)
+                try:
+                    p = run_paraphrase_probe(provider, client, config, scenario, paraphrase)
+                    if p:
+                        probes.append(p)
+                except Exception as e:
+                    print(f"    FAILED ({e})", file=sys.stderr)
+
     audit = {
         **{k: config[k] for k in ["brand", "category", "icp", "competitors", "scenarios"]},
+        "positioning": [
+            p for p in (config.get("positioning") or [])
+            if not str(p).startswith(("optional", "e.g."))
+        ],
+        "personas_run": [p["_label"] for p in personas],
         "date": date.today().isoformat(),
         "sessions": sessions,
         "failed_sessions": failed,
+        "paraphrase_probes": probes,
     }
     print("  synthesizing recommendations ...", file=sys.stderr)
     audit["analysis"] = synthesize(client, audit)
@@ -586,19 +862,24 @@ MARK = {"PASS": "PASS", "MIXED": "MIXED", "FAIL": "FAIL"}
 def scorecard(audit: dict) -> list:
     """Three-behavior scorecard, one row per session. The five-second read."""
     brand = audit["brand"]
+    multi_persona = len({s.get("persona") for s in audit["sessions"]}) > 1
     lines = [
         "## AI behavior scorecard",
         "",
         "Three questions per session: does AI route the problem to the category, "
         "does the brand surface inside it, and does AI actually endorse it under pressure.",
         "",
-        "| Scenario | Framing | Assistant | Category | Visibility | Recommendation |",
-        "|---|---|---|---|---|---|",
+        *( ["| Scenario | Framing | Persona | Assistant | Category | Visibility | Recommendation |",
+            "|---|---|---|---|---|---|---|"]
+           if multi_persona else
+           ["| Scenario | Framing | Assistant | Category | Visibility | Recommendation |",
+            "|---|---|---|---|---|---|"] ),
     ]
     for s in audit["sessions"]:
         c, v, r = behavior_marks(brand, s)
+        persona_cell = f"| {s.get('persona', '')} " if multi_persona else ""
         lines.append(
-            f"| {s['scenario']} | {s.get('framing', 'operational')} | {s['assistant']} "
+            f"| {s['scenario']} | {s.get('framing', 'operational')} {persona_cell}| {s['assistant']} "
             f"| {MARK[c]} | {MARK[v]} | {MARK[r]} |"
         )
     lines += ["", "PASS = works today. MIXED = surfaces but hedged. FAIL = the brand or category does not make it.", ""]
@@ -839,7 +1120,7 @@ def write_report(audit: dict, out_path: str) -> None:
         "|---|---|",
     ]
     lines += [f"| {label} | {count}/{total} |" for label, count, total in stages]
-    lines += ["", *journey_map(audit), *presence_trace(audit), *evidence_graph(audit), "## Session summaries", ""]
+    lines += ["", *journey_map(audit), *presence_trace(audit), *paraphrase_report(audit), *evidence_graph(audit), "## Session summaries", ""]
 
     for s in sessions:
         comp = (
@@ -887,6 +1168,10 @@ def main() -> None:
     parser.add_argument("--init", action="store_true", help="Write audit-config.json template and exit")
     parser.add_argument("--models", default=None, help="Comma-separated subset of: claude,chatgpt,gemini (default: all with keys)")
     parser.add_argument("--out", default=None)
+    parser.add_argument("--paraphrase", type=int, default=0, metavar="N",
+                        help="Also probe paraphrase sensitivity: reword each scenario N ways and measure how much the vendor shortlist moves on wording alone (try 5)")
+    parser.add_argument("--review-config", action="store_true",
+                        help="Critique the config inputs and exit, without running an audit")
     parser.add_argument("--retrieval", action="store_true", help="Probe with live web search enabled (Claude, Gemini); captures which URLs each assistant consults")
     parser.add_argument("--preflight", action="store_true", help="Check keys and available usage info, then exit without running")
     parser.add_argument("--yes", action="store_true", help="Skip the interactive confirmation and run across all available assistants")
@@ -907,18 +1192,30 @@ def main() -> None:
         sys.exit("ANTHROPIC_API_KEY is required (analysis engine). https://platform.claude.com/")
 
     config = load_config(args.config)
+
+    if args.review_config:
+        print("\nReviewing config inputs ...", file=sys.stderr)
+        r = review_config(anthropic.Anthropic(), config)
+        order = {"blocker": 0, "weakens_results": 1, "polish": 2}
+        print(f"\nReadiness: {r['readiness'].replace('_', ' ')}\n{r['summary']}\n")
+        for f in sorted(r["findings"], key=lambda x: order.get(x["severity"], 3)):
+            print(f"[{f['severity'].replace('_', ' ').upper()}] {f['field']}")
+            print(f"  problem: {f['problem']}")
+            print(f"  fix:     {f['fix']}\n")
+        return
+
     requested = [m.strip() for m in args.models.split(",")] if args.models else None
     providers, skipped = active_providers(requested, retrieval=args.retrieval)
     if not providers:
         sys.exit("No probe models available. Set ANTHROPIC_API_KEY at minimum.")
 
-    preflight(providers, skipped, config)
+    preflight(providers, skipped, config, args.paraphrase)
     if args.preflight:
         return
     if not args.yes and sys.stdin.isatty():
         providers = confirm_selection(providers)
 
-    audit = run_audit(config, providers)
+    audit = run_audit(config, providers, paraphrase=args.paraphrase)
 
     out_path = args.out or f"report-{config['brand'].lower().replace(' ', '-')}-{audit['date']}.md"
     write_report(audit, out_path)

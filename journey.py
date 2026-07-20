@@ -292,3 +292,31 @@ def buyer_prompt(icp: dict, scenario: dict, goal: str, before_brand_stage: bool)
         + (f"Decision criteria: {'; '.join(icp['decision_criteria'])}.\n" if icp.get("decision_criteria") else "")
         + f"The situation that started this conversation: {scenario['situation']}\n\n{rules}"
     )
+
+
+PARAPHRASE_RULES = """You rewrite a B2B buyer's description of their problem.
+
+Produce {n} alternative wordings of the situation below. Each must:
+- Keep the intent and the facts identical. Same pain, same constraints, same urgency.
+- Change the wording substantially: different vocabulary, sentence order, and emphasis.
+- Stay in the buyer's voice, first person, roughly the same length.
+- Never name a product category, a vendor, or a tool.
+
+Vary register across the set: some blunt and short, some detailed, some framed around
+consequence, some around symptom. Return one wording per line, no numbering, no commentary."""
+
+
+def paraphrase_prompt(scenario: dict, n: int) -> str:
+    return (
+        PARAPHRASE_RULES.format(n=n)
+        + f"\n\nTHE SITUATION TO REWORD:\n{scenario['situation']}"
+    )
+
+
+# The vendor question used in paraphrase probes. Fixed, so wording of the
+# opening is the only variable across runs.
+PARAPHRASE_VENDOR_TURN = (
+    "If we bought something for this rather than changing process, which specific "
+    "vendors or products should be on our shortlist? Name them and rank them for a "
+    "company like ours."
+)
