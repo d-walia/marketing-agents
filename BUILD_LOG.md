@@ -41,8 +41,17 @@ Two dimensions that measure the upstream battle:
 - **Framings.** The same buyer phrases the same pain four ways: operational ("what do I do?"), platform ("what tools exist?"), methodology ("does tooling even solve this?"), validation ("what evidence justifies budget?"). AI routes these to completely different answers, and which framings unlock the category, and the brand, is a keystone finding. Scenarios opt in per framing; everything else holds constant.
 - **Retrieval mode (`--retrieval`).** Default probes measure trained-in beliefs. With retrieval on, Claude and Gemini probe with live web search and the tool records every URL each assistant actually consulted. Prescriptions upgrade from "publish this proof" to "publish this proof in this venue," based on the domains that actually carried the verdict. First live test surfaced a competitor's buyer's guide among the pages consulted to form category opinions: the venue battle is real and measurable.
 
+### v11: The scorecard and the evidence graph
+Comparing the tool's output against a boutique agency's hand-built read of the same brand exposed what a rigorous funnel still fails to deliver: a verdict a busy executive can absorb, and source-level accountability for every belief. Six additions, in three groups.
+
+**Compression.** An **AI behavior scorecard** sits above the funnel: one row per session, three verdicts (category, visibility, recommendation), PASS / MIXED / FAIL. Computed from data already collected, so it costs nothing. Rendered per scenario-framing cell rather than collapsed into one row for the whole audit, which preserves the finding that a brand can score CATEGORY FAIL under one framing and PASS under another.
+
+**Source-level accountability.** The extraction schema grew an **evidence chain**: every substantive claim traced to what it rests on and who owns that source (first-party, third-party, training memory, unstated), plus whether the assistant caveated it. Alongside it, **quantified claims** (the specific numbers AI has memorized and repeats), **citation depth** (deep product pages vs homepage-only vs no URLs), and a **competitor counter-evidence map** (named rival assets AI reached for, and the criterion each one won). The first live retrieval run made the case: only 19% of claims about the brand traced to its own content, every first-party source that did appear was flagged by the assistant as self-reported, and five specific competitor assets were named as counter-proof, including a rival's Forrester study and a competitor blog's TCO comparison.
+
+**Where the conversation narrows.** A **presence trace** records, turn by turn, whether the brand is named and how many rivals appear alongside it. A brand can lead turn 1 and vanish by turn 2 while competitors persist: a mid-conversation loss invisible to both first-answer and final-call metrics. Deliberately not extracted by a model but measured locally from the completed transcript, so it is deterministic and free. Computed once after each session and stored in the session record, which makes it diffable month over month; a transcript-scan fallback keeps it working on reports generated before the field existed.
+
 ### The report layer
-Reports render three ways: markdown (funnel, mermaid buyer-journey map with drop-off and divert branches, session summaries, synthesis), raw JSON with full transcripts, and a designed self-contained HTML report (`report_html.py`).
+Reports render three ways: markdown (scorecard, funnel, mermaid buyer-journey map with drop-off and divert branches, presence trace, evidence graph, session summaries, synthesis), raw JSON with full transcripts, and a designed self-contained HTML report (`report_html.py`).
 
 ## Design principles that emerged
 
@@ -53,6 +62,9 @@ Reports render three ways: markdown (funnel, mermaid buyer-journey map with drop
 5. **One variable at a time.** One ICP per audit, one dominant pain per scenario, framings varied while everything holds. Multi-pain scenarios taught this the hard way: models flip verdicts based on which pain they latch onto.
 6. **Single sessions are leads, not verdicts.** Final calls at the margin flip between runs. Durable signal is what repeats across scenarios, framings, and models. (Repeat-runs with rate reporting is the top item on the roadmap.)
 7. **Runs must survive reality.** Rate limits, provider outages, and quota exhaustion all happened; retries with real cool-downs and per-session failure tolerance came from those failures.
+8. **Measure locally when you can.** The presence trace is computed by scanning the completed transcript, not by asking a model. Deterministic, free, and retroactive: it produced findings on data collected days before the feature existed. Prefer local computation over extraction whenever the signal is mechanically detectable.
+9. **Compress for the reader who will not read.** A rigorous funnel is not a verdict. The scorecard exists because the person who decides whether to act on an audit will give it five seconds, and the analysis underneath is worthless if that read never happens.
+10. **Trace beliefs to their owners.** "AI thinks X" is an observation. "AI thinks X because of a competitor's blog post, and flagged your own case study as self-reported" is an instruction. Provenance is what turns perception data into a content brief.
 
 ## What a finished audit answers
 
@@ -61,10 +73,14 @@ Reports render three ways: markdown (funnel, mermaid buyer-journey map with drop
 - What does AI believe about me, whose information is that (mine, third parties', stale memory), and which venues does it actually consult when it can look?
 - Which objections dissolve under pushback and which harden into dealbreakers?
 - What is the exact evidence, in the model's own words, that would flip the verdict, and where should it be published?
+- Do I hold the conversation as the buyer gets specific, or get dropped mid-thread while rivals persist?
+- Which of my own claims has AI memorized and repeats verbatim, and which of them does it caveat as self-reported?
+- Which named competitor assets does AI reach for as counter-proof, and on what criterion do they win?
 
 ## Roadmap
 
 - Repeat runs per cell (`--runs N`) with final-call rates instead of single calls
 - ChatGPT retrieval once wired (and funded); Perplexity as a fourth surface
-- Longitudinal diffing: same config re-run monthly, report deltas
-- Finish the de-templated HTML report restyle
+- Longitudinal diffing: same config re-run monthly, report deltas. The stored presence records and evidence chains are built for this
+- Surface the scorecard, presence trace, and evidence graph in the HTML report (currently markdown and JSON only)
+- Verify extracted figures against source: the tool captures what AI says, including claims that may be wrong

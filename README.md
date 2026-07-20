@@ -62,9 +62,16 @@ Every stage goes two prompts deep. The stage arc is fixed for comparability; the
 
 ## What you get
 
-- **A funnel and a buyer journey map:** category proposed → brand mentioned unprompted → shortlisted → strongly recommended, across every scenario and assistant, with a mermaid map of where sessions drop off and which competitor the recommendation diverted to.
-- **The belief inventory:** the concrete claims each assistant made about you, the qualifiers it hedged with, who it prefers over you and why, and whether any of its information came from your own content.
-- **The prescription:** an analysis of what information drives AI opinion of your brand, what proof the assistants needed but didn't have (with its impact on each verdict), and prioritized positioning and content changes to close those gaps.
+A report that reads top-down from a five-second verdict to the transcripts behind it.
+
+- **The AI behavior scorecard.** One row per session, three verdicts: does AI route the problem to your **category**, does your brand achieve **visibility** inside it, and does AI actually **recommend** you under pressure. PASS / MIXED / FAIL. This is the read for someone who will not open the rest.
+- **The funnel and buyer journey map.** Category proposed → mentioned unprompted → shortlisted → strongly recommended → wins the final call, across every scenario and assistant, with a mermaid map of where sessions drop off and which competitor the recommendation diverted to.
+- **Where the brand falls out of the conversation.** Turn-by-turn presence, measured from the transcript: which turns name you, how many rivals appear alongside, and whether you get dropped mid-conversation as the buyer presses on specifics. A brand can lead turn 1 and vanish by turn 2 while competitors persist, which endpoint metrics never show.
+- **The evidence graph.** Every substantive claim AI made about you, traced to what it rests on and who owns that source: your content, an independent source, training memory, or nothing stated. Plus the share of claims the assistant itself caveated as self-reported or stale.
+- **The numbers AI repeats about you.** Specific figures already memorized and doing work in buying conversations, verbatim. These are also the claims a competitor would need to counter.
+- **The competitor counter-evidence map.** Named rival assets AI reached for as counter-proof (a case study, a customer, an analyst report) and the buying criterion each one won. This is an out-publish list.
+- **Citation depth.** Whether AI cites your specific product and use-case pages or only your homepage: does it understand the product, or merely know the brand exists.
+- **The belief inventory and prescription.** The qualifiers AI hedged with, who it prefers over you and why, what proof was missing (with each gap's impact on the verdict), and prioritized positioning and content changes to close them.
 - Full raw transcripts in JSON, for receipts.
 
 ## Quick start
@@ -106,9 +113,12 @@ python audit.py audit-config.json --yes         # skip confirmation (CI)
 
 ## Reading the results
 
-- **Category never proposed** is the most serious finding: AI doesn't route your ICP's problem to your category. No amount of brand content fixes that until the category-to-problem link exists in public writing.
-- **Shortlisted but never recommended:** read the qualifiers and the competitor-preferred reasons. Those are the exact objections your proof points need to answer.
-- **No first-party sources cited:** third parties are defining you. The prescription section will tell you what to publish.
+- **CATEGORY FAIL** is the most serious finding: AI doesn't route your ICP's problem to your category. No amount of brand content fixes that until the category-to-problem link exists in public writing.
+- **VISIBILITY PASS with RECOMMENDATION FAIL:** you are known and still not chosen. Read the qualifiers and the competitor-preferred reasons. Those are the exact objections your proof points need to answer.
+- **Narrowing in the presence trace:** you are named early and dropped as the buyer gets specific. Read what criterion the conversation had turned to at that turn; that is where your proof runs out mid-conversation.
+- **First-party share near zero in the evidence graph:** third parties are defining you. Worse if the few first-party claims that do appear are the ones the assistant caveated, which means your own proof is being read and discounted in the same breath.
+- **Competitor counter-evidence entries** are an out-publish list. Each row names a specific rival asset and the criterion it won; you need a stronger public artifact on that same criterion.
+- **Citation depth of homepage_only:** AI knows you exist but not what you do. Deep pages (use cases, product detail, customer stories) are what it reaches for when it understands a product.
 
 ## Repository layout
 
