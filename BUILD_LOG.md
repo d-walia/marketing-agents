@@ -93,5 +93,5 @@ Reports render three ways: markdown (scorecard, funnel, mermaid buyer-journey ma
 - Repeat runs per cell (`--runs N`) with final-call rates instead of single calls
 - ChatGPT retrieval once wired (and funded); Perplexity as a fourth surface
 - Longitudinal diffing: same config re-run monthly, report deltas. The stored presence records and evidence chains are built for this
-- Surface the scorecard, presence trace, and evidence graph in the HTML report (currently markdown and JSON only)
+- Surface run metadata (retrieval on/off, failed cells) in the HTML report
 - Verify extracted figures against source: the tool captures what AI says, including claims that may be wrong

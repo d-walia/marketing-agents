@@ -82,6 +82,49 @@ body { background: var(--paper); }
   font-variant-numeric: tabular-nums; color: var(--muted);
 }
 .divert { margin: 14px 0 0 234px; font-size: 14px; color: var(--bad); }
+
+/* Scorecard */
+.score { width: 100%; border-collapse: collapse; margin-top: 18px; font-size: 13.5px; }
+.score th { text-align: left; font: 600 10.5px/1.4 ui-monospace, "SF Mono", Menlo, monospace;
+  letter-spacing: .09em; text-transform: uppercase; color: var(--muted);
+  border-bottom: 1px solid var(--line); padding: 0 10px 8px 0; }
+.score td { border-bottom: 1px solid var(--line); padding: 9px 10px 9px 0; vertical-align: middle; }
+.score td.sess { font-weight: 550; }
+.score td.frm { color: var(--muted); font-size: 12.5px; }
+.verdict { display: inline-block; min-width: 58px; text-align: center;
+  font: 600 11px/1 ui-monospace, "SF Mono", Menlo, monospace; letter-spacing: .06em;
+  padding: 5px 8px; border-radius: 3px; border: 1px solid var(--line); color: var(--muted); }
+.verdict.pass { color: var(--ink); border-color: var(--ink); }
+.verdict.mixed { color: var(--ink); }
+.verdict.fail { color: var(--bad); border-color: var(--bad); }
+.legend { margin-top: 10px; font-size: 12px; color: var(--muted); }
+/* Presence trace */
+.trace { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 13px; }
+.trace th { text-align: center; font: 600 10.5px/1.4 ui-monospace, "SF Mono", Menlo, monospace;
+  letter-spacing: .06em; color: var(--muted); border-bottom: 1px solid var(--line); padding: 0 4px 8px; }
+.trace th.lbl, .trace td.lbl { text-align: left; padding-right: 12px; }
+.trace td { border-bottom: 1px solid var(--line); padding: 9px 4px; text-align: center;
+  font-variant-numeric: tabular-nums; }
+.t-on { display: inline-block; width: 20px; height: 20px; line-height: 20px; border-radius: 3px;
+  background: var(--ink); color: var(--paper); font: 600 11px/20px ui-monospace, Menlo, monospace; }
+.t-off { display: inline-block; width: 20px; height: 20px; line-height: 20px; border-radius: 3px;
+  background: var(--mut-soft); color: var(--muted); font: 400 11px/20px ui-monospace, Menlo, monospace; }
+.rivals { display: block; font-size: 10px; color: var(--muted); margin-top: 2px; }
+.narrow { color: var(--bad); font-size: 12.5px; }
+/* Evidence graph */
+.prov { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+.prov-row { display: grid; grid-template-columns: 220px 1fr 74px; gap: 12px; align-items: center; }
+.prov-row .pl { font-size: 13px; }
+.prov-track { background: var(--mut-soft); border-radius: 2px; height: 20px; }
+.prov-bar { height: 100%; border-radius: 2px; background: var(--muted); min-width: 2px; }
+.prov-row.own .prov-bar { background: var(--ink); }
+.prov-row .pn { font: 600 12.5px/1 ui-monospace, Menlo, monospace; color: var(--muted);
+  font-variant-numeric: tabular-nums; }
+.flagnote { margin-top: 14px; padding: 12px 14px; border: 1px solid var(--bad);
+  border-radius: 3px; font-size: 13px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.chip { font: 500 11.5px/1 ui-monospace, "SF Mono", Menlo, monospace; padding: 6px 9px;
+  border: 1px solid var(--line); border-radius: 3px; color: var(--ink); }
 /* Session cards */
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; margin-top: 20px; }
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 3px; padding: 18px 20px; }
@@ -255,6 +298,166 @@ def render_card(audit: dict, s: dict) -> str:
     )
 
 
+
+def _audit_mod():
+    """Import audit.py lazily so the two renderers share one source of truth."""
+    import importlib, os, sys
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    return importlib.import_module("audit")
+
+
+def render_scorecard(audit: dict) -> str:
+    try:
+        marks_fn = _audit_mod().behavior_marks
+    except Exception:
+        return ""
+    rows = []
+    for s in audit["sessions"]:
+        c, v, r = marks_fn(audit["brand"], s)
+        cells = "".join(
+            f'<td><span class="verdict {m.lower()}">{m}</span></td>' for m in (c, v, r)
+        )
+        rows.append(
+            f'<tr><td class="sess">{esc(s["scenario"])}</td>'
+            f'<td class="frm">{esc(s.get("framing", "operational"))}</td>'
+            f'<td class="frm">{esc(s["assistant"])}</td>{cells}</tr>'
+        )
+    return f"""<table class="score">
+  <thead><tr><th>Scenario</th><th>Framing</th><th>Assistant</th>
+  <th>Category</th><th>Visibility</th><th>Recommendation</th></tr></thead>
+  <tbody>{"".join(rows)}</tbody></table>
+  <p class="legend">Does AI route the problem to the category, does the brand surface inside it,
+  and does AI endorse it under pressure. PASS works today. MIXED surfaces but hedged.
+  FAIL means the brand or category does not make it.</p>"""
+
+
+def render_presence(audit: dict) -> str:
+    try:
+        compute = _audit_mod().compute_presence
+    except Exception:
+        return ""
+    rows, any_narrow = [], False
+    for s in audit["sessions"]:
+        p = s.get("presence") or compute(
+            s.get("transcript", ""), audit["brand"], audit.get("competitors", [])
+        )
+        if not p:
+            continue
+        if p.get("narrowing_stage"):
+            any_narrow = True
+        cells = ""
+        for m, rv in zip(p["marks"], p["rivals"]):
+            cls = "t-on" if m == "Y" else "t-off"
+            rival = f'<span class="rivals">{rv}</span>' if rv else '<span class="rivals">&nbsp;</span>'
+            cells += f'<td><span class="{cls}">{m}</span>{rival}</td>'
+        narrow = (
+            f'<td class="narrow">drops in {esc(p["narrowing_stage"])}</td>'
+            if p.get("narrowing_stage") else "<td></td>"
+        )
+        rows.append(
+            f'<td class="lbl">{esc(s["scenario"])} <span class="frm">'
+            f'[{esc(s.get("framing", "operational"))}] {esc(s["assistant"])}</span></td>'
+            + cells + narrow
+        )
+    if not rows:
+        return ""
+    width = max(len(audit["sessions"][0].get("presence", {}).get("marks", [])) or 8, 8)
+    head = "".join(f"<th>T{i + 1}</th>" for i in range(width))
+    body = "".join(f"<tr>{r}</tr>" for r in rows)
+    note = (
+        "The brand is named early, then drops out while competitors stay in the answer as the buyer "
+        "presses on specifics. A mid-conversation loss, invisible to first-answer and final-call metrics."
+        if any_narrow else
+        "Where the brand enters the conversation, it stays in it."
+    )
+    cls = ' class="flagnote"' if any_narrow else ' class="legend"'
+    return f"""<table class="trace">
+  <thead><tr><th class="lbl">Session</th>{head}<th>Narrowing</th></tr></thead>
+  <tbody>{body}</tbody></table>
+  <p class="legend">Brand presence per assistant turn, measured from the transcript.
+  Turns 1 to 4 are unprompted. The small figure counts known competitors in that turn.</p>
+  <p{cls}>{note}</p>"""
+
+
+def render_evidence(audit: dict) -> str:
+    chains = [(s, e) for s in audit["sessions"] for e in (s.get("evidence_chain") or [])]
+    if not chains:
+        return ""
+    total = len(chains)
+    flagged = sum(1 for _, e in chains if e.get("assistant_flagged_weakness"))
+    counts = {}
+    for _, e in chains:
+        counts[e["provenance"]] = counts.get(e["provenance"], 0) + 1
+
+    labels = [
+        ("first_party", "The brand's own content", "own"),
+        ("third_party", "Independent sources", ""),
+        ("training_memory", "Training memory, nothing read", ""),
+        ("unstated", "No basis given", ""),
+    ]
+    bars = ""
+    for key, label, extra in labels:
+        n = counts.get(key, 0)
+        if not n:
+            continue
+        pct = round(100 * n / total)
+        bars += (
+            f'<div class="prov-row {extra}"><div class="pl">{esc(label)}</div>'
+            f'<div class="prov-track"><div class="prov-bar" style="width:{max(pct, 1)}%"></div></div>'
+            f'<div class="pn">{n} · {pct}%</div></div>'
+        )
+
+    claim_rows = "".join(
+        f'<tr><td>{esc(e["claim"])}</td><td>{esc(e["source"])}</td>'
+        f'<td>{esc(e["provenance"].replace("_", " "))}</td>'
+        f'<td>{"flagged" if e.get("assistant_flagged_weakness") else ""}</td></tr>'
+        for _, e in chains
+    )
+    out = f"""<div class="prov">{bars}</div>
+  <p class="legend">{total} claims traced across {len(audit["sessions"])} session(s).</p>"""
+    if flagged:
+        out += (
+            f'<p class="flagnote">{flagged} of {total} claims were caveated by the assistant itself '
+            "as self-reported, unverified, or stale. Proof that is read and discounted in the same "
+            "breath is a structural weakness, not just a gap.</p>"
+        )
+    out += f"""
+  <h3>Claim by claim</h3>
+  <div class="table-wrap"><table><thead><tr><th>Claim</th><th>Rests on</th>
+  <th>Provenance</th><th>Assistant flagged</th></tr></thead>
+  <tbody>{claim_rows}</tbody></table></div>"""
+
+    quantified = sorted({q for s in audit["sessions"] for q in (s.get("quantified_claims") or [])})
+    if quantified:
+        chips = "".join(f'<span class="chip">{esc(q)}</span>' for q in quantified)
+        out += f"""<h3>Numbers AI repeats about the brand</h3>
+  <p>Memorized and doing work in buying conversations. Also the claims a competitor must counter.</p>
+  <div class="chips">{chips}</div>"""
+
+    counter = [c for s in audit["sessions"] for c in (s.get("competitor_counter_evidence") or [])]
+    if counter:
+        rows = "".join(
+            f'<tr><td>{esc(c["competitor"])}</td><td>{esc(c["asset"])}</td><td>{esc(c["criterion"])}</td></tr>'
+            for c in counter
+        )
+        out += f"""<h3>Competitor assets used as counter-proof</h3>
+  <p>Named rival material AI reached for, and the criterion each one won. An out-publish list.</p>
+  <div class="table-wrap"><table><thead><tr><th>Competitor</th><th>Asset AI reached for</th>
+  <th>Criterion it won</th></tr></thead><tbody>{rows}</tbody></table></div>"""
+
+    depths = [
+        s.get("citation_depth") for s in audit["sessions"]
+        if s.get("citation_depth") not in (None, "not_applicable")
+    ]
+    if depths:
+        deep = depths.count("deep_pages")
+        out += f"""<h3>Citation depth</h3>
+  <p>{deep} of {len(depths)} session(s) cited specific product or use-case pages rather than the
+  homepage alone. Deep-page citation means AI understands the product; homepage-only means it
+  knows the brand exists.</p>"""
+    return out
+
+
 def build_fragment(audit: dict) -> str:
     icp = audit["icp"]
     n = len(audit["sessions"])
@@ -271,6 +474,10 @@ def build_fragment(audit: dict) -> str:
         f'<div><div class="k">{esc(k)}</div><div class="v">{esc(v)}</div></div>' for k, v in meta
     )
     cards = "".join(render_card(audit, s) for s in audit["sessions"])
+    _p = render_presence(audit)
+    presence_block = f"<h2>Where the brand falls out of the conversation</h2>{_p}" if _p else ""
+    _e = render_evidence(audit)
+    evidence_block = f"<h2>Evidence graph: what the beliefs rest on</h2>{_e}" if _e else ""
     return f"""<style>{CSS}</style>
 <main class="rpt">
   <div class="eyebrow">AI Brand Perception Audit</div>
@@ -278,9 +485,14 @@ def build_fragment(audit: dict) -> str:
   <p class="sub">What AI assistants tell buyers about {esc(audit["brand"])}, and what would change their answer.</p>
   <div class="meta">{meta_html}</div>
 
+  <h2>AI behavior scorecard</h2>
+  {render_scorecard(audit)}
+
   <h2>The buyer journey funnel</h2>
   {render_funnel(audit)}
 
+  {presence_block}
+  {evidence_block}
   <h2>Sessions at a glance</h2>
   <div class="cards">{cards}</div>
 
