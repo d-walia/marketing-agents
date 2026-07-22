@@ -54,13 +54,13 @@ Working draft. This is the skeleton for the overview deck: each section carries 
 
 ---
 
-## 4. What AI Brand Alignment Is, and How It's Different
+## 4. What AI Brand Management Is, and How It's Different
 
-**Definition:** AI Brand Alignment makes what AI models believe and recommend about your brand match your real strengths and proof, across the whole buying conversation: from whether your category gets proposed, to whether you survive pushback, to what evidence the model needs before choosing you.
+**Definition:** AI Brand Management makes what AI models believe and recommend about your brand match your real strengths and proof, across the whole buying conversation: from whether your category gets proposed, to whether you survive pushback, to what evidence the model needs before choosing you.
 
-**The difference in one line:** GEO/AEO asks "does AI see us?" AI Brand Alignment asks "when a buyer asks, does AI choose us, and if not, what exactly would change its mind?"
+**The difference in one line:** GEO/AEO asks "does AI see us?" AI Brand Management asks "when a buyer asks, does AI choose us, and if not, what exactly would change its mind?"
 
-| | GEO / AEO | AI Brand Alignment |
+| | GEO / AEO | AI Brand Management |
 |---|---|---|
 | Object of work | Citations and visibility in AI answers | The model's beliefs and buying verdicts |
 | Unit of analysis | Pages, snippets, mentions | Full buying conversations, end to end |
@@ -92,19 +92,19 @@ All examples below are from live audit runs (Gong used as a public demo subject;
 A sales leader with slipping forecasts asked the same model about the same problem four ways. "How would you approach this" and "does tooling even solve this" ended in Gong winning the final call. "What tools exist" and "what would my CFO need to see" ended with a competitor winning. An AEO program would count Gong as visible in all four. Only two of the four were wins, and the losing two are invisible to citation tracking.
 
 **Example 2: the real competitor was the tool the buyer already owned.**
-When an enablement buyer's installed stack was modeled, the assistant's recommendation became "build this inside the platform you already own, and only buy a specialist if that provably fails." No competitor citation strategy addresses this: the deal was lost to the incumbent-by-default answer. Alignment work targets the belief that gates the switch ("the incumbent's feature is good enough"), which is only visible when you watch the whole conversation.
+When an enablement buyer's installed stack was modeled, the assistant's recommendation became "build this inside the platform you already own, and only buy a specialist if that provably fails." No competitor citation strategy addresses this: the deal was lost to the incumbent-by-default answer. Management work targets the belief that gates the switch ("the incumbent's feature is good enough"), which is only visible when you watch the whole conversation.
 
 **Example 3: the model tells you the exact content to create.**
 Pressed on its final call, a model stated its own reversal condition: prove that reps who pass the incumbent's certification still fail on live calls, as a repeating pattern, and it would switch to recommending the specialist. That is a content brief and a pilot design, authored by the judge itself. No visibility metric produces it.
 
 **Example 4: the venue battle.**
-With live search enabled, a model researching the category consulted a competitor's published buyer's guide to form its comparison, alongside review sites and independent blogs. Being well-described on your own site did not matter to that conversation; the comparison frame was set by whoever owned the page the model chose to read. Alignment prescriptions name those venues; visibility metrics do not know they exist.
+With live search enabled, a model researching the category consulted a competitor's published buyer's guide to form its comparison, alongside review sites and independent blogs. Being well-described on your own site did not matter to that conversation; the comparison frame was set by whoever owned the page the model chose to read. Management prescriptions name those venues; visibility metrics do not know they exist.
 
 ---
 
 ## 6. The Maturity Curve: From AI-Assisted Research to Agent-to-Agent Commerce
 
-Agentic buying is not a single event; it is a curve, and it is moving in one direction. The value of alignment compounds because the same asset (what AI believes about you) gets more decisive at every stage.
+Agentic buying is not a single event; it is a curve, and it is moving in one direction. The value of managing AI's beliefs compounds because the same asset (what AI believes about you) gets more decisive at every stage.
 
 **Stage 1, AI-Assisted Research (today).** A human buyer consults an AI advisor to scope the problem, build a shortlist, and pressure-test options, then takes over for demos and the final decision. The AI shapes the frame; the human still closes. This is where most B2B buying already is.
 
@@ -114,6 +114,6 @@ Agentic buying is not a single event; it is a curve, and it is moving in one dir
 
 **Why the curve matters for the argument:**
 
-- **The asset is constant, the stakes rise.** At every stage, the deciding input is what AI believes about you. Alignment is the only work that compounds across all three; visibility optimization was built for a search paradigm that Stage 2 and 3 leave behind entirely.
+- **The asset is constant, the stakes rise.** At every stage, the deciding input is what AI believes about you. Managing those beliefs is the only work that compounds across all three; visibility optimization was built for a search paradigm that Stage 2 and 3 leave behind entirely.
 - **Beliefs set today are inherited forward.** Models retrain on a web that AI-influenced buying is already reshaping, and buyer-side agents will launch with these priors baked in. A wrong belief corrected now is a wrong belief that never propagates into Stage 3.
-- **The window is an advantage.** Most competitors are still optimizing for Stage 0 (be findable). Aligning beliefs while the curve is early is cheaper and more durable than fighting entrenched priors later.
+- **The window is an advantage.** Most competitors are still optimizing for Stage 0 (be findable). Managing beliefs while the curve is early is cheaper and more durable than fighting entrenched priors later.

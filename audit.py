@@ -62,7 +62,7 @@ CONFIG_TEMPLATE = {
         ],
     },
     "positioning": [
-        "optional, high value: how YOU describe the product, one claim per line. The audit compares these against what AI actually believes, which is the alignment gap.",
+        "optional, high value: how YOU describe the product, one claim per line. The audit compares these against what AI actually believes, which is the say-vs-believe gap.",
         "e.g. 'fastest contract turnaround in mid-market, days not weeks'",
         "e.g. 'works alongside your existing CLM rather than replacing it'",
     ],
