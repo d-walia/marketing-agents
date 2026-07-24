@@ -88,6 +88,8 @@ def transcribe(path: Path, key: str, language: str | None) -> dict:
         headers={
             "Authorization": f"Bearer {key}",
             "Content-Type": f"multipart/form-data; boundary={boundary}",
+            # Cloudflare (in front of Groq) 403s urllib's default UA — "error code: 1010"
+            "User-Agent": "marketing-agents-meeting-transcriber/1.0",
         },
         method="POST",
     )
