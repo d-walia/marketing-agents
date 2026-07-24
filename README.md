@@ -7,7 +7,7 @@ Working agents for real GTM problems, built with Claude. The public face of thes
 | Agent | Replaces | Status |
 |---|---|---|
 | AI Brand Auditor | Profound, AthenaHQ | Built. `agents/ai-brand-auditor/` — a 4-subagent GEO audit pipeline |
-| Competitive Intel Researcher | Klue, Crayon | Built. `skills/competitive-intel-researcher/` |
+| Competitive Intel Researcher | Klue, Crayon | Built. `agents/competitive-intel-researcher/` — a single Claude Code skill |
 | Meeting Transcriber | Otter, Fireflies | Built. `agents/meeting-transcriber/` — Spokenly (local) or Groq Whisper (free API) |
 | Intelligent Copywriter | Writer, Jasper | Planned |
 | Customer Researcher | Wynter, UserTesting | Planned |
@@ -18,9 +18,8 @@ Working agents for real GTM problems, built with Claude. The public face of thes
 
 | Directory | What lives there |
 |---|---|
-| `agents/` | Agents with their own code and config (the AI Brand Auditor is a multi-agent pipeline, not a single skill) |
-| `.claude/agents/` | Subagent definitions Claude Code loads when running from this repo (the four `audit-*` agents) |
-| `skills/` | Agents built as single Claude Code skills |
+| `agents/` | Every agent, one folder each — whether it's built as a single Claude Code skill (`competitive-intel-researcher`) or a multi-agent pipeline (`ai-brand-auditor`) |
+| `.claude/agents/` | Subagent definitions Claude Code loads when running from this repo (the four `audit-*` agents behind the AI Brand Auditor) |
 | `brand-pack/` | Positioning, voice rules, ICPs. The input layer for the Copywriter |
 | `intel/` | Existing competitive intel; one folder per competitor |
 | `sample-data/` | Synthetic datasets for demos |
