@@ -8,7 +8,7 @@ Working agents for real GTM problems, built with Claude. The public face of thes
 |---|---|---|
 | AI Brand Auditor | Profound, AthenaHQ | Built. `agents/ai-brand-auditor/` — a 4-subagent GEO audit pipeline |
 | Competitive Intel Researcher | Klue, Crayon | Built. `agents/competitive-intel-researcher/` — a single Claude Code skill |
-| Meeting Transcriber | Otter, Fireflies | Built. `agents/meeting-transcriber/` — recordings → structured notes via the free Groq Whisper API |
+| Meeting Transcriber | Otter, Fireflies | Built. `agents/meeting-transcriber/` — recordings, video files, or **live** calls → structured notes via the free Groq Whisper API |
 | Intelligent Copywriter | Writer, Jasper | Planned |
 | Customer Researcher | Wynter, UserTesting | Planned |
 | Dashboard Synthesizer | Tableau, Looker Studio | Planned |

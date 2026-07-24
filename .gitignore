@@ -13,3 +13,5 @@ agents/ai-brand-auditor/runs/
 *.transcript.txt
 *.timestamped.txt
 *.notes.md
+# live_transcribe.py session dirs (segments + transcripts)
+live-*/
