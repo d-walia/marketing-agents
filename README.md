@@ -11,7 +11,7 @@ Working agents for real GTM problems, built with Claude. The public face of thes
 | Intelligent Copywriter | Writer, Jasper | Planned |
 | Customer Researcher | Wynter, UserTesting | Planned |
 | Dashboard Synthesizer | Tableau, Looker Studio | Planned |
-| Content Agents | Canva, Gamma, Adobe GenStudio | Planned |
+| Content Agents | Canva, Adobe GenStudio | Planned |
 
 ## Layout
 
