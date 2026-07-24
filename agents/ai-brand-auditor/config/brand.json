@@ -1,0 +1,13 @@
+{
+  "brand": "Hyperbound",
+  "category": "AI sales roleplay and training software",
+  "category_short": "AI sales roleplay",
+  "buyer_query_context": "a sales leader evaluating tools to help SDRs practice cold calls",
+  "competitors": ["Second Nature", "Quantified", "Luster"],
+  "models": {
+    "anthropic": "claude-sonnet-5",
+    "openai": "gpt-4o",
+    "gemini": "gemini-flash-latest"
+  },
+  "max_tokens": 700
+}

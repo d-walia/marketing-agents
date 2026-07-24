@@ -1,0 +1,45 @@
+{
+  "_note": "Placeholders {brand}, {category}, {category_short}, {competitor_0} etc. are filled from brand.json. Each query runs against every model.",
+  "queries": [
+    {
+      "id": "cat-01",
+      "type": "category_discovery",
+      "text": "What are the best {category} tools right now? Give me a ranked shortlist."
+    },
+    {
+      "id": "cat-02",
+      "type": "category_discovery",
+      "text": "I'm {buyer_query_context}. What tools should I evaluate?"
+    },
+    {
+      "id": "cat-03",
+      "type": "category_discovery",
+      "text": "Which {category_short} platforms do sales teams actually use in 2026?"
+    },
+    {
+      "id": "brand-01",
+      "type": "direct_brand",
+      "text": "What is {brand} and what does it do?"
+    },
+    {
+      "id": "brand-02",
+      "type": "direct_brand",
+      "text": "Is {brand} any good? What are its strengths and weaknesses?"
+    },
+    {
+      "id": "comp-01",
+      "type": "comparison",
+      "text": "{brand} vs {competitor_0}: which is better and why?"
+    },
+    {
+      "id": "comp-02",
+      "type": "comparison",
+      "text": "How does {brand} compare to alternatives like {competitor_1} and {competitor_2}?"
+    },
+    {
+      "id": "use-01",
+      "type": "use_case",
+      "text": "My SDR team keeps failing at cold call objection handling. What's the best way to fix this with AI?"
+    }
+  ]
+}

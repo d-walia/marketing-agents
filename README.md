@@ -6,7 +6,7 @@ Working agents for real GTM problems, built with Claude. The public face of thes
 
 | Agent | Replaces | Status |
 |---|---|---|
-| AI Brand Auditor | Profound, AthenaHQ | Built. Lives in `agents/ai-brand-auditor/` (35-version build history preserved) |
+| AI Brand Auditor | Profound, AthenaHQ | Built. `agents/ai-brand-auditor/` — a 4-subagent GEO audit pipeline |
 | Competitive Intel Researcher | Klue, Crayon | Built. `skills/competitive-intel-researcher/` |
 | Intelligent Copywriter | Writer, Jasper | Planned |
 | Customer Researcher | Wynter, UserTesting | Planned |
@@ -17,8 +17,9 @@ Working agents for real GTM problems, built with Claude. The public face of thes
 
 | Directory | What lives there |
 |---|---|
-| `agents/` | Standalone agents with their own code (AI Brand Auditor is a Python engine, not a skill) |
-| `skills/` | Agent definitions built as Claude Code skills |
+| `agents/` | Agents with their own code and config (the AI Brand Auditor is a multi-agent pipeline, not a single skill) |
+| `.claude/agents/` | Subagent definitions Claude Code loads when running from this repo (the four `audit-*` agents) |
+| `skills/` | Agents built as single Claude Code skills |
 | `brand-pack/` | Positioning, voice rules, ICPs. The input layer for the Copywriter |
 | `intel/` | Existing competitive intel; one folder per competitor |
 | `sample-data/` | Synthetic datasets for demos |
@@ -26,4 +27,8 @@ Working agents for real GTM problems, built with Claude. The public face of thes
 
 API keys live in `~/.marketing-agents.env` (never in this repo).
 
-The AI Brand Auditor was developed first, as its own project (originally the `Prototype` repo, now archived). Its full commit history — ten-plus documented versions, each driven by findings from live runs — is preserved here under `agents/ai-brand-auditor/`. See its own `BUILD_LOG.md` for the version story.
+## AI Brand Auditor
+
+The canonical implementation is a **multi-agent GEO pipeline**: four Claude Code subagents — `audit-query-runner`, `audit-perception-scorer`, `audit-rubric-grader`, `audit-reporter` — each owning one step and handing off through files. The scorer and grader analyze independently (the grader is forbidden from reading the scorer's output) so disagreements between visibility and representation-quality surface as findings instead of getting smoothed over. Full writeup in [`agents/ai-brand-auditor/README.md`](agents/ai-brand-auditor/README.md).
+
+Every audit call routes through the Cloudflare AI Gateway, so runs have visible, attributable cost. An earlier single-script Python prototype of this auditor has been retired in favor of the multi-agent version.
