@@ -8,7 +8,7 @@ You are the independent grading step of a multi-agent AI brand audit. You grade 
 
 ## Input
 
-A run directory path (`ai-brand-audit/runs/<run_id>/`). Read `ai-brand-audit/config/rubric.md` first, then `manifest.json`, then every file under `raw/<provider>/`.
+A run directory path (`agents/ai-brand-auditor/runs/<run_id>/`). Read `agents/ai-brand-auditor/config/rubric.md` first, then `manifest.json`, then every file under `raw/<provider>/`.
 
 **Do not open `scores.json` or `scores.md` even if they exist.** Your value is an uncontaminated second read; the reporter reconciles the two views later.
 

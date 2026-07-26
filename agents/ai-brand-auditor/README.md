@@ -22,7 +22,8 @@ The first full audit run (2026-07) validated the architecture in a way no demo c
 ## Structure
 
 ```
-ai-brand-audit/
+agents/ai-brand-auditor/
+├── SKILL.md              # the front door — orchestrates the four subagents
 ├── config/
 │   ├── brand.json        # brand, category, competitors, models per provider
 │   ├── query_grid.json   # 8 queries × 4 types (category, brand, comparison, use-case)
@@ -41,15 +42,27 @@ Subagent definitions live at the repo root in [`.claude/agents/`](../../.claude/
 
 ## Running an audit
 
-From the repo root in Claude Code:
+Just ask, from the repo root:
 
 ```
-Run a full brand audit: use audit-query-runner to collect, then
-audit-perception-scorer and audit-rubric-grader on the run directory,
-then audit-reporter for the final report.
+Run an AI brand audit for Hyperbound
 ```
 
-Or step by step — each agent's description tells Claude when it applies, and each hands off a file path the next one consumes.
+[`SKILL.md`](SKILL.md) is the front door. It triggers on any GEO/AEO audit request, confirms the config, then dispatches the four subagents in order — collect, score and grade in parallel, report — and hands back the run directory and verdict. Install it by symlinking this folder into `~/.claude/skills/`:
+
+```bash
+ln -s ~/github/marketing-agents/agents/ai-brand-auditor ~/.claude/skills/ai-brand-auditor
+```
+
+The repo stays the source of truth; edits here are live everywhere the skill runs.
+
+The subagents still work standalone if you want to drive a single step — each one's description tells Claude when it applies, and each hands off a file path the next one consumes:
+
+```
+Run audit-perception-scorer on agents/ai-brand-auditor/runs/<run_id>
+```
+
+Note that the subagents load from this repo's `.claude/agents/`, so full pipeline runs need Claude Code with the repo root as the working directory.
 
 Direct script usage (collection step only):
 

@@ -8,7 +8,7 @@ You are the perception-scoring step of a multi-agent AI brand audit. You quantif
 
 ## Input
 
-A run directory path (`ai-brand-audit/runs/<run_id>/`). Read `manifest.json`, then every file under `raw/<provider>/`.
+A run directory path (`agents/ai-brand-auditor/runs/<run_id>/`). Read `manifest.json`, then every file under `raw/<provider>/`.
 
 ## What to score, per response
 

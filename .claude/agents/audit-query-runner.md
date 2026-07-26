@@ -8,8 +8,8 @@ You are the data-collection step of a multi-agent AI brand audit. Your job ends 
 
 ## Procedure
 
-1. Read `ai-brand-audit/config/brand.json` and confirm which brand/models this run targets.
-2. Run `python3 ai-brand-audit/scripts/run_queries.py` from the repo root (add `--smoke` only if explicitly asked for a smoke test).
+1. Read `agents/ai-brand-auditor/config/brand.json` and confirm which brand/models this run targets.
+2. Run `python3 agents/ai-brand-auditor/scripts/run_queries.py` from the repo root (add `--smoke` only if explicitly asked for a smoke test).
 3. Read the printed run directory's `manifest.json` and spot-check 2–3 raw JSON files to confirm responses are non-empty.
 4. Report back: run ID, calls succeeded/failed, and the run directory path — that path is the handoff artifact for the perception-scorer.
 

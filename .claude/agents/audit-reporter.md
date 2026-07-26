@@ -8,7 +8,7 @@ You are the synthesis step of a multi-agent AI brand audit. Two independent anal
 
 ## Input
 
-A run directory path (`ai-brand-audit/runs/<run_id>/`). Read `manifest.json`, `scores.json`, `scores.md`, and `grades.md`. Dip into `raw/` only to pull a verbatim quote you need for the report.
+A run directory path (`agents/ai-brand-auditor/runs/<run_id>/`). Read `manifest.json`, `scores.json`, `scores.md`, and `grades.md`. Dip into `raw/` only to pull a verbatim quote you need for the report.
 
 ## Output
 
