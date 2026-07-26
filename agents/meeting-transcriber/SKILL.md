@@ -7,7 +7,7 @@ description: Turn a meeting, sales call, customer interview, or discovery record
 
 Turn a recording into notes someone can act on without re-listening. Transcription is the cheap part; the structure added afterward is the product.
 
-**Repo root:** `~/github/marketing-agents`. Paths below are relative to it. Run from the repo root so the `meeting-transcriber` subagent loads.
+**Runs from anywhere.** Scripts are referenced by absolute path, and the `meeting-transcriber` subagent is installed at user level (`~/.claude/agents/meeting-transcriber.md`, symlinked to this repo), so no `cd` is needed — recordings usually live on the Desktop, not in the repo. Source of truth is still `~/github/marketing-agents`.
 
 ## Step 1 — Resolve the input file
 
@@ -80,15 +80,15 @@ Write extracted audio to the scratch area or alongside the source — never into
 - **Live / in-progress** ("transcribe as I go") → the near-live path:
 
   ```bash
-  python3 agents/meeting-transcriber/scripts/live_transcribe.py --list-devices
-  python3 agents/meeting-transcriber/scripts/live_transcribe.py --device <index> --segment 15
+  python3 ~/github/marketing-agents/agents/meeting-transcriber/scripts/live_transcribe.py --list-devices
+  python3 ~/github/marketing-agents/agents/meeting-transcriber/scripts/live_transcribe.py --device <index> --segment 15
   ```
 
   Needs `ffmpeg`. Capturing the far side of a call needs a macOS Aggregate Device with **BlackHole**; mic-only covers an in-person room and needs nothing. If BlackHole isn't set up, say so before starting and offer mic-only. Expect ~one-segment lag and odd word splits at seams — fix those during cleanup.
 - **A finished recording** → 
 
   ```bash
-  python3 agents/meeting-transcriber/scripts/transcribe.py "<audio>" --no-speaker-labels
+  python3 ~/github/marketing-agents/agents/meeting-transcriber/scripts/transcribe.py "<audio>" --no-speaker-labels
   ```
 
   Needs `GROQ_API_KEY` in the environment or `~/.marketing-agents.env`. If it's missing, stop and point at https://console.groq.com/keys — do not proceed without it.

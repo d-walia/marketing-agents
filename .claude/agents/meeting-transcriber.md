@@ -14,9 +14,9 @@ You turn raw meeting audio (or a raw transcript) into notes someone can act on w
 
 ```bash
 # one-time: find the capture device index
-python3 agents/meeting-transcriber/scripts/live_transcribe.py --list-devices
+python3 ~/github/marketing-agents/agents/meeting-transcriber/scripts/live_transcribe.py --list-devices
 # start; Ctrl-C to stop. --device is the aggregate device (mic + BlackHole).
-python3 agents/meeting-transcriber/scripts/live_transcribe.py --device <index> --segment 15
+python3 ~/github/marketing-agents/agents/meeting-transcriber/scripts/live_transcribe.py --device <index> --segment 15
 ```
 
 - Requires **ffmpeg** on PATH (`brew install ffmpeg`). It writes a `live.transcript.txt` (streamed) and, on stop, a finalized `transcript.txt` in a `live-<timestamp>/` session dir. Read `transcript.txt` back for Step 2.
@@ -27,13 +27,13 @@ python3 agents/meeting-transcriber/scripts/live_transcribe.py --device <index> -
 
 ```bash
 ffmpeg -i "<video>" -vn -ac 1 -ar 16000 -c:a aac -b:a 32k "<name>.m4a"   # 32k ≈ 0.23 MB/min; ~60 min ≈ 13 MB
-python3 agents/meeting-transcriber/scripts/transcribe.py "<name>.m4a" --no-speaker-labels
+python3 ~/github/marketing-agents/agents/meeting-transcriber/scripts/transcribe.py "<name>.m4a" --no-speaker-labels
 ```
 
 **Otherwise (a finished audio recording), transcribe via Groq Whisper:**
 
 ```bash
-python3 agents/meeting-transcriber/scripts/transcribe.py <audio-file> --no-speaker-labels
+python3 ~/github/marketing-agents/agents/meeting-transcriber/scripts/transcribe.py <audio-file> --no-speaker-labels
 ```
 
 - It reads `GROQ_API_KEY` from the environment or `~/.marketing-agents.env`. If the key is missing, stop and tell the user to add a free key from https://console.groq.com/keys — do not proceed without it.
