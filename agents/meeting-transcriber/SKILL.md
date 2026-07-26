@@ -34,7 +34,7 @@ ls -b ~/Desktop/*.mov          # -b reveals the escape sequences
 
 ## Step 2 — Triage size before transcribing
 
-Groq's free tier caps uploads at **25 MB**. Recordings routinely run into the gigabytes, so check first:
+Groq documents a **25 MB** upload cap, but **treat ~15 MB as the real ceiling** — see below. Recordings routinely run into the gigabytes, so check first:
 
 ```bash
 ffprobe -v error -show_entries format=duration -of csv=p=0 "<file>"
@@ -42,21 +42,37 @@ ffprobe -v error -show_entries format=duration -of csv=p=0 "<file>"
 
 | Situation | Action |
 |---|---|
-| Audio file already under 25 MB | Transcribe directly |
+| Audio file already under ~15 MB | Transcribe directly |
 | Video (`.mp4`/`.mov`/…), any size | Extract audio first — always |
-| Audio over 25 MB | Re-encode to 16 kHz mono before transcribing |
+| Audio over ~15 MB | Re-encode to 16 kHz mono **at 32k** before transcribing |
 | `ffprobe` returns nothing | The file may be truncated or still being written. Say so; don't proceed |
 
-Extraction bitrate by duration — 48k ≈ 0.35 MB/min:
+**Encode at 32k. Not 48k.** 32k ≈ 0.23 MB/min, so ~60 min lands near 13 MB and a 2-hour recording still fits:
 
 ```bash
-ffmpeg -i "<input>" -vn -ac 1 -ar 16000 -c:a aac -b:a 48k "<name>.m4a"   # up to ~70 min
-ffmpeg -i "<input>" -vn -ac 1 -ar 16000 -c:a aac -b:a 32k "<name>.m4a"   # 90 min+
+ffmpeg -i "<input>" -vn -ac 1 -ar 16000 -c:a aac -b:a 32k "<name>.m4a"
 ```
+
+Whisper is speech-recognition, not audiophile playback — 32k mono at 16 kHz costs nothing in transcription accuracy and buys a large margin against the ceiling.
+
+### Why ~15 MB, not 25 MB
+
+Measured on 2026-07-25 against a 57-minute recording:
+
+| Size | Result |
+|---|---|
+| 358 KB (60 s clip) | ✅ transcribed |
+| 13 MB (32k, full) | ✅ transcribed |
+| 21.5 MB (48k, full) | ❌ `[Errno 32] Broken pipe` mid-upload |
+| 42 MB (original) | ❌ over cap |
+
+21.5 MB is comfortably under Groq's documented 25 MB and still failed — the connection dropped while sending the body, which points at a network/proxy body limit rather than Groq rejecting it. The API itself was reachable and the key valid throughout (verified separately). So the documented cap is not the binding constraint; **encode for ~15 MB and the question doesn't arise.**
+
+A broken pipe on upload is therefore a *size* symptom, not an auth or connectivity one. Re-encode smaller before touching the key or the network.
 
 Write extracted audio to the scratch area or alongside the source — never into `Claude Outputs/`, which is for deliverables.
 
-**Never chunk a file silently to get under the cap.** If it won't fit even at 32k, say so and offer the local fallback (Spokenly does real diarization and has no cap, but this agent does not drive it).
+**Never chunk a file silently to get under the ceiling.** If a recording won't fit even at 32k (roughly 2 hours+), say so and offer the local fallback (Spokenly does real diarization and has no cap, but this agent does not drive it).
 
 ## Step 3 — Get a transcript
 

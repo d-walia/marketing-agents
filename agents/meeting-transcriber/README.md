@@ -22,10 +22,12 @@ Groq's free tier on `whisper-large-v3-turbo`:
 |---|---|
 | Requests / day | 2,000 |
 | Audio / clock-hour | ~2 hours (7,200 audio-seconds) |
-| Max file size | 25 MB |
+| Max file size | 25 MB documented — **~15 MB in practice** |
 
 A one-hour meeting is a single request, well under the ceilings — the only real
-constraint is the 25 MB file cap (below). Spokenly's local models remain the
+constraint is file size, and the documented 25 MB is not the number to plan
+against (a 21.5 MB upload failed in testing; see [Notes & limits](#notes--limits)).
+Encode at 32k and an hour lands near 13 MB. Spokenly's local models remain the
 fallback for oversized or highly sensitive recordings (no caps, on-device, real
 speaker diarization), but this agent does not drive it.
 
@@ -89,18 +91,20 @@ timestamps) next to the input, and prints the transcript to stdout.
 
 ### Mode 2 — a video file (mp4/mov/etc.)
 
-Groq caps uploads at **25 MB**, and video files are far bigger — so extract a
-small audio track with ffmpeg first, then transcribe that:
+Video files are far bigger than the upload ceiling — so extract a small audio
+track with ffmpeg first, then transcribe that:
 
 ```bash
-# extract 16 kHz mono audio (48 kbps ≈ 0.35 MB/min → ~70 min fits under the cap)
-ffmpeg -i "recording.mp4" -vn -ac 1 -ar 16000 -c:a aac -b:a 48k "recording.m4a"
+# extract 16 kHz mono audio (32 kbps ≈ 0.23 MB/min → ~60 min ≈ 13 MB)
+ffmpeg -i "recording.mp4" -vn -ac 1 -ar 16000 -c:a aac -b:a 32k "recording.m4a"
 
 # then transcribe like Mode 1
 python3 agents/meeting-transcriber/scripts/transcribe.py "recording.m4a" --no-speaker-labels
 ```
 
-For very long videos (90 min+) drop to `-b:a 32k` (~100 min per 25 MB). Check a
+**Use 32k, not 48k.** Groq documents a 25 MB cap, but the practical ceiling is
+lower — see [Notes & limits](#notes--limits). Whisper is speech recognition, not playback:
+32k mono at 16 kHz costs nothing in accuracy and keeps a wide margin. Check a
 file's length first with `ffprobe -i recording.mp4 -show_entries format=duration`.
 
 ### Mode 3 — a live call happening now
@@ -150,9 +154,16 @@ far side.
   transcribed without cross-boundary context, so a word can split oddly at a
   seam. The notes step cleans these up.
 
-- Groq's free upload cap is 25 MB. For a long meeting, export to 16 kHz mono
-  `.m4a` first (an hour fits easily); Spokenly's local models are the fallback
-  for anything oversized or highly sensitive.
+- **The real upload ceiling is ~15 MB, not the 25 MB Groq documents.** Measured
+  2026-07-25 on a 57-minute recording: 358 KB ✅, 13 MB (32k) ✅, **21.5 MB (48k)
+  ❌ `[Errno 32] Broken pipe` mid-upload**, 42 MB ❌. The 21.5 MB failure sits
+  well inside the documented cap, and the API was reachable with a valid key
+  throughout — the connection dropped while sending the body, which points at a
+  network/proxy body limit rather than Groq. Encode for ~15 MB at 32k and the
+  question never comes up. **A broken pipe on upload means the file is too big,
+  not that credentials are wrong** — re-encode smaller before debugging auth.
+  Spokenly's local models are the fallback for anything oversized or highly
+  sensitive.
 - Whisper does not label speakers, and **`--no-speaker-labels` adds no
   diarization** — it only stamps a reminder at the top of both transcript files
   so the notes step doesn't invent names. Turns are inferred from context. If you

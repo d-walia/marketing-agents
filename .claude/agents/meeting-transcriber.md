@@ -23,10 +23,10 @@ python3 agents/meeting-transcriber/scripts/live_transcribe.py --device <index> -
 - **Capturing both mic AND the call's far side** needs a macOS Aggregate Device combining the mic with **BlackHole** (`brew install blackhole-2ch`, then route in Audio MIDI Setup — see the README's "Live capture" section). Mic-only needs no BlackHole and already covers an in-person room. If BlackHole isn't set up, tell the user before starting and offer mic-only.
 - Near-live, not word-by-word: expect ~one-segment lag. Shorter `--segment` = lower lag but more requests. Segment transcripts lack cross-boundary context, so a word may be split oddly at a seam — fix these when you clean the transcript in Step 2.
 
-**If it's a video file** (`.mp4`/`.mov`/`.mkv`/etc.): extract a small audio track with ffmpeg first — video files blow past Groq's 25 MB cap. Check duration with `ffprobe` if unsure, then:
+**If it's a video file** (`.mp4`/`.mov`/`.mkv`/etc.): extract a small audio track with ffmpeg first — video files blow past the upload ceiling. Check duration with `ffprobe` if unsure, then:
 
 ```bash
-ffmpeg -i "<video>" -vn -ac 1 -ar 16000 -c:a aac -b:a 48k "<name>.m4a"   # ~70 min fits under 25 MB; use -b:a 32k for 90 min+
+ffmpeg -i "<video>" -vn -ac 1 -ar 16000 -c:a aac -b:a 32k "<name>.m4a"   # 32k ≈ 0.23 MB/min; ~60 min ≈ 13 MB
 python3 agents/meeting-transcriber/scripts/transcribe.py "<name>.m4a" --no-speaker-labels
 ```
 
@@ -38,7 +38,7 @@ python3 agents/meeting-transcriber/scripts/transcribe.py <audio-file> --no-speak
 
 - It reads `GROQ_API_KEY` from the environment or `~/.marketing-agents.env`. If the key is missing, stop and tell the user to add a free key from https://console.groq.com/keys — do not proceed without it.
 - It writes `<audio-file>.transcript.txt` (plain) and `.timestamped.txt` (with segment timestamps). Read those back in.
-- **25 MB free-tier upload cap.** If the file is larger, tell the user to export it to 16 kHz mono `.m4a` (an hour of audio fits easily) — do not attempt to chunk silently. A local app like Spokenly is the fallback for oversized or sensitive recordings, but this agent does not drive it.
+- **Upload ceiling: treat ~15 MB as the limit**, not the 25 MB Groq documents — a 21.5 MB file failed with a broken pipe in testing while 13 MB succeeded. If the file is larger, re-encode to 16 kHz mono at 32k (an hour lands near 13 MB) — do not attempt to chunk silently. A broken pipe on upload means *too big*, not bad credentials. A local app like Spokenly is the fallback for oversized or sensitive recordings, but this agent does not drive it.
 - Whisper does not label speakers. If the meeting has multiple people, say so in the notes and infer turn boundaries from context rather than inventing names.
 
 ## Step 2 — Produce the notes
