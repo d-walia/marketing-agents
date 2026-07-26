@@ -93,26 +93,45 @@ Write extracted audio to the scratch area or alongside the source — never into
 
   Needs `GROQ_API_KEY` in the environment or `~/.marketing-agents.env`. If it's missing, stop and point at https://console.groq.com/keys — do not proceed without it.
 
-## Step 4 — Produce the notes
+## Step 4 — Always produce a speaker-attributed transcript
 
-Dispatch the **`meeting-transcriber` subagent** with the resolved transcript path. Transcripts are long; running the notes step in a subagent keeps the full text out of the main conversation and returns only the deliverable.
+**The raw Whisper output is one undifferentiated wall of text and is not a deliverable.** An 11,000-word block with no turns, no paragraphs, and no speaker labels is unreadable — never hand it over as "the transcript." Whisper's output is an intermediate artifact. The transcript a person can actually use is one you construct.
 
-The subagent owns the note structure (Meeting / TL;DR / Decisions / Action items / Open questions / Cleaned transcript) and the honesty rules. Two of those rules matter enough to restate:
+Dispatch the **`meeting-transcriber` subagent** with the resolved transcript path. Transcripts are long; running this in a subagent keeps the full text out of the main conversation and returns only the deliverable. Give it **both** files — the plain transcript for wording, the `.timestamped.txt` for the timestamps that anchor each turn.
 
-- **Never invent participants, decisions, dates, or numbers.** Unclear audio gets `[inaudible]`, not a plausible guess.
-- **Whisper does not identify speakers.** There is no diarization on this path. Infer turns from context, say plainly in the notes that speakers are inferred, and never attach names to turns unless the audio states them.
+Two deliverables come out of this step, always:
+
+1. **`<slug>-<date>.speakers.md`** — the readable transcript: one paragraph per turn, `**Name** [MM:SS]` at the head of each, disfluencies removed. This is what someone opens when they want to read the conversation.
+2. **`<slug>-<date>.notes.md`** — Meeting / TL;DR / Decisions / Action items / Open questions, per the subagent definition.
+
+Produce the speaker transcript even when only "a transcript" was asked for. The plain wall of text is never the right answer to that request.
+
+### How to attribute speakers honestly
+
+There is **no diarization on this path** — Whisper does not identify speakers, and `--no-speaker-labels` only stamps a warning. Attribution is inference, and it must be labeled as such:
+
+- **State it up front**, in a header block on the transcript itself: labels are inferred from context, not from the audio.
+- **Infer from evidence in the text**: self-introductions, who demos or shares a screen, who asks versus answers, who is addressed by name, role-specific claims ("at my company we…").
+- **Mark genuinely ambiguous turns** inline rather than guessing silently. A handful of `*[speaker unclear]*` notes cost the reader nothing; a confidently wrong label is a fabricated quote.
+- **Never invent a name.** If someone is only "the second voice," say that. Names come from the audio or from what the user told you — nowhere else.
+- **Never guess at unclear audio.** `[inaudible]` is the answer. Do not write a plausible-looking word with a `(?)` after it, and never do both at once — a guess plus a disclaimer is still a guess.
+
+### Trim duplicated content
+
+Recordings often replay their opening, or contain a false start before the real one. Compare the tail against the head; if the last minutes repeat earlier content, omit the duplicate and say so in the header. Report the true content range (e.g. content runs `[00:00]–[54:12]`, replay after).
 
 ## Step 5 — Where output goes
 
 **Deliverables go to `~/Desktop/Claude Outputs/`**, not loose on the Desktop and not next to a recording buried in Downloads:
 
 ```
-~/Desktop/Claude Outputs/<meeting-slug>-<YYYY-MM-DD>.notes.md
+~/Desktop/Claude Outputs/<meeting-slug>-<YYYY-MM-DD>.speakers.md   # readable transcript
+~/Desktop/Claude Outputs/<meeting-slug>-<YYYY-MM-DD>.notes.md      # summary + actions
 ```
 
-Intermediate artifacts — `.transcript.txt`, `.timestamped.txt`, extracted `.m4a`, `live-*/` session dirs — stay next to the source. They're working files, they're gitignored, and they don't belong in an outputs folder.
+Intermediate artifacts — `.transcript.txt`, `.timestamped.txt`, extracted `.m4a`, `live-*/` session dirs — stay next to the source. They're working files, they're gitignored, and they don't belong in an outputs folder. **Never point the user at a raw `.transcript.txt` as the result.**
 
-Report the notes path when finished, plus the TL;DR inline so the result is readable without opening the file.
+Report both paths when finished, plus the TL;DR inline so the result is readable without opening a file.
 
 ## Privacy
 

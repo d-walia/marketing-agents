@@ -41,19 +41,34 @@ python3 agents/meeting-transcriber/scripts/transcribe.py <audio-file> --no-speak
 - **Upload ceiling: treat ~15 MB as the limit**, not the 25 MB Groq documents — a 21.5 MB file failed with a broken pipe in testing while 13 MB succeeded. If the file is larger, re-encode to 16 kHz mono at 32k (an hour lands near 13 MB) — do not attempt to chunk silently. A broken pipe on upload means *too big*, not bad credentials. A local app like Spokenly is the fallback for oversized or sensitive recordings, but this agent does not drive it.
 - Whisper does not label speakers. If the meeting has multiple people, say so in the notes and infer turn boundaries from context rather than inventing names.
 
-## Step 2 — Produce the notes
+## Step 2 — Write the speaker-attributed transcript
 
-Write a single Markdown file to `~/Desktop/Claude Outputs/<meeting-slug>-<YYYY-MM-DD>.notes.md` — the notes are the deliverable and belong there, not loose beside a recording. Intermediate files (`.transcript.txt`, `.timestamped.txt`, extracted audio) stay next to the input. Use these sections, in order:
+Raw Whisper output is a single unbroken block of text. **That is not a deliverable** — never present it as "the transcript." Write a readable one to `~/Desktop/Claude Outputs/<meeting-slug>-<YYYY-MM-DD>.speakers.md`:
+
+- A header block naming each speaker and their role, and stating plainly that **labels are inferred from context, not from the audio**.
+- One paragraph per turn, headed `**Name** [MM:SS]`. Pull timestamps from `.timestamped.txt`.
+- Disfluencies removed, obvious ASR errors fixed. Wording otherwise unchanged — cleanup is not rewriting.
+- `*[speaker unclear]*` inline on genuinely ambiguous turns. Marking a few is honest; a confidently wrong label fabricates a quote.
+- Never invent a name. An unidentified voice is "Second speaker," not a guess.
+- Never guess at unclear audio: `[inaudible]`, full stop. Not a plausible word with `(?)`, and never a guess *and* a disclaimer together.
+- If the recording replays its opening or contains a false start, omit the duplicate and note the true content range in the header.
+
+## Step 3 — Produce the notes
+
+Write a second Markdown file to `~/Desktop/Claude Outputs/<meeting-slug>-<YYYY-MM-DD>.notes.md`. Intermediate files (`.transcript.txt`, `.timestamped.txt`, extracted audio) stay next to the input. Use these sections, in order:
 
 1. **Meeting** — title, date, participants (as known), backend used (Spokenly / Groq), duration if known.
 2. **TL;DR** — 2–4 sentences. What was this about and what came out of it.
 3. **Decisions** — bulleted, each a concrete decision that was actually made. Omit the section if none.
 4. **Action items** — a table: `Owner | Action | Due`. Use "unassigned"/"no date" honestly rather than guessing. Omit if none.
 5. **Open questions** — anything raised but unresolved.
-6. **Cleaned transcript** — the full transcript with filler removed (um, uh, false starts), speakers attributed where identifiable, paragraphs broken by turn. Never paraphrase away substance; this is the record.
+6. **Transcript** — a one-line pointer to the `.speakers.md` file from Step 2. Do not paste the transcript in again; it already exists as its own deliverable and duplicating it makes both files harder to maintain.
+
+For a webinar, talk, or interview rather than an internal meeting, add a **Key takeaways** section after TL;DR — the substantive claims, frameworks, numbers, and named tools, each anchored to a timestamp. Decisions and Action items are often legitimately empty for that format; omit them rather than manufacturing content to fill them.
 
 ## Constraints
 
 - Do not invent participants, decisions, dates, or numbers that are not in the source. If the audio is unclear, mark `[inaudible]` rather than filling the gap.
-- Keep the cleaned transcript faithful — cleanup means removing disfluencies and fixing obvious ASR typos, not rewording what people said.
-- Report which backend ran and any gaps (missing speakers, low-confidence spans, truncation) at the top of the notes so the reader knows what to trust.
+- Keep the transcript faithful — cleanup means removing disfluencies and fixing obvious ASR typos, not rewording what people said.
+- Report which backend ran and any gaps (missing speakers, low-confidence spans, truncation, duplicated content) at the top of the notes so the reader knows what to trust.
+- Hand off by reporting **both** file paths — the speaker transcript and the notes — plus the TL;DR verbatim.

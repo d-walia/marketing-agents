@@ -72,8 +72,21 @@ contain a narrow no-break space (`U+202F`) before AM/PM that looks exactly like
 a normal space — retype it and the shell reports `No such file or directory` for
 a file that is plainly there. Dragging from Finder inserts the real bytes.
 
-Notes land in `~/Desktop/Claude Outputs/`. Intermediate files (transcripts,
-extracted audio, live session dirs) stay next to the input and are gitignored.
+**Two deliverables land in `~/Desktop/Claude Outputs/`:**
+
+| File | What it is |
+|---|---|
+| `<slug>-<date>.speakers.md` | The readable transcript — one paragraph per turn, `**Name** [MM:SS]`, disfluencies removed |
+| `<slug>-<date>.notes.md` | TL;DR, decisions, action items, open questions |
+
+The raw `.transcript.txt` Whisper produces is **an intermediate, not a
+deliverable** — it's a single unbroken block of text with no turns or speaker
+labels, unreadable at meeting length. The `.speakers.md` file is the one to
+open. Speaker labels are inferred from context (Whisper does not diarize) and
+say so in their own header; ambiguous turns are marked rather than guessed.
+
+Intermediate files (raw transcripts, extracted audio, live session dirs) stay
+next to the input and are gitignored.
 
 The three modes below are what runs under the hood, and what to run by hand.
 Every mode produces a plain `transcript.txt`; hand that to the notes step to get
