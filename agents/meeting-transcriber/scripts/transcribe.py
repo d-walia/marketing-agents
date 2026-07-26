@@ -109,9 +109,12 @@ def main() -> None:
     ap.add_argument("--language", help="ISO code (e.g. en) to skip auto-detect")
     ap.add_argument("--out", type=Path, help="plain-transcript output path")
     ap.add_argument(
-        "--diarize-hint",
+        "--no-speaker-labels",
+        "--diarize-hint",  # original name, kept working; it never diarized
+        dest="no_speaker_labels",
         action="store_true",
-        help="note in output that Whisper does not label speakers",
+        help="stamp a note in the output that Whisper does not label speakers "
+        "(this flag adds no diarization — nothing on this path does)",
     )
     args = ap.parse_args()
 
@@ -134,9 +137,14 @@ def main() -> None:
     segments = result.get("segments") or []
     lang = result.get("language", "unknown")
 
+    # Goes in both outputs — whichever one gets read downstream must carry it.
+    note = ""
+    if args.no_speaker_labels:
+        note = "# Note: Whisper does not label speakers — infer turns from context.\n\n"
+
     plain_out = args.out or args.audio.with_suffix(args.audio.suffix + ".transcript.txt")
     plain_out.parent.mkdir(parents=True, exist_ok=True)
-    plain_out.write_text(text + "\n")
+    plain_out.write_text(note + text + "\n")
 
     ts_out = args.audio.with_suffix(args.audio.suffix + ".timestamped.txt")
     if segments:
@@ -145,9 +153,6 @@ def main() -> None:
             start = float(s.get("start", 0))
             m, sec = divmod(int(start), 60)
             lines.append(f"[{m:02d}:{sec:02d}] {s.get('text', '').strip()}")
-        note = ""
-        if args.diarize_hint:
-            note = "# Note: Whisper does not label speakers — infer turns from context.\n\n"
         ts_out.write_text(note + "\n".join(lines) + "\n")
 
     print(f"Language: {lang}", file=sys.stderr)

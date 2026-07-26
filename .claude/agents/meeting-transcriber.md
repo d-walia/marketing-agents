@@ -27,13 +27,13 @@ python3 agents/meeting-transcriber/scripts/live_transcribe.py --device <index> -
 
 ```bash
 ffmpeg -i "<video>" -vn -ac 1 -ar 16000 -c:a aac -b:a 48k "<name>.m4a"   # ~70 min fits under 25 MB; use -b:a 32k for 90 min+
-python3 agents/meeting-transcriber/scripts/transcribe.py "<name>.m4a" --diarize-hint
+python3 agents/meeting-transcriber/scripts/transcribe.py "<name>.m4a" --no-speaker-labels
 ```
 
 **Otherwise (a finished audio recording), transcribe via Groq Whisper:**
 
 ```bash
-python3 agents/meeting-transcriber/scripts/transcribe.py <audio-file> --diarize-hint
+python3 agents/meeting-transcriber/scripts/transcribe.py <audio-file> --no-speaker-labels
 ```
 
 - It reads `GROQ_API_KEY` from the environment or `~/.marketing-agents.env`. If the key is missing, stop and tell the user to add a free key from https://console.groq.com/keys — do not proceed without it.
@@ -43,7 +43,7 @@ python3 agents/meeting-transcriber/scripts/transcribe.py <audio-file> --diarize-
 
 ## Step 2 — Produce the notes
 
-Write a single Markdown file next to the input (e.g. `<name>.notes.md`) with these sections, in order:
+Write a single Markdown file to `~/Desktop/Claude Outputs/<meeting-slug>-<YYYY-MM-DD>.notes.md` — the notes are the deliverable and belong there, not loose beside a recording. Intermediate files (`.transcript.txt`, `.timestamped.txt`, extracted audio) stay next to the input. Use these sections, in order:
 
 1. **Meeting** — title, date, participants (as known), backend used (Spokenly / Groq), duration if known.
 2. **TL;DR** — 2–4 sentences. What was this about and what came out of it.

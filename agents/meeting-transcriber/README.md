@@ -1,8 +1,9 @@
 # Meeting Transcriber
 
 Turns a meeting, sales call, customer interview, or discovery recording into
-notes you can act on without re-listening: a clean speaker-attributed
-transcript plus a TL;DR, decisions, and an action-item table.
+notes you can act on without re-listening: a clean transcript plus a TL;DR,
+decisions, and an action-item table. Speaker turns are inferred from context,
+not diarized — see the note on `--no-speaker-labels` below.
 
 Transcription is the cheap part — the agent's value is the structure it adds
 after. It transcribes via the **Groq Whisper API**, which is free, headless, and
@@ -50,19 +51,36 @@ speaker diarization), but this agent does not drive it.
 
 ## How to use it
 
-The easiest way is to **just ask in Claude Code from the repo root** — the
-`meeting-transcriber` subagent (defined in [`.claude/agents/`](../../.claude/agents/))
-triggers on requests like *"transcribe this call and pull the action items"* or
-*"transcribe as I go"*, picks the right mode, and writes the notes. The three
-modes below are what it runs under the hood, and what to run by hand.
+The easiest way is to **just ask, and drag the file into the prompt**:
 
+> *transcribe this call and pull the action items*
+
+[`SKILL.md`](SKILL.md) is the front door. It resolves the input file, triages it
+against Groq's 25 MB cap (extracting audio from video when needed), picks the
+right mode, then hands off to the `meeting-transcriber` subagent — defined in
+[`.claude/agents/`](../../.claude/agents/) — which writes the notes. Install it
+by symlinking this folder into `~/.claude/skills/`:
+
+```bash
+ln -s ~/github/marketing-agents/agents/meeting-transcriber ~/.claude/skills/meeting-transcriber
+```
+
+**Drag the file in rather than typing its name.** macOS screen recordings
+contain a narrow no-break space (`U+202F`) before AM/PM that looks exactly like
+a normal space — retype it and the shell reports `No such file or directory` for
+a file that is plainly there. Dragging from Finder inserts the real bytes.
+
+Notes land in `~/Desktop/Claude Outputs/`. Intermediate files (transcripts,
+extracted audio, live session dirs) stay next to the input and are gitignored.
+
+The three modes below are what runs under the hood, and what to run by hand.
 Every mode produces a plain `transcript.txt`; hand that to the notes step to get
 the TL;DR / decisions / action-item table (the subagent does this automatically).
 
 ### Mode 1 — a finished audio recording
 
 ```bash
-python3 agents/meeting-transcriber/scripts/transcribe.py meeting.m4a --diarize-hint
+python3 agents/meeting-transcriber/scripts/transcribe.py meeting.m4a --no-speaker-labels
 python3 agents/meeting-transcriber/scripts/transcribe.py call.mp3 --language en
 ```
 
@@ -79,7 +97,7 @@ small audio track with ffmpeg first, then transcribe that:
 ffmpeg -i "recording.mp4" -vn -ac 1 -ar 16000 -c:a aac -b:a 48k "recording.m4a"
 
 # then transcribe like Mode 1
-python3 agents/meeting-transcriber/scripts/transcribe.py "recording.m4a" --diarize-hint
+python3 agents/meeting-transcriber/scripts/transcribe.py "recording.m4a" --no-speaker-labels
 ```
 
 For very long videos (90 min+) drop to `-b:a 32k` (~100 min per 25 MB). Check a
@@ -135,8 +153,12 @@ far side.
 - Groq's free upload cap is 25 MB. For a long meeting, export to 16 kHz mono
   `.m4a` first (an hour fits easily); Spokenly's local models are the fallback
   for anything oversized or highly sensitive.
-- Whisper does not label speakers — the transcript infers turns from context and
-  says so in the notes.
+- Whisper does not label speakers, and **`--no-speaker-labels` adds no
+  diarization** — it only stamps a reminder at the top of both transcript files
+  so the notes step doesn't invent names. Turns are inferred from context. If you
+  genuinely need "who said what," this backend can't do it: Spokenly's local
+  models do real diarization, as do Deepgram and AssemblyAI. (The flag was
+  originally `--diarize-hint`, which oversold it; that spelling still works.)
 - To route the Groq call through the Cloudflare AI Gateway (for cost tracking,
   like the rest of this repo), set `GROQ_BASE_URL` to your gateway's Groq
   endpoint. Direct-to-Groq is the default.
