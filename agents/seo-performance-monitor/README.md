@@ -82,8 +82,14 @@ python3 scripts/fetch_serp.py --config config/site.json --out runs/latest
 ```
 
 To get the export: Search Console → Performance → set the date range → Export →
-CSV. **Include both Queries and Pages dimensions** — cannibalization analysis is
-impossible without page-level data, and it's often the most actionable finding.
+Download CSV. That yields a ZIP; `Queries.csv` inside it is the input.
+
+`templates/` holds a copy-paste email for requesting this from a client (no
+account access required) and `Queries-EXAMPLE.csv`, a realistic sample showing
+the exact five columns Google produces. Note that the standard UI export gives
+queries and pages as *separate* files, so cannibalization detection needs either
+Search Console API access or a page-by-page export — the analyzer says so rather
+than skipping silently.
 
 ## Notes & limits
 
