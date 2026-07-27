@@ -13,5 +13,17 @@ agents/ai-brand-auditor/runs/
 *.transcript.txt
 *.timestamped.txt
 *.notes.md
-# live_transcribe.py session dirs (segments + transcripts)
-live-*/
+# live_transcribe.py session dirs (segments + transcripts) — timestamped only,
+# so the pattern can't swallow agents/live-meeting-transcriber/
+live-[0-9]*/
+
+# SEO Performance Monitor: run outputs may contain client search data
+agents/seo-performance-monitor/runs/
+outputs/seo/
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# scratch folder pending cleanup
+_to_delete/

@@ -1,6 +1,6 @@
 ---
 name: ai-brand-auditor
-description: Run a full AI brand audit (GEO/AEO) — measure how Claude, ChatGPT, and Gemini perceive and recommend a brand, then produce a scored, graded, decision-ready report. Use whenever Dhruv asks to audit a brand's AI visibility, run a GEO or AEO audit, check whether a brand shows up in AI answers, measure share of voice in LLMs, re-run or re-score an existing audit, or asks "how do models talk about <brand>?" — and also when he names a brand and asks how AI search represents it versus competitors.
+description: Run a full AI brand audit (GEO/AEO) — measure how Claude, ChatGPT, and Gemini perceive and recommend a brand, then produce a scored, graded, decision-ready report. Use whenever Dhruv asks to audit a brand's AI visibility, run a GEO or AEO audit, check whether a brand shows up in AI answers, measure share of voice in LLMs, re-run or re-score an existing audit, or asks "how do models talk about [some brand]?" — and also when he names a brand and asks how AI search represents it versus competitors.
 ---
 
 # AI Brand Auditor
@@ -36,7 +36,17 @@ The scorer and grader are independent **on purpose** — one measures visibility
    - If it reports partial failures, continue, but carry the list of missing provider/query pairs forward.
 3. **Analyze — dispatch both analysts on the same run directory.** `audit-perception-scorer` and `audit-rubric-grader` are independent and have no shared state, so launch them in parallel in a single message. Pass each the run directory path and nothing else. Do not relay the scorer's findings to the grader, even in passing.
 4. **Report** — once `scores.json`, `scores.md`, and `grades.md` all exist, dispatch `audit-reporter` on the run directory. It writes `report.md`.
-5. **Close out** — report the run directory path and the reporter's verdict paragraph verbatim. Then offer, don't silently do: publish the report to `outputs/`, or pull the single most actionable finding into chat.
+5. **Close out** — report the run directory path and the reporter's verdict paragraph verbatim. Then offer, don't silently do: render the shareable HTML report (below), publish it to `outputs/`, or pull the single most actionable finding into chat.
+
+## Shareable HTML report
+
+`report.md` is for people who open markdown; stakeholders get the HTML render instead — one self-contained file (inline CSS, light/dark aware, no external assets) that can be emailed or published as-is:
+
+```bash
+python3 agents/ai-brand-auditor/scripts/render_report.py agents/ai-brand-auditor/runs/RUN_ID
+```
+
+Writes `outputs/BRAND-ai-audit-RUN_ID.html` by default (`--out` overrides). Rendering reads only `report.md` + `manifest.json` — it never touches an API, so re-rendering is free, like re-scoring. When the user asks to "share", "send", or "publish" an audit, this render is the artifact to hand over — not the raw markdown.
 
 ## Cost discipline
 

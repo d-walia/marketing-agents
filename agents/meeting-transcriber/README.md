@@ -41,15 +41,18 @@ speaker diarization), but this agent does not drive it.
    GROQ_API_KEY=gsk_...
    ```
 
-2. **Install ffmpeg** — needed for the video-file and live paths (the plain
+2. **Install ffmpeg** — needed for the video-file path (the plain
    audio-file path is standard-library only and needs nothing):
 
    ```bash
    brew install ffmpeg
    ```
 
-3. **(Live, capturing call audio only)** install BlackHole — see
-   [Live capture](#live-capture-near-live) below.
+For transcribing a call **happening live right now**, see the sibling
+[`live-meeting-transcriber`](../live-meeting-transcriber/) skill — it captures
+from the Mac's microphone (optionally plus the call's far side via BlackHole),
+so it is mic-bound and Claude Code-only by nature. Everything in *this* folder
+is portable: file in, notes out, no hardware dependency.
 
 ## How to use it
 
@@ -85,12 +88,15 @@ labels, unreadable at meeting length. The `.speakers.md` file is the one to
 open. Speaker labels are inferred from context (Whisper does not diarize) and
 say so in their own header; ambiguous turns are marked rather than guessed.
 
-Intermediate files (raw transcripts, extracted audio, live session dirs) stay
+Intermediate files (raw transcripts, extracted audio) stay
 next to the input and are gitignored.
 
-The three modes below are what runs under the hood, and what to run by hand.
+The two modes below are what runs under the hood, and what to run by hand.
 Every mode produces a plain `transcript.txt`; hand that to the notes step to get
 the TL;DR / decisions / action-item table (the subagent does this automatically).
+(A third mode — a call happening live — lives in
+[`live-meeting-transcriber`](../live-meeting-transcriber/); its finalized
+transcript feeds the same notes step.)
 
 ### Mode 1 — a finished audio recording
 
@@ -120,52 +126,7 @@ lower — see [Notes & limits](#notes--limits). Whisper is speech recognition, n
 32k mono at 16 kHz costs nothing in accuracy and keeps a wide margin. Check a
 file's length first with `ffprobe -i recording.mp4 -show_entries format=duration`.
 
-### Mode 3 — a live call happening now
-
-See [Live capture](#live-capture-near-live) below.
-
-## Live capture (near-live)
-
-For a call or interview happening *now*, `live_transcribe.py` captures with
-ffmpeg, cuts the audio into short segments, and streams each through the same
-Groq endpoint. Lines print as they land — lag is about one segment (default
-15s). On Ctrl-C it finalizes one `transcript.txt` for the notes step.
-
-```bash
-brew install ffmpeg                       # one-time
-python3 agents/meeting-transcriber/scripts/live_transcribe.py --list-devices
-python3 agents/meeting-transcriber/scripts/live_transcribe.py --device <index> --segment 15
-```
-
-Outputs land in a `live-<timestamp>/` session dir: `live.transcript.txt`
-(streamed as you go) and `transcript.txt` (finalized on stop).
-
-### Capturing both your mic and the call's far side (macOS)
-
-ffmpeg can only record one input device, and no built-in device hears both your
-mic and the call audio at once. The fix is a virtual audio device:
-
-1. **Install BlackHole:** `brew install blackhole-2ch` (installs an audio
-   driver — you'll be prompted for your password; log out/in if it doesn't
-   appear).
-2. **Hear + capture the call.** Open **Audio MIDI Setup** → **＋** → *Create
-   Multi-Output Device*. Check **BlackHole 2ch** and your headphones/speakers.
-   Set this Multi-Output as the system output (or the call app's output) so the
-   far side plays to your ears *and* into BlackHole.
-3. **Combine mic + call for ffmpeg.** In Audio MIDI Setup → **＋** → *Create
-   Aggregate Device*. Check your **microphone** and **BlackHole 2ch**. This
-   aggregate is what you pass as `--device`.
-4. Run `--list-devices` and use the aggregate device's index.
-
-Mic-only needs none of this — it already covers an in-person room. If BlackHole
-isn't set up, the agent will offer mic-only rather than silently dropping the
-far side.
-
 ## Notes & limits
-
-- **Live is near-live, not word-by-word:** ~one-segment lag, and each segment is
-  transcribed without cross-boundary context, so a word can split oddly at a
-  seam. The notes step cleans these up.
 
 - **The real upload ceiling is ~15 MB, not the 25 MB Groq documents.** Measured
   2026-07-25 on a 57-minute recording: 358 KB ✅, 13 MB (32k) ✅, **21.5 MB (48k)

@@ -1,6 +1,6 @@
 ---
 name: meeting-transcriber
-description: Turn a meeting, sales call, customer interview, or discovery recording into structured notes — a clean transcript plus TL;DR, decisions, and an action-item table. Use whenever Dhruv asks to transcribe a call or recording, take notes from a meeting, pull action items or decisions out of a conversation, summarize an interview, clean up a raw transcript, or transcribe something live as it happens — including when he just drags in an audio or video file and asks what's in it.
+description: Turn a meeting, sales call, customer interview, or discovery recording into structured notes — a clean transcript plus TL;DR, decisions, and an action-item table. Use whenever Dhruv asks to transcribe a call or recording, take notes from a meeting, pull action items or decisions out of a conversation, summarize an interview, or clean up a raw transcript — including when he just drags in an audio or video file and asks what's in it. For transcribing a call happening live right now, use the live-meeting-transcriber skill instead; its finished transcript comes back here for the notes step.
 ---
 
 # Meeting Transcriber
@@ -77,14 +77,7 @@ Write extracted audio to the scratch area or alongside the source — never into
 ## Step 3 — Get a transcript
 
 - **A transcript already exists** (`.txt`/`.md`/`.vtt`/`.srt`, or pasted text) → skip transcription entirely, go to Step 4.
-- **Live / in-progress** ("transcribe as I go") → the near-live path:
-
-  ```bash
-  python3 ~/github/marketing-agents/agents/meeting-transcriber/scripts/live_transcribe.py --list-devices
-  python3 ~/github/marketing-agents/agents/meeting-transcriber/scripts/live_transcribe.py --device <index> --segment 15
-  ```
-
-  Needs `ffmpeg`. Capturing the far side of a call needs a macOS Aggregate Device with **BlackHole**; mic-only covers an in-person room and needs nothing. If BlackHole isn't set up, say so before starting and offer mic-only. Expect ~one-segment lag and odd word splits at seams — fix those during cleanup.
+- **Live / in-progress** ("transcribe as I go", a call happening now) → that's the **`live-meeting-transcriber`** skill (`agents/live-meeting-transcriber/`). It needs the Mac's microphone, so it only runs in Claude Code on the machine — hand off to it; its finalized `transcript.txt` comes back to this skill's Step 4 for speaker attribution and notes.
 - **A finished recording** → 
 
   ```bash
@@ -129,7 +122,7 @@ Recordings often replay their opening, or contain a false start before the real 
 ~/Desktop/Claude Outputs/<meeting-slug>-<YYYY-MM-DD>.notes.md      # summary + actions
 ```
 
-Intermediate artifacts — `.transcript.txt`, `.timestamped.txt`, extracted `.m4a`, `live-*/` session dirs — stay next to the source. They're working files, they're gitignored, and they don't belong in an outputs folder. **Never point the user at a raw `.transcript.txt` as the result.**
+Intermediate artifacts — `.transcript.txt`, `.timestamped.txt`, extracted `.m4a` — stay next to the source. They're working files, they're gitignored, and they don't belong in an outputs folder. **Never point the user at a raw `.transcript.txt` as the result.**
 
 Report both paths when finished, plus the TL;DR inline so the result is readable without opening a file.
 

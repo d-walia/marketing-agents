@@ -10,18 +10,7 @@ You turn raw meeting audio (or a raw transcript) into notes someone can act on w
 
 **If a transcript already exists** (a `.txt`/`.md`/`.vtt`/`.srt` file, or pasted text): skip transcription entirely. Go to Step 2.
 
-**If the user wants LIVE transcription** (a call/interview happening now, "transcribe as I go", "live"): use the near-live path. It captures with ffmpeg, cuts the audio into short segments, and sends each finished segment to the same Groq endpoint — lines print as they land, with a lag of about one segment.
-
-```bash
-# one-time: find the capture device index
-python3 ~/github/marketing-agents/agents/meeting-transcriber/scripts/live_transcribe.py --list-devices
-# start; Ctrl-C to stop. --device is the aggregate device (mic + BlackHole).
-python3 ~/github/marketing-agents/agents/meeting-transcriber/scripts/live_transcribe.py --device <index> --segment 15
-```
-
-- Requires **ffmpeg** on PATH (`brew install ffmpeg`). It writes a `live.transcript.txt` (streamed) and, on stop, a finalized `transcript.txt` in a `live-<timestamp>/` session dir. Read `transcript.txt` back for Step 2.
-- **Capturing both mic AND the call's far side** needs a macOS Aggregate Device combining the mic with **BlackHole** (`brew install blackhole-2ch`, then route in Audio MIDI Setup — see the README's "Live capture" section). Mic-only needs no BlackHole and already covers an in-person room. If BlackHole isn't set up, tell the user before starting and offer mic-only.
-- Near-live, not word-by-word: expect ~one-segment lag. Shorter `--segment` = lower lag but more requests. Segment transcripts lack cross-boundary context, so a word may be split oddly at a seam — fix these when you clean the transcript in Step 2.
+**If the user wants LIVE transcription** (a call/interview happening now, "transcribe as I go", "live"): that is the **live-meeting-transcriber** skill (`agents/live-meeting-transcriber/` — mic-bound, Claude Code on the Mac only). Its `live_transcribe.py` writes a finalized `transcript.txt` in a `live-<timestamp>/` session dir; read that back for Step 2. Segment transcripts lack cross-boundary context, so a word may be split oddly at a seam — fix these when you clean the transcript in Step 2.
 
 **If it's a video file** (`.mp4`/`.mov`/`.mkv`/etc.): extract a small audio track with ffmpeg first — video files blow past the upload ceiling. Check duration with `ffprobe` if unsure, then:
 

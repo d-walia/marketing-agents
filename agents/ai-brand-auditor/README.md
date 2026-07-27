@@ -29,7 +29,8 @@ agents/ai-brand-auditor/
 │   ├── query_grid.json   # 8 queries × 4 types (category, brand, comparison, use-case)
 │   └── rubric.md         # 5-criterion grading rubric (0–2 each)
 ├── scripts/
-│   └── run_queries.py    # stdlib-only; routes all calls through Cloudflare AI Gateway
+│   ├── run_queries.py    # stdlib-only; routes all calls through Cloudflare AI Gateway
+│   └── render_report.py  # stdlib-only; run dir → one shareable self-contained HTML file
 └── runs/<run_id>/        # created per run (gitignored)
     ├── manifest.json     # what ran, what failed
     ├── raw/<provider>/   # one JSON per query: prompt, response, usage, latency
@@ -73,6 +74,17 @@ python3 scripts/run_queries.py --providers anthropic,gemini
 ```
 
 Requires the Cloudflare AI Gateway env setup (`*_BASE_URL`, provider keys, `CF_AIG_TOKEN`) — documented in the [`ai-architecture`](https://github.com/d-walia/ai-architecture/tree/main/cloudflare-ai-gateway) repo. Every audit call is therefore tracked in the gateway dashboard — an audit run has a visible, attributable cost.
+
+## Sharing a finished audit
+
+`report.md` is the pipeline's working deliverable; the *shareable* one is its HTML render — a single self-contained file (inline CSS, light/dark aware, no external assets) that a stakeholder opens in a browser with nothing installed:
+
+```bash
+python3 scripts/render_report.py runs/<run_id>                 # → outputs/<brand>-ai-audit-<run_id>.html
+python3 scripts/render_report.py runs/<run_id> --out audit.html
+```
+
+The header band (brand, models, calls succeeded/failed) comes from `manifest.json`; the body is `report.md` converted faithfully — no new analysis happens at render time, and rendering never touches an API, so it's free to re-run. This closes the shareability gap: the agent needs this repo, keys, and Claude Code, but the render needs only a browser.
 
 ## Auditing a different brand
 

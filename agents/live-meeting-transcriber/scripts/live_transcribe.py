@@ -38,8 +38,16 @@ import urllib.request
 from datetime import datetime
 from pathlib import Path
 
-# Reuse the Groq plumbing already written for the batch path.
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+# Reuse the Groq plumbing from the portable meeting-transcriber skill —
+# this script lives in agents/live-meeting-transcriber/scripts/, the shared
+# batch path in agents/meeting-transcriber/scripts/. Single source of truth.
+_BATCH_SCRIPTS = Path(__file__).resolve().parent.parent.parent / "meeting-transcriber" / "scripts"
+if not (_BATCH_SCRIPTS / "transcribe.py").exists():
+    sys.exit(
+        f"error: cannot find the shared Groq plumbing at {_BATCH_SCRIPTS}/transcribe.py\n"
+        "live-meeting-transcriber must live alongside meeting-transcriber in the same repo."
+    )
+sys.path.insert(0, str(_BATCH_SCRIPTS))
 from transcribe import MODEL, DEFAULT_BASE, build_multipart, load_key  # noqa: E402
 
 
