@@ -1,0 +1,13 @@
+{
+  // Plain Worker — no Durable Objects, no KV, no bindings, so this runs
+  // comfortably inside the Cloudflare free tier. All skill content is
+  // compiled into the bundle by scripts/bundle.mjs.
+  "name": "marketing-agents-mcp",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-01",
+  "observability": {
+    "enabled": true
+  }
+  // To require a shared secret, run:  npx wrangler secret put MCP_TOKEN
+  // With it unset the endpoint is open to anyone who has the URL.
+}

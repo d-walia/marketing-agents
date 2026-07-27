@@ -27,3 +27,8 @@ __pycache__/
 
 # scratch folder pending cleanup
 _to_delete/
+
+# MCP server: generated bundle + local deps
+mcp-server/src/content.ts
+mcp-server/node_modules/
+mcp-server/.wrangler/
