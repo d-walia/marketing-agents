@@ -7,7 +7,7 @@ description: Run a full AI brand audit (GEO/AEO) — measure how Claude, ChatGPT
 
 Measure how AI models perceive and recommend a brand: does it surface when buyers ask category questions, at what rank, framed how, and how accurately. This skill is the front door to a four-subagent pipeline — it decides what needs to run, dispatches the subagents in order, and reports the outcome.
 
-**Repo root:** `~/github/marketing-agents`. All paths below are relative to it. Run from the repo root so the `.claude/agents/` subagent definitions load.
+**Repo root:** wherever this repo was cloned — `$MARKETING_AGENTS_ROOT` if set, otherwise `~/github/marketing-agents`. All paths below are relative to it. Run from the repo root so the `.claude/agents/` subagent definitions load.
 
 ## Why the pipeline is split
 

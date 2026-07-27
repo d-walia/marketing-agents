@@ -77,7 +77,7 @@ SEO advice defaults to "publish more content" because it is the easiest recommen
 
 ## Outputs
 
-Write to `~/github/marketing-agents/outputs/seo/<domain>/<YYYY-MM-DD>/`:
+Write to `<repo>/outputs/seo/<domain>/<YYYY-MM-DD>/`, where `<repo>` is `$MARKETING_AGENTS_ROOT` if set, otherwise `~/github/marketing-agents`:
 
 - `performance.md` — from analyze_gsc.py
 - `share-of-voice.md` — from fetch_serp.py

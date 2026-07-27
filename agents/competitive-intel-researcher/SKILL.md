@@ -11,7 +11,7 @@ Turn a week of battlecard research into an afternoon — without turning it into
 
 - **Competitor name** (required). If ambiguous, resolve the company first (domain, category) and confirm in one line before deep research.
 - **Our product context** (optional but transformative): who we are, what we sell, which deals we meet this competitor in. Without it, produce the analysis but say plainly that "how we win" is generic until context is supplied.
-- **Existing intel**: check `~/github/marketing-agents/intel/<competitor-slug>/` before researching. If it exists, the delta memo is the most valuable output. If not, this run becomes the baseline.
+- **Existing intel**: check `<repo>/intel/<competitor-slug>/` before researching, where `<repo>` is `$MARKETING_AGENTS_ROOT` if set, otherwise `~/github/marketing-agents`. If it exists, the delta memo is the most valuable output. If not, this run becomes the baseline.
 
 ## Pipeline
 
@@ -34,7 +34,7 @@ These are what make the output usable in front of a sales team:
 
 ## Outputs
 
-Write three files to `~/github/marketing-agents/outputs/<competitor-slug>/<YYYY-MM-DD>/`:
+Write three files to `<repo>/outputs/<competitor-slug>/<YYYY-MM-DD>/` (same `<repo>` as above):
 
 **`full-report.md`** — the sourced analysis, organized by the five lenses.
 

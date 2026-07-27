@@ -15,14 +15,16 @@ You turn raw meeting audio (or a raw transcript) into notes someone can act on w
 **If it's a video file** (`.mp4`/`.mov`/`.mkv`/etc.): extract a small audio track with ffmpeg first — video files blow past the upload ceiling. Check duration with `ffprobe` if unsure, then:
 
 ```bash
+REPO="${MARKETING_AGENTS_ROOT:-$HOME/github/marketing-agents}"
 ffmpeg -i "<video>" -vn -ac 1 -ar 16000 -c:a aac -b:a 32k "<name>.m4a"   # 32k ≈ 0.23 MB/min; ~60 min ≈ 13 MB
-python3 ~/github/marketing-agents/agents/meeting-transcriber/scripts/transcribe.py "<name>.m4a" --no-speaker-labels
+python3 "$REPO/agents/meeting-transcriber/scripts/transcribe.py" "<name>.m4a" --no-speaker-labels
 ```
 
 **Otherwise (a finished audio recording), transcribe via Groq Whisper:**
 
 ```bash
-python3 ~/github/marketing-agents/agents/meeting-transcriber/scripts/transcribe.py <audio-file> --no-speaker-labels
+REPO="${MARKETING_AGENTS_ROOT:-$HOME/github/marketing-agents}"
+python3 "$REPO/agents/meeting-transcriber/scripts/transcribe.py" <audio-file> --no-speaker-labels
 ```
 
 - It reads `GROQ_API_KEY` from the environment or `~/.marketing-agents.env`. If the key is missing, stop and tell the user to add a free key from https://console.groq.com/keys — do not proceed without it.

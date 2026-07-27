@@ -7,7 +7,15 @@ description: Turn a meeting, sales call, customer interview, or discovery record
 
 Turn a recording into notes someone can act on without re-listening. Transcription is the cheap part; the structure added afterward is the product.
 
-**Runs from anywhere.** Scripts are referenced by absolute path, and the `meeting-transcriber` subagent is installed at user level (`~/.claude/agents/meeting-transcriber.md`, symlinked to this repo), so no `cd` is needed — recordings usually live on the Desktop, not in the repo. Source of truth is still `~/github/marketing-agents`.
+**Runs from anywhere.** Scripts are referenced by absolute path, and the `meeting-transcriber` subagent is installed at user level (`~/.claude/agents/meeting-transcriber.md`, symlinked to this repo), so no `cd` is needed — recordings usually live on the Desktop, not in the repo.
+
+**Repo location.** Commands below reach the repo through `$REPO` so they work wherever it was cloned. Set it first in any shell that runs them:
+
+```bash
+REPO="${MARKETING_AGENTS_ROOT:-$HOME/github/marketing-agents}"
+```
+
+If the clone lives anywhere other than `~/github/marketing-agents`, export `MARKETING_AGENTS_ROOT` once in `~/.zshrc` and every skill follows.
 
 ## Step 1 — Resolve the input file
 
@@ -81,7 +89,8 @@ Write extracted audio to the scratch area or alongside the source — never into
 - **A finished recording** → 
 
   ```bash
-  python3 ~/github/marketing-agents/agents/meeting-transcriber/scripts/transcribe.py "<audio>" --no-speaker-labels
+  REPO="${MARKETING_AGENTS_ROOT:-$HOME/github/marketing-agents}"
+  python3 "$REPO/agents/meeting-transcriber/scripts/transcribe.py" "<audio>" --no-speaker-labels
   ```
 
   Needs `GROQ_API_KEY` in the environment or `~/.marketing-agents.env`. If it's missing, stop and point at https://console.groq.com/keys — do not proceed without it.

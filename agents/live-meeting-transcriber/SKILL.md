@@ -23,11 +23,14 @@ Also confirm `ffmpeg` exists (`which ffmpeg`); it's the only dependency beyond t
 ## Running a session
 
 ```bash
+# resolves wherever the repo was cloned
+REPO="${MARKETING_AGENTS_ROOT:-$HOME/github/marketing-agents}"
+
 # find the audio device index (aggregate device if capturing the call's far side)
-python3 ~/github/marketing-agents/agents/live-meeting-transcriber/scripts/live_transcribe.py --list-devices
+python3 "$REPO/agents/live-meeting-transcriber/scripts/live_transcribe.py" --list-devices
 
 # start; Ctrl-C to stop and finalize
-python3 ~/github/marketing-agents/agents/live-meeting-transcriber/scripts/live_transcribe.py --device <index> --segment 15
+python3 "$REPO/agents/live-meeting-transcriber/scripts/live_transcribe.py" --device <index> --segment 15
 ```
 
 Outputs land in a `live-<timestamp>/` session dir next to where it runs: `live.transcript.txt` (streamed as you go) and `transcript.txt` (finalized on stop). Session dirs are working files — gitignored, never a deliverable, never in `Claude Outputs/`.
