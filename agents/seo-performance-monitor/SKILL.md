@@ -10,7 +10,7 @@ Three questions, three data sources, one report:
 | Question | Source | Needs a key? |
 |---|---|---|
 | How are my existing pages doing? | Search Console CSV export | **No** |
-| Am I winning or losing share against competitors? | SerpApi (250 searches/month free) | Yes, free tier |
+| Am I winning or losing share against competitors? | SearchAPI.io or SerpApi | Yes, free tier |
 | What should I publish next? | Google Suggest autocomplete | **No** |
 
 Two of the three need no credentials at all, so a useful run is always possible.
@@ -44,7 +44,7 @@ python3 scripts/fetch_serp.py --config config/site.json --out <run-dir>
 python3 scripts/fetch_serp.py --config config/site.json --dry-run   # price it first
 ```
 
-Costs one credit per keyword. **Always `--dry-run` first if the set is over ~30 keywords or the credit balance is unknown**, and tell him the cost before spending. Share of voice is position-weighted, not presence-based: appearing at #9 is worth a fraction of #1, and the report reflects that.
+Costs one credit per keyword on whichever provider is configured (SearchAPI.io's free tier is 100 one-time; SerpApi's is 250/month). **Always `--dry-run` first if the set is over ~30 keywords or the credit balance is unknown**, and tell him the cost before spending. Share of voice is position-weighted, not presence-based: appearing at #9 is worth a fraction of #1, and the report reflects that.
 
 Two parts of this output matter most:
 - **"Who actually owns these SERPs"** — domains ranking that aren't in the tracked competitor list. These are real competitors he hasn't accounted for; call them out explicitly.

@@ -25,10 +25,15 @@
     "AI agents for marketing teams"
   ],
 
+  "_competitors_note": "Corrected 2026-07-26 from an actual SERP run. The original guesses (sharebird.com, reforge.com) held 0% across all 8 tracked keywords; these are the domains that actually rank.",
   "competitors": [
-    "sharebird.com",
+    "fluviomarketing.com",
+    "positioningexpert.com",
+    "olivinemarketing.com",
+    "consultport.com",
+    "pangea.app",
     "productmarketingalliance.com",
-    "reforge.com"
+    "reddit.com"
   ],
 
   "_notes": {

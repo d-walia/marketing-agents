@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Measure share of voice across a tracked keyword set via SerpApi.
+"""Measure share of voice across a tracked keyword set.
 
 Presence alone is a weak metric — ranking #1 is worth roughly ten times
 ranking #9. So share of voice here is *position-weighted*: each ranking is
@@ -9,14 +9,21 @@ total attention available across the tracked set.
 Also records SERP features (AI overview, featured snippet, People Also Ask),
 because a #1 ranking under an AI overview no longer means what it used to.
 
-Free tier: SerpApi gives 250 searches/month, recurring. At ~60 keywords
-tracked weekly that stays free indefinitely. Key: https://serpapi.com/manage-api-key
-Store it in ~/.marketing-agents.env as SERPAPI_KEY=...
+Two providers, auto-detected from whichever key is present:
+
+  SearchAPI.io   SEARCHAPI_KEY   100 searches free (one-time), then paid
+                 https://www.searchapi.io/
+  SerpApi        SERPAPI_KEY     250 searches/month, recurring free
+                 https://serpapi.com/manage-api-key
+
+Store the key in ~/.marketing-agents.env. Their response shapes are close
+enough that both normalize to the same internal structure.
 
 Usage:
     python3 fetch_serp.py --config ../config/site.json --out ../runs/latest
     python3 fetch_serp.py --keywords "ai scribe" "clinical documentation" --domain example.com
     python3 fetch_serp.py --config ../config/site.json --dry-run   # cost check, no calls
+    python3 fetch_serp.py --config ../config/site.json --provider serpapi
 
 Standard library only.
 """
@@ -33,8 +40,22 @@ from datetime import date
 from pathlib import Path
 
 ENV_FILE = Path.home() / ".marketing-agents.env"
-ENDPOINT = "https://serpapi.com/search.json"
 UA = "seo-performance-monitor/1.0 (+marketing-agents)"
+
+PROVIDERS = {
+    "searchapi": {
+        "env": "SEARCHAPI_KEY",
+        "endpoint": "https://www.searchapi.io/api/v1/search",
+        "key_url": "https://www.searchapi.io/",
+        "free_tier": "100 searches free (one-time)",
+    },
+    "serpapi": {
+        "env": "SERPAPI_KEY",
+        "endpoint": "https://serpapi.com/search.json",
+        "key_url": "https://serpapi.com/manage-api-key",
+        "free_tier": "250 searches/month (recurring)",
+    },
+}
 
 # Position → expected click share. Used to weight visibility, so that
 # outranking someone counts more than merely appearing alongside them.
@@ -44,10 +65,10 @@ CTR_WEIGHT = {
 }
 
 
-def load_key() -> str | None:
+def read_env(var: str) -> str | None:
     import os
 
-    key = os.environ.get("SERPAPI_KEY")
+    key = os.environ.get(var)
     if key:
         return key.strip()
     if ENV_FILE.exists():
@@ -55,9 +76,38 @@ def load_key() -> str | None:
             line = line.strip()
             if line.startswith("export "):
                 line = line[len("export "):]
-            if line.startswith("SERPAPI_KEY"):
-                return line.partition("=")[2].strip().strip('"').strip("'")
+            if line.startswith(var + "="):
+                val = line.partition("=")[2].strip().strip('"').strip("'")
+                return val or None
     return None
+
+
+def resolve_provider(preferred: str | None) -> tuple[str, str]:
+    """Pick a provider from whichever key exists. Returns (name, key)."""
+    if preferred:
+        spec = PROVIDERS[preferred]
+        key = read_env(spec["env"])
+        if not key:
+            sys.exit(
+                f"error: --provider {preferred} needs {spec['env']} in {ENV_FILE}.\n"
+                f"Get a key at {spec['key_url']} ({spec['free_tier']})."
+            )
+        return preferred, key
+
+    for name, spec in PROVIDERS.items():
+        key = read_env(spec["env"])
+        if key:
+            return name, key
+
+    wanted = "\n".join(
+        f"  {s['env']:15} {n:10} {s['free_tier']} — {s['key_url']}"
+        for n, s in PROVIDERS.items()
+    )
+    sys.exit(
+        "error: no SERP provider key found. Add one to "
+        f"{ENV_FILE}:\n{wanted}\n"
+        "Meanwhile, expand_keywords.py and analyze_gsc.py need no key at all."
+    )
 
 
 def root_domain(url_or_host: str) -> str:
@@ -71,7 +121,10 @@ def root_domain(url_or_host: str) -> str:
     return s
 
 
-def search(query: str, key: str, location: str | None, timeout: float = 30.0) -> dict:
+def search(query: str, provider: str, key: str, location: str | None,
+           timeout: float = 30.0) -> dict:
+    """Both providers accept the same core parameters; only the host differs."""
+    spec = PROVIDERS[provider]
     params = {
         "engine": "google",
         "q": query,
@@ -83,17 +136,24 @@ def search(query: str, key: str, location: str | None, timeout: float = 30.0) ->
     if location:
         params["location"] = location
     req = urllib.request.Request(
-        f"{ENDPOINT}?{urllib.parse.urlencode(params)}", headers={"User-Agent": UA}
+        f"{spec['endpoint']}?{urllib.parse.urlencode(params)}",
+        headers={"User-Agent": UA},
     )
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             return json.loads(resp.read().decode())
     except urllib.error.HTTPError as e:
         body = e.read().decode(errors="replace")[:300]
-        if e.code == 401:
-            sys.exit("error: SerpApi rejected the key (401). Check SERPAPI_KEY.")
+        if e.code in (401, 403):
+            sys.exit(
+                f"error: {provider} rejected the key ({e.code}). "
+                f"Check {spec['env']} in {ENV_FILE}.\n{body}"
+            )
         if e.code == 429:
-            sys.exit("error: SerpApi quota exhausted (429). Free tier is 250 searches/month.")
+            sys.exit(
+                f"error: {provider} quota exhausted or rate-limited (429). "
+                f"Free tier is {spec['free_tier']}.\n{body}"
+            )
         return {"_error": f"HTTP {e.code}: {body}", "organic_results": []}
     except (urllib.error.URLError, TimeoutError) as e:
         return {"_error": f"network: {e}", "organic_results": []}
@@ -109,7 +169,8 @@ def parse_serp(data: dict) -> dict:
         organic.append(
             {
                 "position": int(pos),
-                "domain": root_domain(link),
+                # SearchAPI.io returns `domain` directly; SerpApi doesn't.
+                "domain": root_domain(r.get("domain") or link),
                 "url": link,
                 "title": r.get("title", ""),
             }
@@ -200,7 +261,7 @@ def render(payload: dict) -> str:
         "",
         f"- **Generated:** {payload['generated']}",
         f"- **Keywords tracked:** {s['keywords_answered']}",
-        f"- **Source:** Google via SerpApi, top 10 organic",
+        f"- **Source:** Google via {payload.get('provider', 'SERP API')}, top 10 organic",
         "",
     ]
     if mine:
@@ -263,6 +324,8 @@ def main() -> None:
     ap.add_argument("--out", type=Path, default=Path("serp-run"))
     ap.add_argument("--delay", type=float, default=1.0)
     ap.add_argument("--dry-run", action="store_true", help="show call count, make none")
+    ap.add_argument("--provider", choices=sorted(PROVIDERS),
+                    help="force a provider; default is whichever key exists")
     args = ap.parse_args()
 
     keywords, domain, competitors, location = args.keywords or [], args.domain, args.competitors, args.location
@@ -277,25 +340,28 @@ def main() -> None:
         sys.exit("error: no keywords. Use --keywords or set tracked_keywords in site.json.")
 
     if args.dry_run:
-        print(f"Would run {len(keywords)} searches (1 SerpApi credit each).")
-        print(f"Free tier is 250/month → {250 // max(len(keywords), 1)} runs/month at this size.")
+        detected = None
+        for name, spec in PROVIDERS.items():
+            if read_env(spec["env"]):
+                detected = name
+                break
+        print(f"Would run {len(keywords)} searches (1 credit each).")
+        if detected:
+            print(f"Provider: {detected} — {PROVIDERS[detected]['free_tier']}")
+        else:
+            print("No provider key found yet; this would fail.")
         for k in keywords:
             print(f"  - {k}")
         return
 
-    key = load_key()
-    if not key:
-        sys.exit(
-            "error: no SERPAPI_KEY found.\n"
-            f"Get a free key (250 searches/month) at https://serpapi.com/manage-api-key\n"
-            f"then add it to {ENV_FILE} as:  SERPAPI_KEY=...\n"
-            "Meanwhile, expand_keywords.py and analyze_gsc.py need no key at all."
-        )
+    provider, key = resolve_provider(args.provider)
+    spec = PROVIDERS[provider]
 
-    print(f"Querying {len(keywords)} keywords via SerpApi…", file=sys.stderr)
+    print(f"Querying {len(keywords)} keywords via {provider} "
+          f"({spec['free_tier']})…", file=sys.stderr)
     results, errors = {}, []
     for i, kw in enumerate(keywords, 1):
-        parsed = parse_serp(search(kw, key, location))
+        parsed = parse_serp(search(kw, provider, key, location))
         results[kw] = parsed
         if parsed["error"]:
             errors.append((kw, parsed["error"]))
@@ -316,6 +382,7 @@ def main() -> None:
 
     payload = {
         "generated": date.today().isoformat(),
+        "provider": provider,
         "domain": domain,
         "competitors": competitors,
         "scores": score(results, domain, competitors),

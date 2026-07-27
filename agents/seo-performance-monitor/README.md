@@ -5,7 +5,7 @@ Three questions every SEO program has to answer, each with its own data source:
 | Question | Source | Key needed | Cost |
 |---|---|---|---|
 | How are my existing pages doing? | Search Console CSV export | **No** | Free |
-| Am I winning or losing against competitors? | SerpApi | Free tier | 250 searches/month |
+| Am I winning or losing against competitors? | SearchAPI.io *or* SerpApi | Free tier | 100 one-time / 250 per month |
 | What should I publish next? | Google Suggest | **No** | Free |
 
 Two of the three need no credentials, so a useful run is always possible — and
@@ -50,12 +50,12 @@ like an opportunity.
 
 Nothing to install — standard library only.
 
-For share of voice, get a free key (250 searches/month, recurring) at
-[serpapi.com/manage-api-key](https://serpapi.com/manage-api-key) and add it to
-`~/.marketing-agents.env`:
+For share of voice, add whichever provider key you have to
+`~/.marketing-agents.env` — the script auto-detects which one is present:
 
 ```
-SERPAPI_KEY=...
+SEARCHAPI_KEY=...    # searchapi.io — 100 searches free, one-time
+SERPAPI_KEY=...      # serpapi.com  — 250 searches/month, recurring
 ```
 
 Then point `config/site.json` at whichever domain you're analyzing.
@@ -98,6 +98,6 @@ impossible without page-level data, and it's often the most actionable finding.
   Google Tag Manager and SAP Global Trade Management queries. Check the first
   run's output and tighten seeds accordingly — that's a feature of Suggest
   being honest about what people search, not a bug.
-- **SerpApi credits are finite.** One per keyword per run. `--dry-run` prices a
-  set before spending anything.
+- **SERP credits are finite.** One per keyword per run, on either provider.
+  `--dry-run` prices a set and names the detected provider before spending.
 - Run outputs are gitignored — SEO data for client sites shouldn't land in the repo.
