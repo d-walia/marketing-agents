@@ -8,7 +8,9 @@ Working agents for real GTM problems, built with Claude. The public face of thes
 |---|---|---|
 | AI Brand Auditor | Profound, AthenaHQ | Built. `agents/ai-brand-auditor/` — a skill front door over a 4-subagent GEO audit pipeline |
 | Competitive Intel Researcher | Klue, Crayon | Built. `agents/competitive-intel-researcher/` — a single Claude Code skill |
-| Meeting Transcriber | Otter, Fireflies | Built. `agents/meeting-transcriber/` — recordings, video files, or **live** calls → structured notes via the free Groq Whisper API |
+| Meeting Transcriber | Otter, Fireflies | Built. `agents/meeting-transcriber/` — recordings and video files → structured notes via the free Groq Whisper API. Portable: no hardware dependency |
+| Live Meeting Transcriber | Otter, Fireflies | Built. `agents/live-meeting-transcriber/` — **live** calls, near-real-time, from the Mac's mic (+ BlackHole for the far side). Mic-bound, Claude Code-only; feeds the Meeting Transcriber notes step |
+| SEO Performance Monitor | Ahrefs, Semrush | Built. `agents/seo-performance-monitor/` — page performance from a Search Console export, position-weighted share of voice, and keyword discovery via Google Suggest. Two of three data sources need no API key |
 | Intelligent Copywriter | Writer, Jasper | Planned |
 | Customer Researcher | Wynter, UserTesting | Planned |
 | Dashboard Synthesizer | Tableau, Looker Studio | Planned |
@@ -34,3 +36,5 @@ The canonical implementation is a **multi-agent GEO pipeline**: four Claude Code
 You don't orchestrate that by hand. [`agents/ai-brand-auditor/SKILL.md`](agents/ai-brand-auditor/SKILL.md) is the front door: ask for a brand audit in plain language and it confirms the config, dispatches the four subagents in order, and returns the run directory and verdict. Symlink the folder into `~/.claude/skills/` to install it — the repo stays the source of truth.
 
 Every audit call routes through the Cloudflare AI Gateway, so runs have visible, attributable cost. An earlier single-script Python prototype of this auditor has been retired in favor of the multi-agent version.
+
+A finished audit is shareable beyond this repo: `scripts/render_report.py` turns a run into a single self-contained HTML file in `outputs/` — no Claude Code, keys, or markdown viewer needed on the receiving end, just a browser.

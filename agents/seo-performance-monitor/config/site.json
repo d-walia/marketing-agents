@@ -1,0 +1,39 @@
+{
+  "_comment": "Edit this to point the agent at any site — yours or a client's. Only 'domain' and 'seed_topics' are needed to start; tracked_keywords activates share of voice.",
+
+  "domain": "dw-digital-consulting.com",
+  "location": "United States",
+
+  "market_context": "Fractional product marketing and GTM engineering for B2B SaaS and healthcare AI companies. Buyers are founders, heads of marketing, and GMs who need positioning, launches, and AI-built marketing systems.",
+
+  "seed_topics": [
+    "product marketing consultant",
+    "fractional product marketing",
+    "GTM engineering",
+    "AI marketing agents",
+    "healthcare product marketing"
+  ],
+
+  "tracked_keywords": [
+    "product marketing consultant",
+    "fractional product marketing manager",
+    "GTM engineer",
+    "AI marketing agents",
+    "product marketing for healthcare",
+    "B2B SaaS positioning consultant",
+    "product launch consultant",
+    "AI agents for marketing teams"
+  ],
+
+  "competitors": [
+    "sharebird.com",
+    "productmarketingalliance.com",
+    "reforge.com"
+  ],
+
+  "_notes": {
+    "tracked_keywords": "Each keyword costs 1 SerpApi credit per run. Free tier is 250/month, so ~60 keywords weekly stays free. Run fetch_serp.py --dry-run to price a set before spending credits.",
+    "competitors": "Domains you want share-of-voice tracked against. The report also surfaces whoever actually owns the SERPs, so leave this rough at first and correct it after the first run.",
+    "seed_topics": "Inputs to Google Suggest expansion. Broad beats narrow — the point is to discover the long tail you haven't thought of."
+  }
+}
