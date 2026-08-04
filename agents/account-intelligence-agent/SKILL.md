@@ -1,9 +1,9 @@
 ---
-name: clay-tam-builder
+name: account-intelligence-agent
 description: Build or extend a TAM (total addressable market) table in Clay — seed list import, enrichment waterfalls, Claygent research columns, contact sourcing, and email waterfalls — with Claude driving the Clay web UI through the browser. Use whenever Dhruv asks to build an account list in Clay, extend or re-run the health-system TAM table, add enrichment columns, source contacts, or run email waterfalls in Clay. Also trigger on "run the Clay workflow", "enrich more rows", or requests to adapt this workflow to a new vertical.
 ---
 
-# Clay TAM Builder
+# Account Intelligence Agent
 
 Drive Clay's web UI (app.clay.com, Chrome, Dhruv's logged-in session) to build or extend an enriched TAM table. The first build (Aug 2026) lives in the workspace as `health-system-seed-list` (185 US health systems) + `Revenue Cycle VPs Directors` (71 contacts); `seed-data/health-system-seed-list.csv` is the seed. Full design rationale in [README.md](README.md).
 

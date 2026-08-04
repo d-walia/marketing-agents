@@ -1,4 +1,4 @@
-# Clay TAM Builder
+# Account Intelligence Agent
 
 Builds a clean, enriched total-addressable-market table in [Clay](https://clay.com) — companies, firmographics no B2B database sells, decision-maker contacts, and verified work emails — with Claude driving the Clay UI through the browser. First implementation: US health systems for revenue-cycle-management (RCM) sales.
 
@@ -51,7 +51,7 @@ Contact sourcing filter (Find People, scoped to the company table): job title si
 ## Structure
 
 ```
-agents/clay-tam-builder/
+agents/account-intelligence-agent/
 ├── SKILL.md      # front door — how Claude drives Clay to run or extend this workflow
 ├── README.md     # this file
 └── seed-data/
@@ -69,7 +69,7 @@ Extend the Clay TAM table — run the enrichments on the next 25 rows
 [`SKILL.md`](SKILL.md) carries the operating rules (credit discipline, auto-run policy, prompt contracts) so any session can pick the workflow up cold. To install as an auto-triggering skill:
 
 ```bash
-ln -s ~/github/marketing-agents/agents/clay-tam-builder ~/.claude/skills/clay-tam-builder
+ln -s ~/github/marketing-agents/agents/account-intelligence-agent ~/.claude/skills/account-intelligence-agent
 ```
 
 ## Next layers (designed, not yet built)
