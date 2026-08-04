@@ -11,6 +11,7 @@ Working agents for real GTM problems, built with Claude. The public face of thes
 | Meeting Transcriber | Otter, Fireflies | Built. `agents/meeting-transcriber/` — recordings and video files → structured notes via the free Groq Whisper API. Portable: no hardware dependency |
 | Live Meeting Transcriber | Otter, Fireflies | Built. `agents/live-meeting-transcriber/` — **live** calls, near-real-time, from the Mac's mic (+ BlackHole for the far side). Mic-bound, Claude Code-only; feeds the Meeting Transcriber notes step |
 | SEO Performance Monitor | Ahrefs, Semrush | Built. `agents/seo-performance-monitor/` — page performance from a Search Console export, position-weighted share of voice, and keyword discovery via Google Suggest. Two of three data sources need no API key |
+| Clay TAM Builder | A GTM engineer / Clay consultant | Built. `agents/clay-tam-builder/` — Claude drives the Clay web UI to build enriched account + contact tables: seed CSV → enrichment waterfalls → Claygent research columns → contact sourcing → email waterfall. First build: 185 US health systems for RCM sales |
 | Intelligent Copywriter | Writer, Jasper | Planned |
 | Customer Researcher | Wynter, UserTesting | Planned |
 | Account Intelligence Agent | Clay, 6sense | Planned |

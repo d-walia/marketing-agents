@@ -1,0 +1,186 @@
+company_name,domain,state,type
+Kaiser Permanente,kaiserpermanente.org,CA,Integrated health system
+HCA Healthcare,hcahealthcare.com,TN,For-profit health system
+CommonSpirit Health,commonspirit.org,IL,Health system
+Ascension,ascension.org,MO,Health system
+Advocate Health,advocatehealth.org,NC,Health system
+UPMC,upmc.com,PA,Academic health system
+Trinity Health,trinity-health.org,MI,Health system
+Tenet Healthcare,tenethealth.com,TX,For-profit health system
+Community Health Systems,chs.net,TN,For-profit health system
+Providence,providence.org,WA,Health system
+Sutter Health,sutterhealth.org,CA,Health system
+Mass General Brigham,massgeneralbrigham.org,MA,Academic health system
+Cleveland Clinic,clevelandclinic.org,OH,Academic health system
+Mayo Clinic,mayoclinic.org,MN,Academic health system
+Northwell Health,northwell.edu,NY,Health system
+Intermountain Health,intermountainhealthcare.org,UT,Health system
+UnityPoint Health,unitypoint.org,IA,Health system
+Baylor Scott & White Health,bswhealth.com,TX,Health system
+Corewell Health,corewellhealth.org,MI,Health system
+Banner Health,bannerhealth.com,AZ,Health system
+Bon Secours Mercy Health,bsmhealth.org,OH,Health system
+Universal Health Services,uhs.com,PA,For-profit health system
+Memorial Hermann Health System,memorialhermann.org,TX,Health system
+Northwestern Medicine,nm.org,IL,Academic health system
+NYU Langone Health,nyulangone.org,NY,Academic health system
+NewYork-Presbyterian,nyp.org,NY,Academic health system
+Mount Sinai Health System,mountsinai.org,NY,Academic health system
+Montefiore Health System,montefiore.org,NY,Academic health system
+Penn Medicine,pennmedicine.org,PA,Academic health system
+Jefferson Health,jeffersonhealth.org,PA,Academic health system
+Geisinger,geisinger.org,PA,Health system
+Penn State Health,pennstatehealth.org,PA,Academic health system
+Hackensack Meridian Health,hackensackmeridianhealth.org,NJ,Health system
+RWJBarnabas Health,rwjbh.org,NJ,Health system
+Atlantic Health System,atlantichealth.org,NJ,Health system
+Yale New Haven Health,ynhhs.org,CT,Academic health system
+Hartford HealthCare,hartfordhealthcare.org,CT,Health system
+Beth Israel Lahey Health,bilh.org,MA,Health system
+UMass Memorial Health,ummhealth.org,MA,Academic health system
+Brown University Health,brownhealth.org,RI,Academic health system
+Dartmouth Health,dartmouth-health.org,NH,Academic health system
+MaineHealth,mainehealth.org,ME,Health system
+University of Vermont Health Network,uvmhealth.org,VT,Academic health system
+Inova Health System,inova.org,VA,Health system
+Sentara Health,sentara.com,VA,Health system
+VCU Health,vcuhealth.org,VA,Academic health system
+Carilion Clinic,carilionclinic.org,VA,Health system
+MedStar Health,medstarhealth.org,MD,Health system
+Johns Hopkins Medicine,hopkinsmedicine.org,MD,Academic health system
+University of Maryland Medical System,umms.org,MD,Health system
+LifeBridge Health,lifebridgehealth.org,MD,Health system
+ChristianaCare,christianacare.org,DE,Health system
+WellSpan Health,wellspan.org,PA,Health system
+Lehigh Valley Health Network,lvhn.org,PA,Health system
+St. Luke's University Health Network,slhn.org,PA,Health system
+Main Line Health,mainlinehealth.org,PA,Health system
+Temple Health,templehealth.org,PA,Academic health system
+Tower Health,towerhealth.org,PA,Health system
+Novant Health,novanthealth.org,NC,Health system
+Duke Health,dukehealth.org,NC,Academic health system
+UNC Health,unchealth.org,NC,Academic health system
+Cone Health,conehealth.com,NC,Health system
+ECU Health,ecuhealth.org,NC,Health system
+Prisma Health,prismahealth.org,SC,Health system
+MUSC Health,muschealth.org,SC,Academic health system
+Wellstar Health System,wellstar.org,GA,Health system
+Piedmont Healthcare,piedmont.org,GA,Health system
+Emory Healthcare,emoryhealthcare.org,GA,Academic health system
+Northside Hospital,northside.com,GA,Health system
+AdventHealth,adventhealth.com,FL,Health system
+Baptist Health South Florida,baptisthealth.net,FL,Health system
+Orlando Health,orlandohealth.com,FL,Health system
+Tampa General Hospital,tgh.org,FL,Academic medical center
+UF Health,ufhealth.org,FL,Academic health system
+Jackson Health System,jacksonhealth.org,FL,Public health system
+Lee Health,leehealth.org,FL,Public health system
+BayCare Health System,baycare.org,FL,Health system
+Memorial Healthcare System,mhs.net,FL,Public health system
+Ochsner Health,ochsner.org,LA,Health system
+Franciscan Missionaries of Our Lady Health System,fmolhs.org,LA,Health system
+UAB Medicine,uabmedicine.org,AL,Academic health system
+Huntsville Hospital Health System,huntsvillehospital.org,AL,Public health system
+Baptist Memorial Health Care,baptistonline.org,TN,Health system
+Vanderbilt University Medical Center,vumc.org,TN,Academic medical center
+Ballad Health,balladhealth.org,TN,Health system
+Methodist Le Bonheur Healthcare,methodisthealth.org,TN,Health system
+Covenant Health,covenanthealth.com,TN,Health system
+Norton Healthcare,nortonhealthcare.com,KY,Health system
+UK HealthCare,ukhealthcare.uky.edu,KY,Academic health system
+OhioHealth,ohiohealth.com,OH,Health system
+University Hospitals,uhhospitals.org,OH,Academic health system
+ProMedica,promedica.org,OH,Health system
+Premier Health,premierhealth.com,OH,Health system
+TriHealth,trihealth.com,OH,Health system
+Ohio State Wexner Medical Center,wexnermedical.osu.edu,OH,Academic medical center
+Summa Health,summahealth.org,OH,Health system
+Kettering Health,ketteringhealth.org,OH,Health system
+The MetroHealth System,metrohealth.org,OH,Public health system
+Indiana University Health,iuhealth.org,IN,Academic health system
+Parkview Health,parkview.com,IN,Health system
+Community Health Network,ecommunity.com,IN,Health system
+Franciscan Health,franciscanhealth.org,IN,Health system
+Deaconess Health System,deaconess.com,IN,Health system
+Henry Ford Health,henryford.com,MI,Health system
+Michigan Medicine,uofmhealth.org,MI,Academic health system
+McLaren Health Care,mclaren.org,MI,Health system
+Munson Healthcare,munsonhealthcare.org,MI,Health system
+Froedtert ThedaCare Health,froedtert.com,WI,Academic health system
+Marshfield Clinic Health System,marshfieldclinic.org,WI,Health system
+Gundersen Health System,gundersenhealth.org,WI,Health system
+Allina Health,allinahealth.org,MN,Health system
+Fairview Health Services,fairview.org,MN,Health system
+HealthPartners,healthpartners.com,MN,Integrated health system
+Essentia Health,essentiahealth.org,MN,Health system
+CentraCare,centracare.com,MN,Health system
+Sanford Health,sanfordhealth.org,SD,Health system
+Avera Health,avera.org,SD,Health system
+Nebraska Medicine,nebraskamed.com,NE,Academic health system
+Bryan Health,bryanhealth.com,NE,Health system
+The University of Kansas Health System,kansashealthsystem.com,KS,Academic health system
+Stormont Vail Health,stormontvail.org,KS,Health system
+Saint Luke's Health System,saintlukeskc.org,MO,Health system
+BJC HealthCare,bjc.org,MO,Health system
+Mercy,mercy.net,MO,Health system
+SSM Health,ssmhealth.com,MO,Health system
+CoxHealth,coxhealth.com,MO,Health system
+OU Health,ouhealth.com,OK,Academic health system
+INTEGRIS Health,integrisok.com,OK,Health system
+Saint Francis Health System,saintfrancis.com,OK,Health system
+Houston Methodist,houstonmethodist.org,TX,Academic health system
+Texas Health Resources,texashealth.org,TX,Health system
+Methodist Health System,methodisthealthsystem.org,TX,Health system
+UT Southwestern Medical Center,utsouthwestern.edu,TX,Academic medical center
+Christus Health,christushealth.org,TX,Health system
+University Health,universityhealth.com,TX,Public health system
+Parkland Health,parklandhealth.org,TX,Public health system
+Presbyterian Healthcare Services,phs.org,NM,Health system
+Denver Health,denverhealth.org,CO,Public health system
+UCHealth,uchealth.org,CO,Health system
+Billings Clinic,billingsclinic.com,MT,Health system
+St. Luke's Health System,stlukesonline.org,ID,Health system
+Renown Health,renown.org,NV,Health system
+Cedars-Sinai,cedars-sinai.org,CA,Academic medical center
+UCLA Health,uclahealth.org,CA,Academic health system
+UCSF Health,ucsfhealth.org,CA,Academic health system
+UC San Diego Health,health.ucsd.edu,CA,Academic health system
+UC Davis Health,health.ucdavis.edu,CA,Academic health system
+UCI Health,ucihealth.org,CA,Academic health system
+Stanford Health Care,stanfordhealthcare.org,CA,Academic health system
+Sharp HealthCare,sharp.com,CA,Health system
+Scripps Health,scripps.org,CA,Health system
+Hoag,hoag.org,CA,Health system
+MemorialCare,memorialcare.org,CA,Health system
+Adventist Health,adventisthealth.org,CA,Health system
+Loma Linda University Health,lluh.org,CA,Academic health system
+Keck Medicine of USC,keckmedicine.org,CA,Academic health system
+El Camino Health,elcaminohealth.org,CA,Health system
+John Muir Health,johnmuirhealth.com,CA,Health system
+Legacy Health,legacyhealth.org,OR,Health system
+OHSU Health,ohsu.edu,OR,Academic health system
+Samaritan Health Services,samhealth.org,OR,Health system
+PeaceHealth,peacehealth.org,WA,Health system
+MultiCare Health System,multicare.org,WA,Health system
+UW Medicine,uwmedicine.org,WA,Academic health system
+EvergreenHealth,evergreenhealth.com,WA,Public health system
+Hawaii Pacific Health,hawaiipacifichealth.org,HI,Health system
+The Queen's Health System,queens.org,HI,Health system
+WVU Medicine,wvumedicine.org,WV,Academic health system
+Vandalia Health,camc.org,WV,Health system
+Endeavor Health,endeavorhealth.org,IL,Health system
+Rush University System for Health,rush.edu,IL,Academic health system
+UChicago Medicine,uchicagomedicine.org,IL,Academic health system
+OSF HealthCare,osfhealthcare.org,IL,Health system
+Carle Health,carle.org,IL,Health system
+Sinai Chicago,sinaichicago.org,IL,Health system
+NYC Health + Hospitals,nychealthandhospitals.org,NY,Public health system
+Maimonides Health,maimonidesmed.org,NY,Health system
+Rochester Regional Health,rochesterregional.org,NY,Health system
+University of Rochester Medical Center,urmc.rochester.edu,NY,Academic medical center
+Albany Med Health System,albanymed.org,NY,Academic health system
+Stony Brook Medicine,stonybrookmedicine.edu,NY,Academic health system
+Catholic Health,chsli.org,NY,Health system
+Nuvance Health,nuvancehealth.org,CT,Health system
+Guthrie,guthrie.org,PA,Health system
+Ochsner LSU Health,ochsnerlsuhs.org,LA,Academic health system
