@@ -13,7 +13,7 @@ Working agents for real GTM problems, built with Claude. The public face of thes
 | SEO Performance Monitor | Ahrefs, Semrush | Built. `agents/seo-performance-monitor/` — page performance from a Search Console export, position-weighted share of voice, and keyword discovery via Google Suggest. Two of three data sources need no API key |
 | Intelligent Copywriter | Writer, Jasper | Planned |
 | Customer Researcher | Wynter, UserTesting | Planned |
-| Dashboard Synthesizer | Tableau, Looker Studio | Planned |
+| Account Intelligence Agent | 6sense, Demandbase | Planned |
 | Content Agents | Canva, Adobe GenStudio | Planned |
 
 ## Layout
