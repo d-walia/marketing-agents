@@ -41,7 +41,7 @@ agents/ai-brand-auditor/
 
 Subagent definitions live at the repo root in [`.claude/agents/`](../../.claude/agents/).
 
-## Running an audit
+## How to run
 
 Just ask, from the repo root:
 

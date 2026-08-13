@@ -58,7 +58,7 @@ agents/account-intelligence-agent/
     └── health-system-seed-list.csv   # 185 US health systems: company_name, domain, state, type
 ```
 
-## Running / extending it
+## How to run
 
 Ask from any Claude Code session with Chrome access, logged into Clay:
 

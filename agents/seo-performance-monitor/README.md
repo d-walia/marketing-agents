@@ -60,7 +60,7 @@ SERPAPI_KEY=...      # serpapi.com  — 250 searches/month, recurring
 
 Then point `config/site.json` at whichever domain you're analyzing.
 
-## Running it
+## How to run
 
 From the repo root in Claude Code, just ask — the `seo-performance-monitor`
 skill triggers on requests like "how is the site doing in search" or "what
@@ -91,7 +91,7 @@ queries and pages as *separate* files, so cannibalization detection needs either
 Search Console API access or a page-by-page export — the analyzer says so rather
 than skipping silently.
 
-## Notes & limits
+## Notes and limits
 
 - **No search volume, anywhere.** This toolchain has demonstrated demand
   (Suggest) and actual impressions (Search Console), which are better signals

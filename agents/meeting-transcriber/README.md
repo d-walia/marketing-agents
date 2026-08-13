@@ -54,7 +54,7 @@ from the Mac's microphone (optionally plus the call's far side via BlackHole),
 so it is mic-bound and Claude Code-only by nature. Everything in *this* folder
 is portable: file in, notes out, no hardware dependency.
 
-## How to use it
+## How to run
 
 The easiest way is to **just ask, and drag the file into the prompt**:
 
@@ -126,7 +126,7 @@ lower — see [Notes & limits](#notes--limits). Whisper is speech recognition, n
 32k mono at 16 kHz costs nothing in accuracy and keeps a wide margin. Check a
 file's length first with `ffprobe -i recording.mp4 -show_entries format=duration`.
 
-## Notes & limits
+## Notes and limits
 
 - **The real upload ceiling is ~15 MB, not the 25 MB Groq documents.** Measured
   2026-07-25 on a 57-minute recording: 358 KB ✅, 13 MB (32k) ✅, **21.5 MB (48k)

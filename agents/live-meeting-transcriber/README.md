@@ -36,7 +36,7 @@ material, not the deliverable.
 2. **ffmpeg** — `brew install ffmpeg`.
 3. **(Only for capturing a call's far side)** BlackHole — see below.
 
-## Usage
+## How to run
 
 ```bash
 # one-time: list capture devices to find your device's index
@@ -74,7 +74,7 @@ Mic-only needs none of this — it already covers an in-person room. If BlackHol
 isn't set up, the agent will offer mic-only rather than silently dropping the
 far side.
 
-## Notes & limits
+## Notes and limits
 
 - **Near-live, not word-by-word:** ~one-segment lag, and each segment is
   transcribed without cross-boundary context, so a word can split oddly at a
