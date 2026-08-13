@@ -2,7 +2,7 @@
 
 Working agents for real GTM problems, built with Claude — each replacing a paid SaaS tool. The public face of these lives at [dw-digital-consulting.com](https://dw-digital-consulting.com/#agents).
 
-> **TL;DR** — Six built agents (GEO audits, competitive intel, meeting transcription ×2, SEO, account intelligence), three planned. Each agent folder has a `SKILL.md` front door (auto-triggers in Claude Code) and a `README.md` explaining the design. Install by symlinking into `~/.claude/skills/`.
+> **TL;DR** — Six built agents (GEO audits, competitive intel, meeting transcription ×2, SEO, account intelligence), three planned. Each agent folder has a `SKILL.md` front door (auto-triggers in Claude Code) and a `README.md` explaining the design. Some have examples. Install by symlinking into `~/.claude/skills/`.
 
 ## What's inside
 
