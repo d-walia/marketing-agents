@@ -2,6 +2,8 @@
 
 Measures how AI models (Claude, ChatGPT, Gemini) perceive and recommend a brand: does it show up when buyers ask category questions, at what rank, framed how, and how accurately. The workflow is decomposed into four Claude Code subagents, each owning one step and handing off through files.
 
+This folder is the home of the repo's whole GEO/AEO practice: the brand audit pipeline is the flagship, and two smaller sibling agents live alongside it (see [Sibling agents](#sibling-agents) below) covering the layers of the stack the pipeline itself doesn't — technical site health and traditional search performance.
+
 ## Why agents, and why these boundaries
 
 The credibility of an audit depends on separation of concerns:
@@ -32,15 +34,26 @@ agents/ai-brand-auditor/
 ├── scripts/
 │   ├── run_queries.py    # stdlib-only; routes all calls through Cloudflare AI Gateway
 │   └── render_report.py  # stdlib-only; run dir → one shareable self-contained HTML file
-└── runs/<run_id>/        # created per run (gitignored)
-    ├── manifest.json     # what ran, what failed
-    ├── raw/<provider>/   # one JSON per query: prompt, response, usage, latency
-    ├── scores.json/.md   # ← audit-perception-scorer output
-    ├── grades.md         # ← audit-rubric-grader output
-    └── report.md         # ← audit-reporter output
+├── runs/<run_id>/        # created per run (gitignored)
+│   ├── manifest.json     # what ran, what failed
+│   ├── raw/<provider>/   # one JSON per query: prompt, response, usage, latency
+│   ├── scores.json/.md   # ← audit-perception-scorer output
+│   ├── grades.md         # ← audit-rubric-grader output
+│   └── report.md         # ← audit-reporter output
+├── site-auditor/             # sibling agent (own SKILL.md + README)
+└── seo-performance-monitor/  # sibling agent (own SKILL.md + README)
 ```
 
 Subagent definitions live at the repo root in [`.claude/agents/`](../../.claude/agents/).
+
+## Sibling agents
+
+Two smaller agents live in this folder because they serve the same GEO/AEO practice, but they are **independent tools, not steps of the pipeline** — each has its own `SKILL.md` front door, runs on its own (and for free — neither touches an LLM API), and gets symlinked into `~/.claude/skills/` separately:
+
+- [**Site Auditor**](site-auditor/) — polite stdlib crawler → page corpus → technical checks + AEO readiness (can AI crawlers get in, server-rendered content, structured data, llms.txt; own-site backlinks via GSC export). Replaces Screaming Frog. Its `--full-text` corpus is also the collection half of the planned Competitor Content Analyzer.
+- [**SEO Performance Monitor**](seo-performance-monitor/) — Search Console analysis, position-weighted share of voice, keyword discovery. Replaces the everyday slice of Ahrefs/Semrush.
+
+Why they're grouped here rather than top-level: a brand's AI visibility (the pipeline's subject) rests on whether its site can be read and cited at all (Site Auditor) and how it performs in traditional search (SEO Monitor) — the full stack mapping is in the [repo README](../../README.md#how-the-geoaeo-agents-fit-together). Why they're *not* merged into the pipeline: they run on different cadences with different inputs, and the pipeline's four subagents stay a closed system — collection, two blind analysts, reporter — whose boundaries exist for audit credibility, not for grouping convenience.
 
 ## How to run
 

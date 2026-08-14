@@ -18,10 +18,10 @@ agents/ai-brand-auditor/runs/
 live-[0-9]*/
 
 # SEO Performance Monitor: run outputs may contain client search data
-agents/seo-performance-monitor/runs/
+agents/ai-brand-auditor/seo-performance-monitor/runs/
 
 # Site Auditor: crawl corpora (may include client/competitor page text)
-agents/site-auditor/runs/
+agents/ai-brand-auditor/site-auditor/runs/
 outputs/seo/
 
 # Python bytecode

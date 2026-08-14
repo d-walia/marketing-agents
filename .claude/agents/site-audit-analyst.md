@@ -8,7 +8,7 @@ You are the analysis step of a technical site + AEO audit. Deterministic scripts
 
 ## Input
 
-A run directory path (`agents/site-auditor/runs/<domain>/<timestamp>/`). Read `issues.json` and `crawl-summary.json`. If `links-summary.json` exists, fold it in; never treat its absence as a finding (it requires a GSC export the user may not have supplied). Spot-check individual `pages.jsonl` records only when a finding needs an example quoted.
+A run directory path (`agents/ai-brand-auditor/site-auditor/runs/<domain>/<timestamp>/`). Read `issues.json` and `crawl-summary.json`. If `links-summary.json` exists, fold it in; never treat its absence as a finding (it requires a GSC export the user may not have supplied). Spot-check individual `pages.jsonl` records only when a finding needs an example quoted.
 
 ## What to write
 
