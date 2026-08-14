@@ -27,12 +27,12 @@ The AEO practitioner stack has four layers ([the framing](https://www.linkedin.c
 
 | Layer | The job | Buyable as | Here |
 |---|---|---|---|
-| 1. Search fundamentals | Rankings, keywords, technical site health | Semrush, Ahrefs, Screaming Frog | SEO Performance Monitor + Site Auditor. Not replicable free: search volumes, backlink indexes (own-site backlinks come free from the GSC Links export; the paid trigger is documented in the [Site Auditor README](agents/ai-brand-auditor/site-auditor/README.md)) |
-| 2. AI visibility tracking | How a brand shows up in LLM answers | Profound, PromptWatch | AI Brand Auditor — the layer big brands buy, built as a 4-subagent pipeline |
+| 1. Search fundamentals | Rankings, keywords, technical site health | Semrush, Ahrefs, Screaming Frog | SEO Performance Monitor + Site Auditor. Search volumes and backlink indexes can't be replicated free; own-site backlinks come from the GSC Links export, and the paid trigger is documented in the [Site Auditor README](agents/ai-brand-auditor/site-auditor/README.md) |
+| 2. AI visibility tracking | How a brand shows up in LLM answers | Profound, PromptWatch | AI Brand Auditor: the layer big brands buy, built here as a 4-subagent pipeline |
 | 3. Context files + agents | Client positioning, decision factors, competitor set, feeding agent research passes | (proprietary per team) | The architecture exists (`brand-pack/`, `intel/`, config, subagents); the [client intake guide](agents/ai-brand-auditor/config/client-intake.md) defines what fills it per client |
-| 4. Crawling + data processing | Competitor site corpora → content gaps, decision factors, citation references | Nobody sells it — teams build it | The Site Auditor's corpus design (`--full-text`) is the collection half; the Competitor Content Analyzer (planned) is the analysis half |
+| 4. Crawling + data processing | Competitor site corpora → content gaps, decision factors, citation references | Nobody sells it; teams build it | The Site Auditor's corpus design (`--full-text`) is the collection half; the Competitor Content Analyzer (planned) is the analysis half |
 
-The connecting thesis: layer 2 finds the visibility problem ("models recommend competitors"), layer 4 explains it and prescribes the fix ("here's the content they cite that you don't have"), layer 3 is the client knowledge both need, and layer 1 is the ground floor — a site AI crawlers can't read can't be cited at all.
+How they connect: layer 2 finds the visibility problem ("models recommend competitors"), layer 4 explains it and prescribes the fix ("here's the content they cite that you don't have"), layer 3 is the client knowledge both need, and layer 1 is the ground floor. A site AI crawlers can't read can't be cited at all.
 
 ## Quickstart
 

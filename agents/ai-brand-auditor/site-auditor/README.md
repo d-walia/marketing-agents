@@ -1,22 +1,23 @@
-# Site Auditor — Technical + AEO Crawl
+# Site Auditor: Technical + AEO Crawl
 
-Crawls a site into a structured page corpus, runs deterministic technical and AEO checks over it, and has an analyst subagent turn the findings into a prioritized report. The Screaming Frog job, plus a question Screaming Frog never asks: **can answer engines read this site at all?**
+Crawls a site into a structured page corpus, runs technical and AEO checks over it, and has an analyst subagent turn the findings into a prioritized report. It does the Screaming Frog job, plus a question Screaming Frog doesn't ask: can answer engines read this site at all?
 
-## The design decision that matters
+## Design
 
-The crawler is a **corpus builder, not an issue finder**. `crawl_site.py` fetches pages and stores one JSON record each — structure, metadata, links, optionally full text. Every audit finding is computed *downstream* by `check_site.py` as a free re-runnable read of that corpus, and interpreted by the `site-audit-analyst` subagent.
+The crawler builds a corpus; it finds nothing. `crawl_site.py` fetches pages and stores one JSON record each: structure, metadata, links, optionally full text. Every finding is computed downstream by `check_site.py` as a free, re-runnable read of that corpus, then interpreted by the `site-audit-analyst` subagent.
 
-Screaming Frog couples crawling to auditing; decoupling them is what makes this dual-use. Pointed at your own site, the corpus answers layer-1 questions (technical health). Pointed at a competitor with `--full-text`, the same corpus is layer-4 raw material — content inventory, gaps, positioning language — for a future analysis agent that reads two corpora and diffs them. One crawler, two layers.
+Decoupling crawl from audit is what makes the corpus reusable. Pointed at your own site, it answers technical-health questions. Pointed at a competitor with `--full-text`, the same corpus becomes raw material for the planned Competitor Content Analyzer: content inventory, gaps, positioning language. One crawler, two layers of the stack.
 
 ## What the checks cover
 
-**Technical (per page):** broken internal links, redirect chains and redirected links, missing/duplicate/overlong titles and meta descriptions, missing/multiple H1s, thin content, orphan pages, noindex-in-sitemap conflicts, canonical mismatches, images without alt text, pages without structured data.
+**Technical, per page:** broken internal links, redirect chains and redirected links, missing/duplicate/overlong titles and meta descriptions, missing or multiple H1s, thin content, orphan pages, noindex-in-sitemap conflicts, canonical mismatches, images without alt text, pages without structured data.
 
-**AEO readiness (site-level) — the differentiator:**
-- **AI-crawler access** — robots.txt verdicts for 13 AI bots (GPTBot, ClaudeBot, PerplexityBot, Google-Extended, CCBot, …). A site that blocks ClaudeBot cannot be read, and therefore cannot be cited, by that engine. Sites block these by default more often than their marketing teams know.
-- **Server-rendered content** — the crawler doesn't render JS, and neither do most AI crawlers. A JS-heavy site shows up as wholesale thin content: for Google that's a measurement caveat, for AEO it *is* the finding.
-- **Structured data** — JSON-LD coverage and whether answer-engine-relevant types (FAQPage, HowTo, Article, Product, Organization) exist anywhere.
-- **llms.txt** — presence check, reported as an emerging convention, not a standard.
+**AEO readiness, site level:**
+
+- **AI-crawler access.** robots.txt verdicts for 13 AI bots (GPTBot, ClaudeBot, PerplexityBot, Google-Extended, CCBot, and more). A site that blocks ClaudeBot can't be read by that engine, so it can't be cited by it either. Sites block these more often than their marketing teams know.
+- **Server-rendered content.** The crawler doesn't render JavaScript, and neither do most AI crawlers. A JS-heavy site shows up as wholesale thin content. For Google that's a measurement caveat; for AEO it is the finding.
+- **Structured data.** JSON-LD coverage, and whether the types answer engines use (FAQPage, HowTo, Article, Product, Organization) exist anywhere on the site.
+- **llms.txt.** Presence check, reported as an emerging convention rather than a standard.
 
 ## Structure
 
@@ -41,7 +42,7 @@ The analyst subagent lives at the repo root in [`.claude/agents/site-audit-analy
 
 ## How to run
 
-Just ask, from the repo root: `Audit dw-digital-consulting.com` — [`SKILL.md`](SKILL.md) drives the steps. Install by symlinking:
+Ask from the repo root: `Audit dw-digital-consulting.com`. [`SKILL.md`](SKILL.md) drives the steps. Install by symlinking:
 
 ```bash
 ln -s ~/github/marketing-agents/agents/ai-brand-auditor/site-auditor ~/.claude/skills/site-auditor
@@ -56,20 +57,20 @@ python3 scripts/check_site.py                                # checks on the new
 python3 scripts/parse_gsc_links.py ~/Downloads/links-export/ --run runs/example.com/<ts>
 ```
 
-No keys, no gateway, no cost: the crawler talks only to the audited site, and analysis runs inside the Claude subscription.
+No keys, no gateway, no cost. The crawler talks only to the audited site, and analysis runs inside the Claude subscription.
 
 ## Politeness
 
-Identifying user agent, robots.txt respected (disallowed URLs are recorded as skipped, and AI-bot rules are *reported* either way), 1 request/second default, 300-page default cap. Crawling a competitor's public marketing site at that rate is ordinary crawler traffic; keep it that way — never crank `--delay` down on a site you don't own.
+Identifying user agent, robots.txt respected (disallowed URLs are recorded as skipped; AI-bot rules are reported either way), 1 request per second, 300-page cap by default. Crawling a competitor's public marketing site at that rate is ordinary crawler traffic. Keep it that way: never lower `--delay` on a site you don't own.
 
-## Honest boundaries
+## Limits
 
-- **Search volumes: not here.** Google Suggest expansion lives in the SEO monitor; actual volume numbers require paid data. Free approximations: Keyword Planner ranges (free Ads account), Google Trends for relative demand.
-- **Competitor backlinks: not here.** Own-site backlinks come free from the GSC Links export (`parse_gsc_links.py` — works on anything you or a client can verify, or a CSV a client emails you). A backlink *index* cannot be self-built.
-- **The upgrade trigger for both:** first paid client audit that needs competitor backlink data or precise volumes → DataForSEO pay-as-you-go (~$50 one-time deposit, pennies per audit; verify current rates before depositing — they adjusted ~20% in July 2026). Deliberately not built until then.
-- **No JS rendering.** Server HTML only, which doubles as the AEO-relevant view. Trigger for a Playwright fallback: the first client site that's genuinely client-rendered.
+- **No search volumes.** Google Suggest expansion lives in the SEO monitor; real volume numbers require paid data. Free approximations: Keyword Planner ranges (free Ads account) and Google Trends for relative demand.
+- **No competitor backlinks.** Own-site backlinks come free from the GSC Links export (`parse_gsc_links.py` works on any property you or a client can verify, including a CSV a client emails you). A backlink index can't be self-built.
+- **The upgrade trigger for both:** the first paid client audit that needs competitor backlinks or precise volumes. At that point, DataForSEO pay-as-you-go (about a $50 one-time deposit, pennies per audit; verify current rates first, since they moved ~20% in July 2026). Not built until then.
+- **No JS rendering.** Server HTML only, which is also the AEO-relevant view. The trigger for a Playwright fallback: the first client site that's genuinely client-rendered.
 
-## Gotchas learned elsewhere in this repo, applied here
+## Gotchas
 
-- Cloudflare 403s Python's default urllib user-agent (`error code: 1010`) — the crawler sends an identifying UA of its own.
-- Dramatic numbers are the instrument until proven otherwise: "every page is thin" means a JS-rendered site; "no sitemap" usually means a non-standard location. Same rule as the brand auditor's truncation incident.
+- Cloudflare 403s Python's default urllib user-agent (`error code: 1010`); the crawler sends an identifying UA of its own.
+- Dramatic numbers are the instrument until proven otherwise. "Every page is thin" means a JS-rendered site; "no sitemap" usually means a non-standard location. Same rule as the brand auditor's truncation incident.
