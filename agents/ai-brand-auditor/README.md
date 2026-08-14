@@ -27,7 +27,8 @@ agents/ai-brand-auditor/
 ├── config/
 │   ├── brand.json        # brand, category, competitors, models per provider
 │   ├── query_grid.json   # 8 queries × 4 types (category, brand, comparison, use-case)
-│   └── rubric.md         # 5-criterion grading rubric (0–2 each)
+│   ├── rubric.md         # 5-criterion grading rubric (0–2 each)
+│   └── client-intake.md  # what to collect from a client, and where each piece goes
 ├── scripts/
 │   ├── run_queries.py    # stdlib-only; routes all calls through Cloudflare AI Gateway
 │   └── render_report.py  # stdlib-only; run dir → one shareable self-contained HTML file
@@ -88,7 +89,13 @@ The header band (brand, models, calls succeeded/failed) comes from `manifest.jso
 
 ## Auditing a different brand
 
-Edit `config/brand.json` (brand, category, competitors). The query grid uses placeholders (`{brand}`, `{competitor_0}`, …) so it adapts automatically; add category-specific queries to `query_grid.json` as needed.
+Start with [`config/client-intake.md`](config/client-intake.md) — it lists what to collect from the client (or gather yourself), why each piece matters, and where it goes. The short version:
+
+1. **Required to run:** fill `config/brand.json` (brand, category, buyer context, 3 competitors — the file is a self-documenting template, and `run_queries.py` refuses to run while it's unfilled). The query grid uses placeholders (`{brand}`, `{competitor_0}`, …) so it adapts automatically.
+2. **Required before trusting grades:** a `config/ground-truth.md` fact sheet from the client. The rubric's accuracy and freshness criteria are only as good as the source of truth behind them — without one, the grader can only catch errors it happens to recognize.
+3. **Better with:** real buyer language for category-specific queries in `query_grid.json`, battlecards in `intel/`, positioning in `brand-pack/`.
+
+Client-provided material (ground truth, battlecards, positioning) stays out of git history and published outputs — same rule as keys.
 
 ## Gotchas learned the hard way
 

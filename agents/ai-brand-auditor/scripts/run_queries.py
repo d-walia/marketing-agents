@@ -121,6 +121,12 @@ def main():
     args = ap.parse_args()
 
     brand_cfg = json.loads((CONFIG / "brand.json").read_text())
+    unfilled = [k for k in ("brand", "category", "category_short", "buyer_query_context")
+                if not brand_cfg.get(k, "").strip()]
+    if len([c for c in brand_cfg.get("competitors", []) if c.strip()]) < 3:
+        unfilled.append("competitors (need 3)")
+    if unfilled:
+        sys.exit(f"config/brand.json is an unfilled template — fill in: {', '.join(unfilled)}")
     grid = json.loads((CONFIG / "query_grid.json").read_text())["queries"]
     providers = [p.strip() for p in args.providers.split(",") if p.strip() in CALLERS]
 
