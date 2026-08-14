@@ -2,7 +2,7 @@
 
 Working agents for real GTM problems, built with Claude — each replacing a paid SaaS tool. The public face of these lives at [dw-digital-consulting.com](https://dw-digital-consulting.com/#agents).
 
-> **TL;DR** — Six built agents (GEO audits, competitive intel, meeting transcription ×2, SEO, account intelligence), three planned. Each agent folder has a `SKILL.md` front door (auto-triggers in Claude Code) and a `README.md` explaining the design. Some have examples. Install by symlinking into `~/.claude/skills/`.
+> **TL;DR** — Seven built agents (GEO audits, competitive intel, meeting transcription ×2, SEO, account intelligence, landing page mocks), three planned. Each agent folder has a `SKILL.md` front door (auto-triggers in Claude Code) and a `README.md` explaining the design. Some have examples. Install by symlinking into `~/.claude/skills/`.
 
 ## What's inside
 
@@ -14,6 +14,7 @@ Working agents for real GTM problems, built with Claude — each replacing a pai
 | Live Meeting Transcriber | Live calls, near-real-time, from the Mac's mic (+ BlackHole for the far side); feeds the Meeting Transcriber notes step | Otter, Fireflies | Built | [`agents/live-meeting-transcriber/`](agents/live-meeting-transcriber/) |
 | SEO Performance Monitor | Page performance from a Search Console export, position-weighted share of voice, keyword discovery via Google Suggest | Ahrefs, Semrush | Built | [`agents/seo-performance-monitor/`](agents/seo-performance-monitor/) |
 | Account Intelligence Agent | Claude drives the Clay web UI: seed CSV → enrichment waterfalls → research columns → contacts → email waterfall | A GTM engineer / Clay consultant | Built | [`agents/account-intelligence-agent/`](agents/account-intelligence-agent/) |
+| Landing Page Builder | Brand capture (tokens + voice, two-pass extraction) → true-to-life HTML page mocks with copy in place, on stable share links | Figma comps, screenshot stitching | Built | [`agents/landing-page-builder/`](agents/landing-page-builder/) |
 | Intelligent Copywriter | On-brand copy from the brand-pack input layer | Writer, Jasper | Planned | — |
 | Customer Researcher | — | Wynter, UserTesting | Planned | — |
 | Content Agents | — | Canva, Adobe GenStudio | Planned | — |
