@@ -2,7 +2,7 @@
 
 Working agents for real GTM problems, built with Claude — each replacing a paid SaaS tool. The public face of these lives at [dw-digital-consulting.com](https://dw-digital-consulting.com/#agents).
 
-> **TL;DR** — Seven built agents (GEO audits, competitive intel, meeting transcription ×2, SEO, account intelligence, landing page mocks), three planned. Each agent folder has a `SKILL.md` front door (auto-triggers in Claude Code) and a `README.md` explaining the design. Some have examples. Install by symlinking into `~/.claude/skills/`.
+> **TL;DR** — Eight built agents (GEO audits, site + AEO crawl audits, competitive intel, meeting transcription ×2, SEO, account intelligence, landing page mocks), three planned. Each agent folder has a `SKILL.md` front door (auto-triggers in Claude Code) and a `README.md` explaining the design. Some have examples. Install by symlinking into `~/.claude/skills/`.
 
 ## What's inside
 
@@ -13,6 +13,7 @@ Working agents for real GTM problems, built with Claude — each replacing a pai
 | Meeting Transcriber | Recordings and video files → structured notes via the free Groq Whisper API | Otter, Fireflies | Built | [`agents/meeting-transcriber/`](agents/meeting-transcriber/) |
 | Live Meeting Transcriber | Live calls, near-real-time, from the Mac's mic (+ BlackHole for the far side); feeds the Meeting Transcriber notes step | Otter, Fireflies | Built | [`agents/live-meeting-transcriber/`](agents/live-meeting-transcriber/) |
 | SEO Performance Monitor | Page performance from a Search Console export, position-weighted share of voice, keyword discovery via Google Suggest | Ahrefs, Semrush | Built | [`agents/seo-performance-monitor/`](agents/seo-performance-monitor/) |
+| Site Auditor | Polite stdlib crawler → page corpus → technical checks + AEO readiness (AI-bot access, server-rendered content, structured data, llms.txt); own-site backlinks via GSC export | Screaming Frog | Built | [`agents/site-auditor/`](agents/site-auditor/) |
 | Account Intelligence Agent | Claude drives the Clay web UI: seed CSV → enrichment waterfalls → research columns → contacts → email waterfall | A GTM engineer / Clay consultant | Built | [`agents/account-intelligence-agent/`](agents/account-intelligence-agent/) |
 | Landing Page Builder | Brand capture (tokens + voice, two-pass extraction) → true-to-life HTML page mocks with copy in place, on stable share links | Figma comps, screenshot stitching | Built | [`agents/landing-page-builder/`](agents/landing-page-builder/) |
 | Intelligent Copywriter | On-brand copy from the brand-pack input layer | Writer, Jasper | Planned | — |
