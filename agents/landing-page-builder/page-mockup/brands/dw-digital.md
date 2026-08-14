@@ -4,7 +4,7 @@
 
 ## Sources
 - Repo: `~/github/portfolio-website` (`app/globals.css`, `app/page.tsx`, `app/layout.tsx`) — extracted 2026-08-13, method: codebase (pixel-true).
-- Reference screenshots: not yet captured — take live-site shots at 1280px/375px before the first verification rebuild.
+- Verification rebuild: PASSED 2026-08-13 — hero first, then the FULL PAGE (all 5 sections + footer) rebuilt and diffed against the live site at 1280px and 375px in-session. Known delta: body line-wrapping shifts ~1 line under the CSP font fallback (Helvetica Neue metrics vs Lato); tokens, spacing, casing, tracking all match. Chips/scard/site-note/card-head recipes below were extracted during that rebuild.
 
 ## Tokens
 ```css
@@ -92,7 +92,45 @@ Centered, text-only hero — no media split, no imagery.
 Bottom rows (`.result`, `.chips`) pin with `margin-top:auto` so paired cards align — keep in any new variant.
 
 ### Section header pattern
-Uppercase tracked h2 + ink underline (::after above) + `.lede{max-width:660px;font-size:17.5px;margin-bottom:40px}`. Alternate sections use `section.alt{background:var(--bg-alt)}`.
+Uppercase tracked h2 + ink underline (::after above) + `.lede{max-width:660px;font-size:17.5px;margin-bottom:40px}`. Alternate sections use `section.alt{background:var(--bg-alt)}`. Footer's centered text keeps the underline left-aligned (no override on the live site).
+
+### Chips (tool/logo pills)
+```css
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--rule);background:#fff;border-radius:999px;padding:5px 14px 5px 5px;font-family:'Raleway';font-weight:500;font-size:12.5px;letter-spacing:.02em;color:var(--ink);transition:border-color .15s}
+.chip .mono{width:22px;height:22px;flex:0 0 22px;border-radius:6px;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;line-height:1}
+/* hover: border-color → #9aa1a9, .15s */
+```
+Live site loads tiny favicons (`.tlogo`, 19px) with the `.mono` monogram square as fallback. In CSP-restricted mocks use `.mono` initials only — it's the site's own fallback design, so it still reads as the brand. Note the chips are the ONE rounded element family (pill chips, 6-10px radius on monogram/logo squares) in an otherwise square-cornered system.
+
+### Experience card head
+```css
+.card-head{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.head-logo{width:44px;height:44px;flex:0 0 44px;border:1px solid var(--rule);border-radius:10px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden}
+/* inside: 30px logo img; h3 at 18px, .sub in Raleway 500 12.5px --mid below it */
+/* then: .hook (Raleway 500 12.5px --mid), body at 14px/1.6, .result at 12.5px */
+```
+Experience cards run one step denser than base cards (body 14px vs 15.5px, result 12.5px vs 14px) so the header row leads.
+
+### Stack card (icon-headed variant of card)
+```css
+.stack-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.scard{border:1px solid var(--rule);background:var(--card);padding:26px;height:100%;display:flex;flex-direction:column;transition:border-color .2s,box-shadow .2s,transform .2s}
+.scard.wide{grid-column:1 / -1}
+.scard-head{display:flex;align-items:center;gap:13px;margin-bottom:12px}
+.scard-icon{width:40px;height:40px;flex:0 0 40px;border:1px solid var(--rule);border-radius:10px;display:flex;align-items:center;justify-content:center;background:#fff}
+.scard-icon svg{width:21px;height:21px;fill:none;stroke:var(--ink);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+/* hover: same lift as .card; chips pin bottom via margin-top:auto;
+   non-wide scards lay chips in a 2-col max-content grid so logos align */
+```
+Icon style: 24px-viewBox line icons, 1.6 stroke, round caps — never filled.
+
+### Site-note (left-railed callout)
+```css
+.site-note{border-left:2px solid var(--ink);background:var(--card);border-top:1px solid var(--rule);border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:26px 30px}
+code{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:.86em;background:#dcdfe4;border:1px solid var(--rule);padding:1px 6px;border-radius:3px;color:var(--ink)}
+/* inside section.alt, code bg flips to #e8eaee */
+```
 
 ### Footer
 ```css
