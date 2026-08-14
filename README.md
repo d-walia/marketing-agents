@@ -2,7 +2,7 @@
 
 Working agents for real GTM problems, built with Claude — each replacing a paid SaaS tool. The public face of these lives at [dw-digital-consulting.com](https://dw-digital-consulting.com/#agents).
 
-> **TL;DR** — Eight built agents (GEO audits, site + AEO crawl audits, competitive intel, meeting transcription ×2, SEO, account intelligence, landing page mocks), three planned. Each agent folder has a `SKILL.md` front door (auto-triggers in Claude Code) and a `README.md` explaining the design. Some have examples. Install by symlinking into `~/.claude/skills/`.
+> **TL;DR** — Eight built agents (GEO audits, site + AEO crawl audits, competitive intel, meeting transcription ×2, SEO, account intelligence, landing page mocks), four planned. Each agent folder has a `SKILL.md` front door (auto-triggers in Claude Code) and a `README.md` explaining the design. Some have examples. Install by symlinking into `~/.claude/skills/`.
 
 ## What's inside
 
@@ -19,6 +19,20 @@ Working agents for real GTM problems, built with Claude — each replacing a pai
 | Intelligent Copywriter | On-brand copy from the brand-pack input layer | Writer, Jasper | Planned | — |
 | Customer Researcher | — | Wynter, UserTesting | Planned | — |
 | Content Agents | — | Canva, Adobe GenStudio | Planned | — |
+| Competitor Content Analyzer | Reads Site Auditor `--full-text` corpora of competitor sites → content gaps, decision factors, citation-worthy pages | The crawl stack AEO teams build in-house | Planned | — |
+
+## How the GEO/AEO agents fit together
+
+The AEO practitioner stack has four layers ([the framing](https://www.linkedin.com/in/jimmypark/) big-brand operators use: three you can buy, one they build). This repo's answer to each:
+
+| Layer | The job | Buyable as | Here |
+|---|---|---|---|
+| 1. Search fundamentals | Rankings, keywords, technical site health | Semrush, Ahrefs, Screaming Frog | SEO Performance Monitor + Site Auditor. Not replicable free: search volumes, backlink indexes (own-site backlinks come free from the GSC Links export; the paid trigger is documented in the [Site Auditor README](agents/site-auditor/README.md)) |
+| 2. AI visibility tracking | How a brand shows up in LLM answers | Profound, PromptWatch | AI Brand Auditor — the layer big brands buy, built as a 4-subagent pipeline |
+| 3. Context files + agents | Client positioning, decision factors, competitor set, feeding agent research passes | (proprietary per team) | The architecture exists (`brand-pack/`, `intel/`, config, subagents); the [client intake guide](agents/ai-brand-auditor/config/client-intake.md) defines what fills it per client |
+| 4. Crawling + data processing | Competitor site corpora → content gaps, decision factors, citation references | Nobody sells it — teams build it | The Site Auditor's corpus design (`--full-text`) is the collection half; the Competitor Content Analyzer (planned) is the analysis half |
+
+The connecting thesis: layer 2 finds the visibility problem ("models recommend competitors"), layer 4 explains it and prescribes the fix ("here's the content they cite that you don't have"), layer 3 is the client knowledge both need, and layer 1 is the ground floor — a site AI crawlers can't read can't be cited at all.
 
 ## Quickstart
 
