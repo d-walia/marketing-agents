@@ -2,7 +2,6 @@
 .env.*
 node_modules/
 .DS_Store
-agents/ai-brand-auditor/runs/
 
 # Meeting Transcriber: never commit audio or meeting content
 *.m4a
@@ -18,10 +17,10 @@ agents/ai-brand-auditor/runs/
 live-[0-9]*/
 
 # SEO Performance Monitor: run outputs may contain client search data
-agents/ai-brand-auditor/seo-performance-monitor/runs/
+agents/seo-performance-monitor/runs/
 
 # Site Auditor: crawl corpora (may include client/competitor page text)
-agents/ai-brand-auditor/site-auditor/runs/
+agents/site-auditor/runs/
 outputs/seo/
 
 # Python bytecode

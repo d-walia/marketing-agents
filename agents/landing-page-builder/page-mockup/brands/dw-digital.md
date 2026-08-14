@@ -101,7 +101,7 @@ Uppercase tracked h2 + ink underline (::after above) + `.lede{max-width:660px;fo
 .chip .mono{width:22px;height:22px;flex:0 0 22px;border-radius:6px;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;line-height:1}
 /* hover: border-color → #9aa1a9, .15s */
 ```
-Live site loads tiny favicons (`.tlogo`, 19px) with the `.mono` monogram square as fallback. In CSP-restricted mocks use `.mono` initials only — it's the site's own fallback design, so it still reads as the brand. Note the chips are the ONE rounded element family (pill chips, 6-10px radius on monogram/logo squares) in an otherwise square-cornered system.
+Live site loads tiny favicons (`.tlogo`, 19px: width:19px;height:19px;object-fit:contain;border-radius:4px) with the `.mono` monogram square as fallback. In CSP-restricted mocks, fetch each favicon (icons.duckduckgo.com/ip3/<domain>.ico), downscale any over ~5KB to a 32px PNG (sips -s format png -Z 32), and inline as data URIs — proven 2026-08-13, ~140KB for 30 logos. Company logos live in the portfolio repo public/logos/ (.head-logo img at 30px). Monogram initials are the fallback only when a logo can not be fetched. Note the chips are the ONE rounded element family (pill chips, 6-10px radius on monogram/logo squares) in an otherwise square-cornered system.
 
 ### Experience card head
 ```css

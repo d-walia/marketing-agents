@@ -22,7 +22,7 @@ Decoupling crawl from audit is what makes the corpus reusable. Pointed at your o
 ## Structure
 
 ```
-agents/ai-brand-auditor/site-auditor/
+agents/site-auditor/
 ├── SKILL.md                    # front door — crawl, check, analyze, report
 ├── scripts/
 │   ├── crawl_site.py           # stdlib-only polite crawler → page corpus
@@ -38,14 +38,14 @@ agents/ai-brand-auditor/site-auditor/
     └── report.md               # ← site-audit-analyst output
 ```
 
-The analyst subagent lives at the repo root in [`.claude/agents/site-audit-analyst.md`](../../../.claude/agents/site-audit-analyst.md).
+The analyst subagent lives at the repo root in [`.claude/agents/site-audit-analyst.md`](../../.claude/agents/site-audit-analyst.md).
 
 ## How to run
 
 Ask from the repo root: `Audit dw-digital-consulting.com`. [`SKILL.md`](SKILL.md) drives the steps. Install by symlinking:
 
 ```bash
-ln -s ~/github/marketing-agents/agents/ai-brand-auditor/site-auditor ~/.claude/skills/site-auditor
+ln -s ~/github/marketing-agents/agents/site-auditor ~/.claude/skills/site-auditor
 ```
 
 Direct script usage:

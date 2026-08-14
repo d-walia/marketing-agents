@@ -7,7 +7,7 @@ description: Crawl a website into a structured corpus and audit it — technical
 
 Crawl a site into a page corpus, run deterministic checks over it, and have an analyst turn the findings into a prioritized report. Collection and checks are stdlib scripts (zero tokens, zero cost); judgment is one subagent at the end.
 
-**Repo root:** `$MARKETING_AGENTS_ROOT` if set, otherwise `~/github/marketing-agents`. Paths below are relative to `agents/ai-brand-auditor/site-auditor/`. Run from the repo root so `.claude/agents/site-audit-analyst.md` loads.
+**Repo root:** `$MARKETING_AGENTS_ROOT` if set, otherwise `~/github/marketing-agents`. Paths below are relative to `agents/site-auditor/`. Run from the repo root so `.claude/agents/site-audit-analyst.md` loads.
 
 ## Design rule
 
@@ -18,17 +18,17 @@ The crawler builds a corpus; it finds nothing. Checks are downstream reads of th
 1. **Confirm target and scope.** State domain and page cap in one line. Defaults: 300 pages, 1s delay. For a site that isn't Dhruv's or a client's, keep the default delay or slower — the crawler identifies itself and respects robots.txt, and we stay polite on other people's servers.
 2. **Crawl:**
    ```bash
-   python3 agents/ai-brand-auditor/site-auditor/scripts/crawl_site.py DOMAIN --max-pages 300
+   python3 agents/site-auditor/scripts/crawl_site.py DOMAIN --max-pages 300
    ```
    Add `--full-text` when the corpus will also feed content analysis (competitor crawls: always). Watch the closing lines: blocked AI bots and a hit page cap are worth relaying immediately.
 3. **Check:**
    ```bash
-   python3 agents/ai-brand-auditor/site-auditor/scripts/check_site.py agents/ai-brand-auditor/site-auditor/runs/DOMAIN/TIMESTAMP
+   python3 agents/site-auditor/scripts/check_site.py agents/site-auditor/runs/DOMAIN/TIMESTAMP
    ```
    Free to re-run forever; never re-crawl to fix a checks problem.
 4. **Backlinks (optional, own/client sites only):** if Dhruv has a GSC Links export for the property, parse it into the run so the analyst can use it:
    ```bash
-   python3 agents/ai-brand-auditor/site-auditor/scripts/parse_gsc_links.py EXPORT_DIR --run agents/ai-brand-auditor/site-auditor/runs/DOMAIN/TIMESTAMP
+   python3 agents/site-auditor/scripts/parse_gsc_links.py EXPORT_DIR --run agents/site-auditor/runs/DOMAIN/TIMESTAMP
    ```
    If he doesn't, skip silently — offer it only when the audited site is one he or a client controls.
 5. **Analyze** — dispatch `site-audit-analyst` with the run directory path and nothing else. It writes `report.md`.
