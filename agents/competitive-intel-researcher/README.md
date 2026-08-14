@@ -1,32 +1,35 @@
 # Competitive Intel Researcher
 
-Turns a week of battlecard research into an afternoon — without turning it into fiction. The credibility of the output is the product.
+Decision-driven competitive intelligence on 1–5 vendors — evidence-graded dossiers, a weighted comparison matrix, and battlecards sales can read verbatim. The credibility of the output is the product.
 
 ## What you get
 
-Three files per run in `outputs/<competitor-slug>/<date>/`:
+Depends on the mode (every run starts by confirming which decision it serves):
 
-- **`full-report.md`** — the sourced analysis, organized by five lenses (company scan, voice of market, trajectory, positioning read, delta).
-- **`battlecard.md`** — one page, sales-facing: who they are, how we win, **how we lose** (mandatory — a card that says we always win is marketing to ourselves), landmines to set, objection handling, pricing with a fetched-on date.
-- **`delta-memo.md`** — when prior intel exists in `intel/<competitor-slug>/`: what changed since last look, with the so-what for sales in one line per change.
+| Mode | Outputs |
+|---|---|
+| Deal support | Know/Say/Show battlecard + head-to-head delta |
+| Landscape (2–5 vendors) | Per-vendor dossiers + weighted comparison matrix + landscape report |
+| Monitoring refresh | Delta memo against the `intel/` baseline |
+| Positioning/prep | Landscape report + say/do gap analysis |
 
 ## How to run
 
-Ask: "build a battlecard for [company]", "what's new with [competitor]", or "how would we sell against [company]?" Providing your own product context (who we are, which deals we meet them in) transforms the "how we win" section from generic to usable — the skill says so plainly when context is missing.
+Ask: "build a battlecard for [company]", "compare [A] vs [B] vs [C]", "what's new with [competitor]", or "how would we sell against [company]?" The skill confirms mode, vendor list, capability taxonomy, and scoring weights before researching — collection starts from the decision, not from data.
 
 ## How it works
 
-| Lens | Question it answers | Source |
-|---|---|---|
-| 1. Company scan | What do they *say* they are? | Product pages, pricing, docs, changelog, customer logos |
-| 2. Voice of market | What do customers *say* they are? | G2/Capterra/TrustRadius themes, why users switched |
-| 3. Trajectory | Where are they going? | Funding, exec hires, press, open job postings (postings telegraph roadmap) |
-| 4. Positioning read | Where's the attack surface? | The gap between lens 1 and lens 2 |
-| 5. Delta | What changed? | Diff against `intel/<competitor-slug>/` |
+1. **Intake** — mode, vendors, product context, and a capability taxonomy defined *before* profiling any vendor (prevents anchoring on one vendor's feature sheet).
+2. **Collection** — one dossier per vendor against a fixed 8-section schema ([references/dossier-template.md](references/dossier-template.md)): identity, ICP, capabilities, pricing, GTM motion, voice of market, trajectory, and a Porter Four Corners strategy read. Parallel subagents for 3+ vendors so depth doesn't shrink with vendor count.
+3. **Analysis** — Forrester-Wave-style weighted matrix (published, reweightable scores + deal-breaker vetoes), say/do gap per vendor, predicted moves, head-to-head deltas.
+4. **Outputs** — dossiers, matrix, landscape report, battlecards, delta memo.
 
 ## Design decisions
 
-- **Fetch the actual pages** — search results alone rank stale and dead content (verified repeatedly in practice).
-- **Every factual claim carries its source URL inline**; anything not directly verifiable is labeled `(inference)` — allowed, but never disguised as fact. Conflicting sources are reported as conflicts, not silently resolved.
-- **Pricing gets a fetched-on date** — a battlecard with stale pricing burns sales' trust exactly once.
-- **The tracker stays untouched during runs**: promoting a fresh report to the `intel/` baseline is offered afterward, never silent.
+- **Hard evidence gates**: ≥15 reviews per vendor across ≥2 sources with frequency-counted themes; capabilities verified against docs/changelogs, never marketing pages; pricing dated. A run that can't meet a gate says so in the output — depth failures are visible, never silent.
+- **Every claim graded** — Verified / Corroborated / Reported / Inference — with conflicts reported as conflicts.
+- **Analysis is separated from collection**: dossiers are the evidence base; the matrix, report, and battlecard consume them and add no new research.
+- **Four Corners is what makes it intelligence**: drivers, assumptions, strategy, capabilities → predicted moves and likely response to our play, labeled as inference.
+- **"How we lose" is mandatory** — a battlecard that says we always win is marketing to ourselves.
+
+Method sources: SCIP's KIT/collection-plan discipline, Porter's Four Corners, Forrester Wave scoring structure, Clozd's win/loss discipline, Klue's Know/Say/Show framework. Full rationale: `~/Desktop/Claude Outputs/competitive-intel-v2-design.md`.

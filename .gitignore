@@ -32,3 +32,6 @@ _to_delete/
 mcp-server/src/content.ts
 mcp-server/node_modules/
 mcp-server/.wrangler/
+
+# Local-only run outputs, not for publishing
+outputs/legora/
