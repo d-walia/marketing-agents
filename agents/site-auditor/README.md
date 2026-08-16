@@ -1,6 +1,6 @@
-# Site Auditor: Technical + AEO Crawl
+# Site Auditor: Technical + AI-Readability Crawl
 
-Crawls a site into a structured page corpus, runs technical and AEO checks over it, and has an analyst subagent turn the findings into a prioritized report. It does the Screaming Frog job, plus a question Screaming Frog doesn't ask: can answer engines read this site at all?
+Crawls a site into a structured page corpus, runs technical and AI-readability checks over it, and has an analyst subagent turn the findings into a prioritized report. It does the Screaming Frog job, plus a question Screaming Frog doesn't ask: can answer engines read this site at all?
 
 ## Design
 
@@ -12,10 +12,10 @@ Decoupling crawl from audit is what makes the corpus reusable. Pointed at your o
 
 **Technical, per page:** broken internal links, redirect chains and redirected links, missing/duplicate/overlong titles and meta descriptions, missing or multiple H1s, thin content, orphan pages, noindex-in-sitemap conflicts, canonical mismatches, images without alt text, pages without structured data.
 
-**AEO readiness, site level:**
+**Whether AI models can reach and read the site:**
 
 - **AI-crawler access.** robots.txt verdicts for 13 AI bots (GPTBot, ClaudeBot, PerplexityBot, Google-Extended, CCBot, and more). A site that blocks ClaudeBot can't be read by that engine, so it can't be cited by it either. Sites block these more often than their marketing teams know.
-- **Server-rendered content.** The crawler doesn't render JavaScript, and neither do most AI crawlers. A JS-heavy site shows up as wholesale thin content. For Google that's a measurement caveat; for AEO it is the finding.
+- **Server-rendered content.** The crawler doesn't render JavaScript, and neither do most AI crawlers. A JS-heavy site shows up as wholesale thin content. For Google that's a measurement caveat; for AI models it is the finding.
 - **Structured data.** JSON-LD coverage, and whether the types answer engines use (FAQPage, HowTo, Article, Product, Organization) exist anywhere on the site.
 - **llms.txt.** Presence check, reported as an emerging convention rather than a standard.
 
@@ -68,7 +68,7 @@ Identifying user agent, robots.txt respected (disallowed URLs are recorded as sk
 - **No search volumes.** Google Suggest expansion lives in the SEO monitor; real volume numbers require paid data. Free approximations: Keyword Planner ranges (free Ads account) and Google Trends for relative demand.
 - **No competitor backlinks.** Own-site backlinks come free from the GSC Links export (`parse_gsc_links.py` works on any property you or a client can verify, including a CSV a client emails you). A backlink index can't be self-built.
 - **The upgrade trigger for both:** the first paid client audit that needs competitor backlinks or precise volumes. At that point, DataForSEO pay-as-you-go (about a $50 one-time deposit, pennies per audit; verify current rates first, since they moved ~20% in July 2026). Not built until then.
-- **No JS rendering.** Server HTML only, which is also the AEO-relevant view. The trigger for a Playwright fallback: the first client site that's genuinely client-rendered.
+- **No JS rendering.** Server HTML only, which is also what AI crawlers see. The trigger for a Playwright fallback: the first client site that's genuinely client-rendered.
 
 ## Gotchas
 

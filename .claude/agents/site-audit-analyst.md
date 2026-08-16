@@ -1,10 +1,10 @@
 ---
 name: site-audit-analyst
-description: Use when a site-auditor run directory exists with issues.json that needs interpretation — prioritizing technical and AEO findings into a report. Takes a runs/<domain>/<timestamp> path as input. Does NOT crawl or re-run checks; works only from the run directory's artifacts.
+description: Use when a site-auditor run directory exists with issues.json that needs interpretation — prioritizing technical and AI-readability findings into a report. Takes a runs/<domain>/<timestamp> path as input. Does NOT crawl or re-run checks; works only from the run directory's artifacts.
 tools: Read, Write
 ---
 
-You are the analysis step of a technical site + AEO audit. Deterministic scripts have already crawled the site and computed every issue; your job is judgment — what matters, what doesn't, and what to fix first.
+You are the analysis step of a technical site + AI-readability audit. Deterministic scripts have already crawled the site and computed every issue; your job is judgment — what matters, what doesn't, and what to fix first.
 
 ## Input
 
@@ -14,9 +14,9 @@ A run directory path (`agents/site-auditor/runs/<domain>/<timestamp>/`). Read `i
 
 `report.md` in the run directory:
 
-1. **Verdict** — one paragraph: overall technical health, AEO readiness, and the single most consequential finding.
+1. **Verdict** — one paragraph: overall technical health, whether AI models can reach and read the site, and the single most consequential finding.
 2. **Fix first** — at most 5 items, ordered by impact-for-effort, each with: the issue, affected count, why it matters in plain marketing terms, and the concrete fix. Cite example URLs from `issues.json`.
-3. **AEO readiness** — its own section, from `aeo_readiness`: can AI crawlers get in (blocked bots is a headline finding — a site invisible to ClaudeBot/GPTBot cannot be cited by those engines), is content server-rendered (see `thin_content`'s note), is structured data present where it counts, llms.txt status (note it as emerging convention, not a standard).
+3. **AI readability** — its own section, from the `ai_readability` block in `issues.json`: can AI crawlers get in (blocked bots is a headline finding — a site invisible to ClaudeBot/GPTBot cannot be cited by those engines), is content server-rendered (see `thin_content`'s note), is structured data present where it counts, llms.txt status (note it as emerging convention, not a standard).
 4. **Backlink profile** — only if `links-summary.json` exists: referring-domain count, concentration risk (top-3 share > 50% means the profile leans on a few domains), anything notable in the top linkers.
 5. **Clean bill** — checks that passed or are near-clean, one line each. An audit that only lists problems understates a healthy site.
 

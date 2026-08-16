@@ -9,7 +9,7 @@ Decision-driven competitive intelligence with a defined information model. The c
 
 ## Phase 0 — Intake (ALWAYS confirm before researching)
 
-Intelligence starts from the decision it serves, not from data. Before any research, confirm with Dhruv (AskUserQuestion when available, otherwise in chat):
+Intelligence starts from the decision it serves, not from data. Before any research, confirm with the user (AskUserQuestion when available, otherwise in chat):
 
 1. **Mode** — which decision is this run serving?
 
@@ -22,7 +22,7 @@ Intelligence starts from the decision it serves, not from data. Before any resea
 
 2. **Vendor list** — and which one is "us" / the client, if any.
 3. **Our product context** — who we are, which deals we meet them in. Without it, "how we win" is generic; say so.
-4. **Capability taxonomy draft + weights** (landscape/deal modes) — propose 6–10 category capability dimensions drawn from buyer decision criteria, and pillar weights for the run's ICP ("for a 200-bed hospital buyer, integration depth weighs 3×"). Dhruv approves or edits before scoring begins. Defining the taxonomy BEFORE profiling any vendor prevents anchoring on one vendor's feature sheet.
+4. **Capability taxonomy draft + weights** (landscape/deal modes) — propose 6–10 category capability dimensions drawn from buyer decision criteria, and pillar weights for the run's ICP ("for a 200-bed hospital buyer, integration depth weighs 3×"). The user approves or edits before scoring begins. Defining the taxonomy BEFORE profiling any vendor prevents anchoring on one vendor's feature sheet.
 
 Also at intake: check `<repo>/intel/<competitor-slug>/` for prior baselines (`<repo>` = `$MARKETING_AGENTS_ROOT` or `~/github/marketing-agents`). Prior intel makes the delta memo the highest-value output.
 

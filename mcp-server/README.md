@@ -16,12 +16,14 @@ product. It can distribute methodology. These skills *are* the product.
 | `get_script` | Python source for skills that run local scripts |
 | `get_resource` | Subagent definitions, config files, READMEs |
 
-Four skills: `ai-brand-auditor`, `competitive-intel-researcher`,
-`meeting-transcriber`, `live-meeting-transcriber`.
+Three skills: `competitive-intel-researcher`, `meeting-transcriber`,
+`live-meeting-transcriber`.
 
-**`seo-performance-monitor` is deliberately excluded** — it stays private for
-client work. The exclusion lives in `INCLUDE` at the top of
-[`scripts/bundle.mjs`](scripts/bundle.mjs).
+**Two skills are deliberately excluded.** `seo-performance-monitor` stays
+private for client work. `ai-brand-auditor` is the paid product and lives in
+its own private repo — publishing it here would give away the skill, its four
+subagents, and its config for free. Both exclusions live in `INCLUDE` at the
+top of [`scripts/bundle.mjs`](scripts/bundle.mjs).
 
 ## What this can and can't carry
 
@@ -30,7 +32,6 @@ MCP distributes *instructions* perfectly and *local file access* not at all.
 | Skill | Works for someone who only has the MCP? |
 |---|---|
 | `competitive-intel-researcher` | ✅ Fully — pure methodology, no scripts |
-| `ai-brand-auditor` | ⚠️ Skill, subagents, and scripts all transfer; they supply their own API keys and Cloudflare AI Gateway env |
 | `meeting-transcriber` | ⚠️ Script transfers, but they run it locally with their own `GROQ_API_KEY` |
 | `live-meeting-transcriber` | ⚠️ Also needs ffmpeg, and BlackHole for both sides of a call |
 

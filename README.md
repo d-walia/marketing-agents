@@ -2,18 +2,18 @@
 
 Working agents for real GTM problems, built with Claude — each replacing a paid SaaS tool. The public face of these lives at [dw-digital-consulting.com](https://dw-digital-consulting.com/#agents).
 
-> **TL;DR** — Seven public agents (site + AEO crawl audits, competitive intel, meeting transcription ×2, SEO, account intelligence, landing page mocks), four planned, plus the AI Brand Auditor, which graduated to its own private repo as a product. Each agent folder has a `SKILL.md` front door (auto-triggers in Claude Code) and a `README.md` explaining the design. Some have examples. Install by symlinking into `~/.claude/skills/`.
+> **TL;DR** — Seven public agents (site + AI-crawler audits, competitive intel, meeting transcription ×2, SEO, account intelligence, landing page mocks), four planned, plus the AI Brand Auditor, which graduated to its own private repo as a product. Each agent folder has a `SKILL.md` front door (auto-triggers in Claude Code) and a `README.md` explaining the design. Some have examples. Install by symlinking into `~/.claude/skills/`.
 
 ## What's inside
 
 | Agent | What it does | Replaces | Status | Where |
 |---|---|---|---|---|
-| AI Brand Auditor | 4-subagent GEO pipeline measuring how AI models perceive and recommend a brand | Profound, AthenaHQ | Built; productized in a separate private repo | `d-walia/ai-brand-auditor` (private) |
+| AI Brand Auditor | 4-subagent pipeline measuring what AI models say about a brand — described how, recommended or not, how accurately | Profound, AthenaHQ | Built; productized in a separate private repo | `d-walia/ai-brand-auditor` (private) |
 | Competitive Intel Researcher | Competitor analysis → sourced report, sales battlecard, delta memo | Klue, Crayon | Built | [`agents/competitive-intel-researcher/`](agents/competitive-intel-researcher/) |
 | Meeting Transcriber | Recordings and video files → structured notes via the free Groq Whisper API | Otter, Fireflies | Built | [`agents/meeting-transcriber/`](agents/meeting-transcriber/) |
 | Live Meeting Transcriber | Live calls, near-real-time, from the Mac's mic (+ BlackHole for the far side); feeds the Meeting Transcriber notes step | Otter, Fireflies | Built | [`agents/live-meeting-transcriber/`](agents/live-meeting-transcriber/) |
 | SEO Performance Monitor | Page performance from a Search Console export, position-weighted share of voice, keyword discovery via Google Suggest | Ahrefs, Semrush | Built | [`agents/seo-performance-monitor/`](agents/seo-performance-monitor/) |
-| Site Auditor | Polite stdlib crawler → page corpus → technical checks + AEO readiness (AI-bot access, server-rendered content, structured data, llms.txt); own-site backlinks via GSC export | Screaming Frog | Built | [`agents/site-auditor/`](agents/site-auditor/) |
+| Site Auditor | Polite stdlib crawler → page corpus → technical checks + AI-crawler readiness (bot access, server-rendered content, structured data, llms.txt); own-site backlinks via GSC export | Screaming Frog | Built | [`agents/site-auditor/`](agents/site-auditor/) |
 | Account Intelligence Agent | Claude drives the Clay web UI: seed CSV → enrichment waterfalls → research columns → contacts → email waterfall | A GTM engineer / Clay consultant | Built | [`agents/account-intelligence-agent/`](agents/account-intelligence-agent/) |
 | Landing Page Builder | Brand capture (tokens + voice, two-pass extraction) → true-to-life HTML page mocks with copy in place, on stable share links | Figma comps, screenshot stitching | Built | [`agents/landing-page-builder/`](agents/landing-page-builder/) |
 | Intelligent Copywriter | On-brand copy from the brand-pack input layer | Writer, Jasper | Planned | — |
@@ -21,18 +21,18 @@ Working agents for real GTM problems, built with Claude — each replacing a pai
 | Content Agents | — | Canva, Adobe GenStudio | Planned | — |
 | Competitor Content Analyzer | Reads Site Auditor `--full-text` corpora of competitor sites → content gaps, decision factors, citation-worthy pages | The crawl stack AEO teams build in-house | Planned | — |
 
-## How the GEO/AEO agents fit together
+## How the agents fit together
 
-The AEO practitioner stack has four layers ([the framing](https://www.linkedin.com/in/jimmypark/) big-brand operators use: three you can buy, one they build). This repo's answer to each:
+The practitioner stack has four layers ([the framing](https://www.linkedin.com/in/jimmypark/) big-brand operators use: three you can buy, one they build). This repo's answer to each:
 
 | Layer | The job | Buyable as | Here |
 |---|---|---|---|
 | 1. Search fundamentals | Rankings, keywords, technical site health | Semrush, Ahrefs, Screaming Frog | SEO Performance Monitor + Site Auditor. Search volumes and backlink indexes can't be replicated free; own-site backlinks come from the GSC Links export, and the paid trigger is documented in the [Site Auditor README](agents/site-auditor/README.md) |
-| 2. AI visibility tracking | How a brand shows up in LLM answers | Profound, PromptWatch | AI Brand Auditor: the layer big brands buy, built as a 4-subagent pipeline. Productized in its own private repo; this repo keeps the free supporting layers |
+| 2. What models say | How a brand is described and recommended in LLM answers | Profound, PromptWatch | AI Brand Auditor: the layer big brands buy, built as a 4-subagent pipeline. Productized in its own private repo; this repo keeps the free supporting layers |
 | 3. Context files + agents | Client positioning, decision factors, competitor set, feeding agent research passes | (proprietary per team) | The architecture exists (`brand-pack/`, `intel/`, config, subagents); the client intake guide moved to the private auditor repo with the pipeline |
 | 4. Crawling + data processing | Competitor site corpora → content gaps, decision factors, citation references | Nobody sells it; teams build it | The Site Auditor's corpus design (`--full-text`) is the collection half; the Competitor Content Analyzer (planned) is the analysis half |
 
-How they connect: layer 2 finds the visibility problem ("models recommend competitors"), layer 4 explains it and prescribes the fix ("here's the content they cite that you don't have"), layer 3 is the client knowledge both need, and layer 1 is the ground floor. A site AI crawlers can't read can't be cited at all.
+How they connect: layer 2 finds the problem ("models recommend competitors"), layer 4 explains it and prescribes the fix ("here's the content they cite that you don't have"), layer 3 is the client knowledge both need, and layer 1 is the ground floor. A site AI crawlers can't read can't be cited at all.
 
 ## Quickstart
 

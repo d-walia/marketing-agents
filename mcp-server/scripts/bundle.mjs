@@ -16,29 +16,25 @@ import { fileURLToPath } from "node:url";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, "..", "..");
 
-// SEO is deliberately excluded — it stays private to Dhruv for client work.
+// Two deliberate exclusions:
+//   seo-performance-monitor — stays private for client work.
+//   ai-brand-auditor        — it is the paid product now, and lives in the
+//                             private d-walia/ai-brand-auditor repo. Do not
+//                             re-add it: listing it here would republish the
+//                             skill, its subagents, and its config for free.
 const INCLUDE = [
-  "ai-brand-auditor",
   "competitive-intel-researcher",
   "meeting-transcriber",
   "live-meeting-transcriber",
 ];
 
 // Config/reference files worth shipping alongside a skill, per skill.
-const EXTRA_FILES = {
-  "ai-brand-auditor": ["config/brand.json", "config/query_grid.json", "config/rubric.md"],
-};
+// Empty since the auditor left; kept as the extension point.
+const EXTRA_FILES = {};
 
-// Subagent definitions a skill dispatches to. Without these the auditor
-// pipeline can't be reconstructed on someone else's machine.
-const SUBAGENTS = {
-  "ai-brand-auditor": [
-    "audit-query-runner",
-    "audit-perception-scorer",
-    "audit-rubric-grader",
-    "audit-reporter",
-  ],
-};
+// Subagent definitions a skill dispatches to, for skills that dispatch.
+// Empty since the auditor left; kept as the extension point.
+const SUBAGENTS = {};
 
 /**
  * The skills are written for their author — "Use whenever Dhruv asks…" — which

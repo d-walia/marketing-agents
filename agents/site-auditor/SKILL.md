@@ -1,6 +1,6 @@
 ---
 name: site-auditor
-description: Crawl a website into a structured corpus and audit it — technical SEO health (broken links, metas, titles, redirects, orphans, thin content) plus AEO readiness (can AI crawlers get in, is content server-rendered, structured data, llms.txt). Use whenever Dhruv asks to audit a site, run a technical SEO audit or site health check, crawl a site, check AEO or AI-crawler readiness of a domain, check whether AI bots are blocked, or asks "what's wrong with [some site]" — his own, a client's, or (crawl politely) a competitor's.
+description: Crawl a website into a structured corpus and audit it — technical SEO health (broken links, metas, titles, redirects, orphans, thin content) plus whether AI models can reach and read it (can AI crawlers get in, is content server-rendered, structured data, llms.txt). Use whenever Dhruv asks to audit a site, run a technical SEO audit or site health check, crawl a site, check whether AI crawlers or bots are blocked on a domain, check a site's readiness for AI search (sometimes called AEO or GEO readiness), or asks "what's wrong with [some site]" — his own, a client's, or (crawl politely) a competitor's.
 ---
 
 # Site Auditor
@@ -36,7 +36,7 @@ The crawler builds a corpus; it finds nothing. Checks are downstream reads of th
 
 ## Calibration
 
-- A dramatic number is the harness until proven otherwise (same instrument-error rule as the brand auditor): every page thin usually means a JS-rendered site, not a content crisis — though for AEO that *is* the finding, since AI crawlers mostly don't render JS either. Zero sitemap URLs usually means a non-standard sitemap location, not a missing sitemap.
+- A dramatic number is the harness until proven otherwise (same instrument-error rule as the brand auditor): every page thin usually means a JS-rendered site, not a content crisis — though where AI models are concerned that *is* the finding, since AI crawlers mostly don't render JS either. Zero sitemap URLs usually means a non-standard sitemap location, not a missing sitemap.
 - `corpus_partial: true` in issues.json → all counts are floors; the report must say so.
 - Search volumes and competitor backlinks are out of scope by design — own-site backlinks come from the GSC export, and the paid upgrade path is documented in the README. Don't improvise a replacement with web searches.
 

@@ -38,7 +38,7 @@ ROOT = Path(__file__).resolve().parents[1]
 UA = "Mozilla/5.0 (compatible; dw-site-auditor/0.1; +https://github.com/d-walia/marketing-agents)"
 
 # AI crawlers/agents worth reporting robots.txt rules for. Access here decides
-# whether a site can be read by answer engines at all — the AEO ground floor.
+# whether a site can be read by answer engines at all — the ground floor.
 AI_BOTS = [
     "GPTBot", "OAI-SearchBot", "ChatGPT-User",
     "ClaudeBot", "Claude-Web", "anthropic-ai",

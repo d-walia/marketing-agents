@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministic technical + AEO checks over a crawl corpus.
+"""Deterministic technical + AI-readability checks over a crawl corpus.
 
 Reads a run directory produced by crawl_site.py, writes issues.json.
 No LLM, no network — pure arithmetic over pages.jsonl, so re-running is free.
@@ -23,7 +23,7 @@ THIN_WORDS = 150
 ITEM_CAP = 50  # per check, keep issues.json readable
 
 # JSON-LD types answer engines actually consume for Q&A-shaped extraction
-AEO_SCHEMA_TYPES = {"FAQPage", "HowTo", "Article", "BlogPosting", "Product", "Organization"}
+AI_SCHEMA_TYPES = {"FAQPage", "HowTo", "Article", "BlogPosting", "Product", "Organization"}
 
 
 def newest_run():
@@ -170,20 +170,20 @@ def main():
         {"url": r["url"]} for r in html_ok if not r.get("jsonld_types")],
         "no JSON-LD — answer engines extract entities and Q&A from structured data")
 
-    # --- site-level AEO readiness ---
+    # --- site level: can AI models reach and read this site ---
     ai_access = summary.get("ai_bot_access", {})
     blocked = sorted(b for b, v in ai_access.items() if v["verdict"] == "blocked")
     partial = sorted(b for b, v in ai_access.items() if v["verdict"] == "partial")
     schema_present = sorted({t for r in html_ok for t in r.get("jsonld_types", [])})
     pages_with_schema = sum(1 for r in html_ok if r.get("jsonld_types"))
-    aeo = {
+    readability = {
         "ai_bots_blocked": blocked,
         "ai_bots_partial": partial,
         "ai_bots_allowed_count": len(ai_access) - len(blocked) - len(partial),
         "llms_txt": summary.get("llms_txt", {}),
         "sitemap_found": summary.get("sitemap", {}).get("url_count", 0) > 0,
         "schema_types_present": schema_present,
-        "aeo_schema_types_present": sorted(set(schema_present) & AEO_SCHEMA_TYPES),
+        "ai_schema_types_present": sorted(set(schema_present) & AI_SCHEMA_TYPES),
         "pages_with_structured_data": f"{pages_with_schema}/{len(html_ok)}",
         "meta_description_coverage":
             f"{sum(1 for r in html_ok if r.get('meta_description'))}/{len(html_ok)}",
@@ -196,7 +196,7 @@ def main():
         "pages_checked": len(html_ok),
         "pages_crawled": summary["pages_crawled"],
         "corpus_partial": summary.get("hit_page_cap", False),
-        "aeo_readiness": aeo,
+        "ai_readability": readability,
         "checks": checks,
     }
     (run_dir / "issues.json").write_text(json.dumps(issues, indent=2))
@@ -209,8 +209,9 @@ def main():
     for name, c in sorted(checks.items(), key=lambda kv: (order[kv[1]["severity"]], kv[0])):
         if c["count"]:
             print(f"  [{c['severity']:6}] {name}: {c['count']}")
-    print(f"AEO: blocked bots {blocked or 'none'}, llms.txt {aeo['llms_txt']}, "
-          f"schema on {aeo['pages_with_structured_data']} pages")
+    print(f"AI readability: blocked bots {blocked or 'none'}, "
+          f"llms.txt {readability['llms_txt']}, "
+          f"schema on {readability['pages_with_structured_data']} pages")
     print(f"Wrote {run_dir / 'issues.json'}")
 
 
