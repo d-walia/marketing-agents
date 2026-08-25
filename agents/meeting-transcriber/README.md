@@ -2,6 +2,15 @@
 
 Turns a meeting, sales call, customer interview, or discovery recording into notes you can act on without re-listening: a clean transcript plus a TL;DR, decisions, and an action-item table. Speaker turns are inferred from context, not diarized; see the note on `--no-speaker-labels` below.
 
+**This is one of a pair — use this one when the recording already exists.** For a call happening *right now*, use the sibling [`live-meeting-transcriber`](../live-meeting-transcriber/), which captures from the Mac's mic and then hands its transcript back here for the notes step. The two are one pipeline with two front doors, not alternatives:
+
+| Your situation | Skill |
+|---|---|
+| Audio file, video file, or an existing raw transcript | **this one** — portable, runs anywhere |
+| A live call, "transcribe as I go" | [`live-meeting-transcriber`](../live-meeting-transcriber/) — mic-bound, Mac only |
+
+Everything in this folder is portable: no hardware dependency, no app installed. This half also **owns the notes step both halves share**, which is why the live agent depends on it and not the reverse.
+
 Transcription is the cheap part. The agent's value is the structure it adds after. It transcribes via the Groq Whisper API, which is free, headless, and needs no app installed.
 
 ## Why Groq (and not Spokenly)
@@ -31,8 +40,6 @@ A one-hour meeting is a single request, well under the ceilings. The real constr
    ```bash
    brew install ffmpeg
    ```
-
-For a call happening live right now, see the sibling [`live-meeting-transcriber`](../live-meeting-transcriber/) skill. It captures from the Mac's microphone (optionally plus the call's far side via BlackHole), so it runs only in Claude Code on the machine itself. Everything in this folder is portable: file in, notes out, no hardware dependency.
 
 ## How to run
 

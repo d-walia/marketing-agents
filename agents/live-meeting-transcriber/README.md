@@ -1,10 +1,19 @@
 # Live Meeting Transcriber
 
+**This is one of a pair — use this one only for a call happening right now.** If the recording already exists, you want the sibling [`meeting-transcriber`](../meeting-transcriber/) instead:
+
+| Your situation | Skill |
+|---|---|
+| A live call, "transcribe as I go" | **this one** — mic-bound, Mac only |
+| Audio file, video file, or an existing raw transcript | [`meeting-transcriber`](../meeting-transcriber/) — portable, runs anywhere |
+
+This skill is the **capture** front end. It does not produce the deliverable; the notes step lives in `meeting-transcriber` and this one hands off to it.
+
 Near-live transcription for a call, meeting, or interview happening now. `live_transcribe.py` captures audio with ffmpeg, cuts it into short segments, and streams each finished segment through the same free Groq Whisper endpoint the batch path uses. Lines print as they land, about one segment behind (default 15 s). On Ctrl-C it finalizes one `transcript.txt` for the notes step.
 
 ## Why this is its own skill
 
-This is the mic-bound half of what used to be a single meeting-transcriber agent. The two halves have different constraints:
+This is the mic-bound half of what used to be a single meeting-transcriber agent. Live capture was folded into that agent on 2026-07-24 and split back out on 2026-07-26, because the two halves have incompatible constraints:
 
 - [`meeting-transcriber`](../meeting-transcriber/) is portable: file in, notes out. It runs anywhere Python and the Groq API are reachable, including a Cowork cloud session, and is the shareable half.
 - This skill is not. It needs the Mac's microphone (and optionally a BlackHole virtual audio device), so it only runs in Claude Code on the machine itself. No cloud session has an audio device, and no packaging choice changes that.
