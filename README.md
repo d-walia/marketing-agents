@@ -1,6 +1,6 @@
 # Marketing Agents
 
-Working agents for real GTM problems, built with Claude — each replacing a paid SaaS tool. The public face of these lives at [dw-digital-consulting.com](https://dw-digital-consulting.com/#agents).
+Working agents for real GTM problems, built with Claude — each replacing a paid SaaS tool. The public face of these lives at [dhruvwalia.com](https://dhruvwalia.com/#agents).
 
 > **TL;DR** — Seven public agents (site + AI-crawler audits, competitive intel, meeting transcription as a two-part pair, SEO, account intelligence, landing page mocks), four planned, plus the AI Brand Auditor, which graduated to its own private repo as a product. Each agent folder has a `SKILL.md` front door (auto-triggers in Claude Code) and a `README.md` explaining the design. Some have examples. Install by symlinking into `~/.claude/skills/`.
 

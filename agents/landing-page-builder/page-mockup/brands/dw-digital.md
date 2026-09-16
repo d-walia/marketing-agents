@@ -1,4 +1,4 @@
-# Brand: DW Digital (dw-digital-consulting.com)
+# Brand: DW Digital (dhruvwalia.com)
 
 <!-- Confidence tags: [3+] observed 3+ times · [1] observed once · [inf] inferred. -->
 

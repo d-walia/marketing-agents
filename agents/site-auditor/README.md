@@ -42,7 +42,7 @@ The analyst subagent lives at the repo root in [`.claude/agents/site-audit-analy
 
 ## How to run
 
-Ask from the repo root: `Audit dw-digital-consulting.com`. [`SKILL.md`](SKILL.md) drives the steps. Install by symlinking:
+Ask from the repo root: `Audit dhruvwalia.com`. [`SKILL.md`](SKILL.md) drives the steps. Install by symlinking:
 
 ```bash
 ln -s ~/github/marketing-agents/agents/site-auditor ~/.claude/skills/site-auditor

@@ -106,6 +106,6 @@ Offer, don't silently do:
 
 ## Calibration
 
-- **Brand-new site, almost no data** (dw-digital-consulting.com's current state): say so directly. Skip performance analysis, run opportunity discovery, and frame the output as a content plan rather than an optimization plan.
+- **Brand-new site, almost no data** (dhruvwalia.com's current state): say so directly. Skip performance analysis, run opportunity discovery, and frame the output as a content plan rather than an optimization plan.
 - **Client or prospect site, no Search Console access**: share of voice and keyword discovery still work fully. This is the standard pre-sales configuration and it produces a genuinely useful pitch artifact.
 - **Established site with history**: the full pipeline, and decay analysis is usually where the urgency is.
