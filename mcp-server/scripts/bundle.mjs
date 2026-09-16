@@ -87,6 +87,7 @@ const NEEDS_HUMAN = [
   [/\bWalia\b/i, "surname — reword the sentence generically"],
   [/[\w.+-]+@[\w-]+\.[\w.]+/, "email address"],
   [/\bdw-digital-consulting\b/i, "personal domain"],
+  [/\bdhruvwalia\b/i, "personal domain"],
 ];
 
 // Checked AFTER rewriting: anything here means a rule was missed entirely.
