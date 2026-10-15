@@ -85,6 +85,7 @@ Write extracted audio to the scratch area or alongside the source — never into
 ## Step 3 — Get a transcript
 
 - **A transcript already exists** (`.txt`/`.md`/`.vtt`/`.srt`, or pasted text) → skip transcription entirely, go to Step 4.
+- **The meeting was also captured in Granola** → use the Granola connector for context only: `list_meetings` or `query_granola_meetings` to find it, `get_meetings` for its notes and attendee names (load with ToolSearch, keyword `granola`). That gives Step 4 real names for speaker attribution. Granola does not return full transcripts on his plan, so the transcript still comes from the recording or a pasted export.
 - **Live / in-progress** ("transcribe as I go", a call happening now) → that's the **`live-meeting-transcriber`** skill (`agents/live-meeting-transcriber/`). It needs the Mac's microphone, so it only runs in Claude Code on the machine — hand off to it; its finalized `transcript.txt` comes back to this skill's Step 4 for speaker attribution and notes.
 - **A finished recording** → 
 

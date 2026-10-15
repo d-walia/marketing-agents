@@ -31,6 +31,7 @@ The crawler builds a corpus; it finds nothing. Checks are downstream reads of th
    python3 agents/site-auditor/scripts/parse_gsc_links.py EXPORT_DIR --run agents/site-auditor/runs/DOMAIN/TIMESTAMP
    ```
    If he doesn't, skip silently — offer it only when the audited site is one he or a client controls.
+4b. **Page speed (optional, only when Dhruv asks about speed or Core Web Vitals):** run the chrome-devtools plugin's `lighthouse_audit` (or a performance trace) on the homepage and the two or three highest-traffic pages, and put the scores in the run directory for the analyst. The crawl itself stays script-only.
 5. **Analyze** — dispatch `site-audit-analyst` with the run directory path and nothing else. It writes `report.md`.
 6. **Close out** — relay the report path, the verdict paragraph verbatim, and the top fix.
 
