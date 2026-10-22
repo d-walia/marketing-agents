@@ -18,8 +18,8 @@ const REPO = join(HERE, "..", "..");
 
 // Two deliberate exclusions:
 //   seo-performance-monitor — stays private for client work.
-//   ai-brand-auditor        — it is the paid product now, and lives in the
-//                             private d-walia/ai-brand-auditor repo. Do not
+//   avowed.ai        — it is the paid product now, and lives in the
+//                             private d-walia/avowed.ai repo. Do not
 //                             re-add it: listing it here would republish the
 //                             skill, its subagents, and its config for free.
 const INCLUDE = [

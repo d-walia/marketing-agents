@@ -20,7 +20,7 @@ Three skills: `competitive-intel-researcher`, `meeting-transcriber`,
 `live-meeting-transcriber`.
 
 **Two skills are deliberately excluded.** `seo-performance-monitor` stays
-private for client work. `ai-brand-auditor` is the paid product and lives in
+private for client work. `avowed.ai` is the paid product and lives in
 its own private repo — publishing it here would give away the skill, its four
 subagents, and its config for free. Both exclusions live in `INCLUDE` at the
 top of [`scripts/bundle.mjs`](scripts/bundle.mjs).

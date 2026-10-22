@@ -36,7 +36,7 @@ The repo is organized around the 4-layer AEO practitioner stack.
 |---|---|---|
 | 1 · search fundamentals | SEO Performance Monitor | [SYSTEM.md](agents/seo-performance-monitor/SYSTEM.md) |
 | 1 · search fundamentals | Site Auditor | [SYSTEM.md](agents/site-auditor/SYSTEM.md) |
-| 2 · what models say | AI Brand Auditor — now a private repo ([ai-brand-auditor](https://github.com/d-walia/ai-brand-auditor/blob/main/SYSTEM.md)) | — |
+| 2 · what models say | AI Brand Auditor — now a private repo ([avowed.ai](https://github.com/d-walia/avowed.ai/blob/main/SYSTEM.md)) | — |
 | 3 · context + agents | Competitive Intel Researcher | [SYSTEM.md](agents/competitive-intel-researcher/SYSTEM.md) |
 | 3 · context + agents | Landing Page Builder | [SYSTEM.md](agents/landing-page-builder/SYSTEM.md) |
 | 4 · crawling + processing | Site Auditor `--full-text` corpus → planned Competitor Content Analyzer | — |
@@ -59,12 +59,12 @@ Each agent is a folder with a `SKILL.md` front door plus scripts/references, ins
 ## Connects to
 
 - [Cloudflare AI Gateway](https://github.com/d-walia/ai-architecture/blob/main/cloudflare-ai-gateway/SYSTEM.md) — the shared spine.
-- [AI Brand Auditor (Avowed)](https://github.com/d-walia/ai-brand-auditor/blob/main/SYSTEM.md) — the Layer-2 product graduated to its own private repo; Site Auditor's verdict logic is hand-synced with the Avowed checker.
+- [Avowed](https://github.com/d-walia/avowed.ai/blob/main/SYSTEM.md) — the Layer-2 product graduated to its own private repo; Site Auditor's verdict logic is hand-synced with the Avowed checker.
 
 ## Gotchas
 
 - The README's TL;DR says "seven agents" (pipeline count); the `agents/` folder holds eight built (the two transcribers are one two-front-door pair).
-- The AI Brand Auditor is referenced throughout but its **code is not in this repo** (moved to the private `ai-brand-auditor`).
+- The AI Brand Auditor is referenced throughout but its **code is not in this repo** (moved to the private `avowed.ai`).
 - `intel/` and `brand-pack/` are conventions/aspirational today — `intel/` holds only its README; `brand-pack/`'s consumer (a planned Copywriter) isn't built.
 
 ## Sources
