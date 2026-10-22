@@ -73,4 +73,4 @@ Identifying user agent, robots.txt respected (disallowed URLs are recorded as sk
 ## Gotchas
 
 - Cloudflare 403s Python's default urllib user-agent (`error code: 1010`); the crawler sends an identifying UA of its own.
-- Dramatic numbers are the instrument until proven otherwise. "Every page is thin" means a JS-rendered site; "no sitemap" usually means a non-standard location. Same rule as the brand auditor's truncation incident.
+- Dramatic numbers are the instrument until proven otherwise. "Every page is thin" means a JS-rendered site; "no sitemap" usually means a non-standard location. Same rule as Avowed's truncation incident.

@@ -17,7 +17,7 @@ flowchart LR
   SUPP[("brand-pack · intel · sample-data")]:::store -->|inputs| LOCAL
   MCP[["MCP Server · Cloudflare Worker"]]:::service -.->|serves 3 skills| LOCAL
   GW["Cloudflare AI Gateway"]:::ext -.->|model calls| LOCAL
-  AUD["AI Brand Auditor · private repo"]:::ext -.->|graduated out| LOCAL
+  AUD["Avowed · private repo"]:::ext -.->|graduated out| LOCAL
   classDef trigger fill:#dcfce7,stroke:#15803d,color:#0f172a;
   classDef process fill:#eef2f8,stroke:#64748b,color:#0f172a;
   classDef service fill:#fef3c7,stroke:#b45309,color:#0f172a;
@@ -36,7 +36,7 @@ The repo is organized around the 4-layer AEO practitioner stack.
 |---|---|---|
 | 1 · search fundamentals | SEO Performance Monitor | [SYSTEM.md](agents/seo-performance-monitor/SYSTEM.md) |
 | 1 · search fundamentals | Site Auditor | [SYSTEM.md](agents/site-auditor/SYSTEM.md) |
-| 2 · what models say | AI Brand Auditor — now a private repo ([avowed.ai](https://github.com/d-walia/avowed.ai/blob/main/SYSTEM.md)) | — |
+| 2 · what models say | Avowed — now a private repo ([avowed.ai](https://github.com/d-walia/avowed.ai/blob/main/SYSTEM.md)) | — |
 | 3 · context + agents | Competitive Intel Researcher | [SYSTEM.md](agents/competitive-intel-researcher/SYSTEM.md) |
 | 3 · context + agents | Landing Page Builder | [SYSTEM.md](agents/landing-page-builder/SYSTEM.md) |
 | 4 · crawling + processing | Site Auditor `--full-text` corpus → planned Competitor Content Analyzer | — |
@@ -64,7 +64,7 @@ Each agent is a folder with a `SKILL.md` front door plus scripts/references, ins
 ## Gotchas
 
 - The README's TL;DR says "seven agents" (pipeline count); the `agents/` folder holds eight built (the two transcribers are one two-front-door pair).
-- The AI Brand Auditor is referenced throughout but its **code is not in this repo** (moved to the private `avowed.ai`).
+- Avowed is referenced throughout but its **code is not in this repo** (moved to the private `avowed.ai`).
 - `intel/` and `brand-pack/` are conventions/aspirational today — `intel/` holds only its README; `brand-pack/`'s consumer (a planned Copywriter) isn't built.
 
 ## Sources

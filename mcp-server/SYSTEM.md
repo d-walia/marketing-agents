@@ -37,7 +37,7 @@ The one piece of **deployed** infra in the repo. At build time `scripts/bundle.m
 ## Connects to
 
 - Distributes exactly three skills: [Competitive Intel](../agents/competitive-intel-researcher/SYSTEM.md), [Meeting Transcription](../agents/meeting-transcriber/SYSTEM.md), and its live half.
-- **Excludes** SEO Performance Monitor (private client work) and the AI Brand Auditor (paid product, separate private repo).
+- **Excludes** SEO Performance Monitor (private client work) and Avowed (paid product, separate private repo).
 
 ## Gotchas
 
