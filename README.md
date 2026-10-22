@@ -2,13 +2,13 @@
 
 Working agents for real GTM problems, built with Claude — each replacing a paid SaaS tool. The public face of these lives at [dhruvwalia.com](https://dhruvwalia.com/#agents).
 
-> **TL;DR** — Seven public agents (site + AI-crawler audits, competitive intel, meeting transcription as a two-part pair, SEO, account intelligence, landing page mocks), four planned, plus the AI Brand Auditor, which graduated to its own private repo as a product. Each agent folder has a `SKILL.md` front door (auto-triggers in Claude Code) and a `README.md` explaining the design. Some have examples. Install by symlinking into `~/.claude/skills/`.
+> **TL;DR** — Seven public agents (site + AI-crawler audits, competitive intel, meeting transcription as a two-part pair, SEO, account intelligence, landing page mocks), four planned, plus Avowed, which graduated to its own private repo as a product. Each agent folder has a `SKILL.md` front door (auto-triggers in Claude Code) and a `README.md` explaining the design. Some have examples. Install by symlinking into `~/.claude/skills/`.
 
 ## What's inside
 
 | Agent | What it does | Replaces | Status | Where |
 |---|---|---|---|---|
-| AI Brand Auditor | 4-subagent pipeline measuring what AI models say about a brand — described how, recommended or not, how accurately | Profound, AthenaHQ | Built; productized in a separate private repo | `d-walia/avowed.ai` (private) |
+| Avowed | 4-subagent pipeline measuring what AI models say about a brand — described how, recommended or not, how accurately | Profound, AthenaHQ | Built; productized in a separate private repo | `d-walia/avowed.ai` (private) |
 | Competitive Intel Researcher | Competitor analysis → sourced report, sales battlecard, delta memo | Klue, Crayon | Built | [`agents/competitive-intel-researcher/`](agents/competitive-intel-researcher/) |
 | Meeting Transcriber | **Capture half 1 of 2 — a recording that already exists.** Audio or video file in → structured notes out, via the free Groq Whisper API. Owns the notes step both halves share | Otter, Fireflies | Built | [`agents/meeting-transcriber/`](agents/meeting-transcriber/) |
 | Live Meeting Transcriber | **Capture half 2 of 2 — a call happening right now.** Near-real-time from the Mac's mic (+ BlackHole for the far side). Produces a raw transcript, then hands it to the Meeting Transcriber notes step | Otter, Fireflies | Built | [`agents/live-meeting-transcriber/`](agents/live-meeting-transcriber/) |
@@ -52,7 +52,7 @@ The practitioner stack has four layers ([the framing](https://www.linkedin.com/i
 | Layer | The job | Buyable as | Here |
 |---|---|---|---|
 | 1. Search fundamentals | Rankings, keywords, technical site health | Semrush, Ahrefs, Screaming Frog | SEO Performance Monitor + Site Auditor. Search volumes and backlink indexes can't be replicated free; own-site backlinks come from the GSC Links export, and the paid trigger is documented in the [Site Auditor README](agents/site-auditor/README.md) |
-| 2. What models say | How a brand is described and recommended in LLM answers | Profound, PromptWatch | AI Brand Auditor: the layer big brands buy, built as a 4-subagent pipeline. Productized in its own private repo; this repo keeps the free supporting layers |
+| 2. What models say | How a brand is described and recommended in LLM answers | Profound, PromptWatch | Avowed: the layer big brands buy, built as a 4-subagent pipeline. Productized in its own private repo; this repo keeps the free supporting layers |
 | 3. Context files + agents | Client positioning, decision factors, competitor set, feeding agent research passes | (proprietary per team) | The architecture exists (`brand-pack/`, `intel/`, config, subagents); the client intake guide moved to the private auditor repo with the pipeline |
 | 4. Crawling + data processing | Competitor site corpora → content gaps, decision factors, citation references | Nobody sells it; teams build it | The Site Auditor's corpus design (`--full-text`) is the collection half; the Competitor Content Analyzer (planned) is the analysis half |
 
@@ -84,4 +84,4 @@ The repo stays the source of truth — edits here are live everywhere the skill 
 - API keys live in `~/.marketing-agents.env` — never in this repo. Client-site run data is gitignored.
 - Every AI API call routes through the Cloudflare AI Gateway (setup documented in [`ai-architecture`](https://github.com/d-walia/ai-architecture/tree/main/cloudflare-ai-gateway)), so every run has a visible, attributable cost.
 - Deliverables are shareable beyond the repo: agents render self-contained HTML reports the recipient opens with only a browser.
-- Retired work is deleted, not kept as dead weight: an earlier single-script Python prototype of the Brand Auditor gave way to the multi-agent version, which now lives in its own private repo.
+- Retired work is deleted, not kept as dead weight: an earlier single-script Python prototype of Avowed gave way to the multi-agent version, which now lives in its own private repo.
