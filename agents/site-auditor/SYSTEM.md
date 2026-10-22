@@ -36,7 +36,7 @@ A local Claude skill with three stdlib CLIs plus one analyst subagent, run from 
 ## Connects to
 
 - Layer-1 alongside [SEO Performance Monitor](../seo-performance-monitor/SYSTEM.md); its `--full-text` corpus is the collection half feeding the planned Competitor Content Analyzer (Layer 4).
-- Verdict logic (13 AI bots, robots rules) is **hand-synced** with the [Avowed crawlability checker](https://github.com/d-walia/ai-brand-auditor/blob/main/crawlability-checker/SYSTEM.md).
+- Verdict logic (13 AI bots, robots rules) is **hand-synced** with the [Avowed crawlability checker](https://github.com/d-walia/avowed.ai/blob/main/crawlability-checker/SYSTEM.md).
 - **Not** in the MCP server.
 
 ## Gotchas

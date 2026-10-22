@@ -8,7 +8,7 @@ Working agents for real GTM problems, built with Claude — each replacing a pai
 
 | Agent | What it does | Replaces | Status | Where |
 |---|---|---|---|---|
-| AI Brand Auditor | 4-subagent pipeline measuring what AI models say about a brand — described how, recommended or not, how accurately | Profound, AthenaHQ | Built; productized in a separate private repo | `d-walia/ai-brand-auditor` (private) |
+| AI Brand Auditor | 4-subagent pipeline measuring what AI models say about a brand — described how, recommended or not, how accurately | Profound, AthenaHQ | Built; productized in a separate private repo | `d-walia/avowed.ai` (private) |
 | Competitive Intel Researcher | Competitor analysis → sourced report, sales battlecard, delta memo | Klue, Crayon | Built | [`agents/competitive-intel-researcher/`](agents/competitive-intel-researcher/) |
 | Meeting Transcriber | **Capture half 1 of 2 — a recording that already exists.** Audio or video file in → structured notes out, via the free Groq Whisper API. Owns the notes step both halves share | Otter, Fireflies | Built | [`agents/meeting-transcriber/`](agents/meeting-transcriber/) |
 | Live Meeting Transcriber | **Capture half 2 of 2 — a call happening right now.** Near-real-time from the Mac's mic (+ BlackHole for the far side). Produces a raw transcript, then hands it to the Meeting Transcriber notes step | Otter, Fireflies | Built | [`agents/live-meeting-transcriber/`](agents/live-meeting-transcriber/) |
