@@ -7,6 +7,9 @@ paths, and re-pulling every time something changes.
 The idea is [MKT1's](https://newsletter.mkt1.co/): an MCP doesn't have to wrap a
 product. It can distribute methodology. These skills *are* the product.
 
+**Status:** not deployed. The `marketing-agents-mcp` Worker was deleted on
+2026-10-14 (unused). The source stays here; `npm run deploy` brings it back.
+
 ## What it exposes
 
 | Tool | Returns |
@@ -76,7 +79,7 @@ version drift — the problem that makes sharing skills through git tedious.
 ## Access control
 
 By default the endpoint is **open to anyone with the URL**. The URL is
-unguessable, but it isn't a secret, and these skills come from a private repo.
+unguessable, but it isn't a secret, and these skills are already public in this repo.
 To require a shared token:
 
 ```bash

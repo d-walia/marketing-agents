@@ -32,4 +32,4 @@ Ask: "build a battlecard for [company]", "compare [A] vs [B] vs [C]", "what's ne
 - **Four Corners turns research into intelligence.** Drivers, assumptions, strategy, and capabilities become predicted moves and a likely response to our play, labeled as inference.
 - **"How we lose" is mandatory.** A battlecard that says we always win is marketing to ourselves.
 
-Method sources: SCIP's KIT/collection-plan discipline, Porter's Four Corners, Forrester Wave scoring structure, Clozd's win/loss discipline, Klue's Know/Say/Show framework. Full rationale: `~/Desktop/Claude Outputs/competitive-intel-v2-design.md`.
+Method sources: SCIP's KIT/collection-plan discipline, Porter's Four Corners, Forrester Wave scoring structure, Clozd's win/loss discipline, Klue's Know/Say/Show framework.
