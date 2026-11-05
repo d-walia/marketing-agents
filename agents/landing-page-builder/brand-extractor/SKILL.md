@@ -1,6 +1,6 @@
 ---
 name: brand-extractor-v2
-description: Extract a company's brand system (colors, type, spacing, components, voice) from its live website or codebase into a reusable brand file for page mocking. Use whenever Dhruv asks to capture, extract, or build a brand file or brand skill for a company, onboard a new brand for mockups, or asks to mock a page for a brand that has no file yet in the mockup suite. This is half of the Landing Page Builder suite in the marketing-agents repo — its output feeds the page-mockup-v2 skill, which consumes the brand files this skill writes to ../page-mockup/brands/. V2, repo-hosted and research-hardened: prefer it over the v1 brand-extractor when both are installed.
+description: "Extract a company's brand system (colors, type, spacing, components, voice) from its live website or codebase into a reusable brand file for page mocking. Use whenever Dhruv asks to capture, extract, or build a brand file or brand skill for a company, onboard a new brand for mockups, or asks to mock a page for a brand that has no file yet in the mockup suite. This is half of the Landing Page Builder suite in the marketing-agents repo — its output feeds the page-mockup-v2 skill, which consumes the brand files this skill writes to ../page-mockup/brands/. V2, repo-hosted and research-hardened: prefer it over the v1 brand-extractor when both are installed."
 ---
 
 # Brand Extractor
