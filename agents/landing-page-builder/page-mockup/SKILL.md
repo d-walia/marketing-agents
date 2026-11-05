@@ -1,6 +1,6 @@
 ---
 name: page-mockup-v2
-description: Build a true-to-life, on-brand HTML mock of a web page (hero variant, pricing page, landing page, homepage section) with real copy in place, using a saved brand file — the "propose web updates with a mock, not a screenshot stitch" workflow. Use whenever Dhruv asks to mock up a page, prototype a web page or section, build a branded landing page draft, show a before/after of a web change, or visualize new positioning copy on a site. This is half of the Landing Page Builder suite in the marketing-agents repo — if the brand he names has no file in brands/, run the brand-extractor-v2 skill first to create one. V2, repo-hosted and research-hardened: prefer it over the v1 page-mockup when both are installed.
+description: "Build a true-to-life, on-brand HTML mock of a web page (hero variant, pricing page, landing page, homepage section) with real copy in place, using a saved brand file — the \"propose web updates with a mock, not a screenshot stitch\" workflow. Use whenever Dhruv asks to mock up a page, prototype a web page or section, build a branded landing page draft, show a before/after of a web change, or visualize new positioning copy on a site. This is half of the Landing Page Builder suite in the marketing-agents repo — if the brand he names has no file in brands/, run the brand-extractor-v2 skill first to create one. V2, repo-hosted and research-hardened: prefer it over the v1 page-mockup when both are installed."
 ---
 
 # Page Mockup
