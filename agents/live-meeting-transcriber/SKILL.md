@@ -1,6 +1,6 @@
 ---
 name: live-meeting-transcriber
-description: Transcribe a call, meeting, or interview happening live right now, near-real-time, from the Mac's microphone (optionally plus the call's far side via BlackHole). Use whenever Dhruv says "transcribe as I go", "transcribe this call live", "I'm about to get on a call — capture it", or asks for live/real-time transcription of something in progress. Mic-bound: this only works in Claude Code on the Mac itself, never in a cloud session. For a finished recording or an existing transcript, use the meeting-transcriber skill instead.
+description: "Transcribe a call, meeting, or interview happening live right now, near-real-time, from the Mac's microphone (optionally plus the call's far side via BlackHole). Use whenever Dhruv says \"transcribe as I go\", \"transcribe this call live\", \"I'm about to get on a call — capture it\", or asks for live/real-time transcription of something in progress. Mic-bound: this only works in Claude Code on the Mac itself, never in a cloud session. For a finished recording or an existing transcript, use the meeting-transcriber skill instead."
 ---
 
 # Live Meeting Transcriber
